@@ -9,11 +9,8 @@ desktop.ini
 *.swp
 *~
 
-# ESP-IDF and the host unit tests (firmware/)
+# Target build and unit tests (firmware/)
 build/
-sdkconfig
-sdkconfig.old
-managed_components/
 CMakeUserPresets.json
 
 # clangd index

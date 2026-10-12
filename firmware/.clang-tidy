@@ -27,8 +27,8 @@ Checks: >
 #   C interfaces pass (pointer, length) pairs and several integers of the
 #   same type. The check flags nearly every function of the protocol code.
 # clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
-#   It asks for memcpy_s and friends of Annex K, which neither the ESP-IDF
-#   C library nor glibc provides. Lengths are checked before every copy.
+#   It asks for memcpy_s and friends of Annex K, which neither newlib nor
+#   glibc provides. Lengths are checked before every copy.
 # misc-include-cleaner
 #   It wants a direct include for every symbol and rejects umbrella headers
 #   such as unity.h. The headers are checked for self-containment instead.

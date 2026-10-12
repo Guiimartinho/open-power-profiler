@@ -6,8 +6,8 @@
 CompileFlags:
   CompilationDatabase: test/host/build/debug
 ---
-# main/ needs the ESP-IDF headers and the cross compiler, which clangd does
-# not know. These files are checked by the ESP-IDF build instead.
+# main/ needs the headers of the Pico SDK and the cross compiler, which this
+# compilation database does not hold. The target build checks these files.
 If:
   PathMatch: main/.*
 Diagnostics:

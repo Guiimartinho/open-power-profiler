@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "pico2",
+      "displayName": "Raspberry Pi Pico 2",
+      "description": "Firmware image for the RP2350. Needs PICO_SDK_PATH and PICO_TOOLCHAIN_PATH in the environment",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/pico2",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "PICO_BOARD": "pico2"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "pico2",
+      "configurePreset": "pico2"
+    }
+  ]
+}
