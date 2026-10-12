@@ -35,4 +35,15 @@ static inline uint32_t pp_get_u32le(const uint8_t *src)
            ((uint32_t)src[3] << 24);
 }
 
+static inline void pp_put_u64le(uint8_t *dst, uint64_t value)
+{
+    pp_put_u32le(dst, (uint32_t)(value & 0xFFFFFFFFu));
+    pp_put_u32le(dst + 4, (uint32_t)(value >> 32));
+}
+
+static inline uint64_t pp_get_u64le(const uint8_t *src)
+{
+    return (uint64_t)pp_get_u32le(src) | ((uint64_t)pp_get_u32le(src + 4) << 32);
+}
+
 #endif /* PP_BYTES_H */

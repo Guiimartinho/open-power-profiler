@@ -5,7 +5,7 @@
 #ifndef PP_PROTO_DEFS_H
 #define PP_PROTO_DEFS_H
 
-#define PP_PROTO_VERSION 1u
+#define PP_PROTO_VERSION 2u
 
 #define PP_FRAME_MAGIC 0xA55Au
 #define PP_FRAME_HEADER_SIZE 8u
@@ -36,7 +36,8 @@ typedef enum {
     PP_CMD_START = 0x20,
     PP_CMD_STOP = 0x21,
     PP_CMD_CAL_ZERO = 0x30,
-    PP_CMD_CAL_WRITE = 0x31,
+    PP_CMD_CAL_READ = 0x32,
+    PP_CMD_CAL_STORE = 0x33,
     PP_CMD_CLEAR_FAULT = 0x40,
 } pp_command_id_t;
 
@@ -51,8 +52,9 @@ typedef enum {
 
 typedef enum {
     PP_EVENT_FAULT_RAISED = 0x01,
-    PP_EVENT_POWER_BUDGET_CHANGED = 0x02,
     PP_EVENT_STATE_CHANGED = 0x03,
+    PP_EVENT_SUPPLY_CHANGED = 0x04,
+    PP_EVENT_NOTICE = 0x05,
 } pp_event_id_t;
 
 typedef enum {
@@ -69,11 +71,49 @@ typedef enum {
     PP_MODE_SOURCE_METER = 0x01,
 } pp_mode_t;
 
+typedef enum {
+    PP_SUPPLY_MODULE = 0x00,
+    PP_SUPPLY_USB_C = 0x01,
+} pp_supply_t;
+
+typedef enum {
+    PP_CC_DEFAULT = 0x00,
+    PP_CC_CURRENT_1A5 = 0x01,
+    PP_CC_CURRENT_3A0 = 0x02,
+} pp_cc_class_t;
+
+typedef enum {
+    PP_NOTICE_SETPOINT_SETTLED = 0x01,
+    PP_NOTICE_DUT_ABOVE_SETPOINT = 0x02,
+    PP_NOTICE_ZERO_TAKEN = 0x03,
+} pp_notice_t;
+
+typedef enum {
+    PP_CAL_STATE_CALIBRATED = 0x00,
+    PP_CAL_STATE_NOMINAL = 0x01,
+    PP_CAL_STATE_FOREIGN = 0x02,
+} pp_cal_state_t;
+
 /* Bits of the 16-bit fault flags. */
 #define PP_FAULT_OVERCURRENT (1u << 0)
 #define PP_FAULT_POWER_LIMIT (1u << 1)
 #define PP_FAULT_THERMAL (1u << 2)
 #define PP_FAULT_SELFTEST (1u << 3)
+#define PP_FAULT_SEQUENCER (1u << 4)
+#define PP_FAULT_REVERSE_CURRENT (1u << 5)
+#define PP_FAULT_CARRIER_SUPPLY (1u << 6)
+#define PP_FAULT_ANALOG_RAILS (1u << 7)
+#define PP_FAULT_VIN_OVERVOLTAGE (1u << 8)
+#define PP_FAULT_VIN_RANGE (1u << 9)
+#define PP_FAULT_SOURCE_OVERLOAD (1u << 10)
+#define PP_FAULT_EXTERNAL_VOLTAGE (1u << 11)
+#define PP_FAULT_START_CHECK (1u << 12)
+#define PP_FAULT_START_OVERCURRENT (1u << 13)
+#define PP_FAULT_WATCHDOG (1u << 14)
+
+/* Bits of the notice byte of the status record. */
+#define PP_STATUS_NOTICE_SETPOINT_SETTLED (1u << 0)
+#define PP_STATUS_NOTICE_DUT_ABOVE_SETPOINT (1u << 1)
 
 /* Sample word fields: shift, then mask of the shifted-down value. */
 #define PP_SAMPLE_ADC_SHIFT 0u
@@ -84,13 +124,69 @@ typedef enum {
 #define PP_SAMPLE_INVALID_MASK 0x01u
 #define PP_SAMPLE_FAULT_SHIFT 19u
 #define PP_SAMPLE_FAULT_MASK 0x01u
-#define PP_SAMPLE_RESERVED_SHIFT 20u
-#define PP_SAMPLE_RESERVED_MASK 0x0Fu
+#define PP_SAMPLE_OVER_RANGE_SHIFT 20u
+#define PP_SAMPLE_OVER_RANGE_MASK 0x01u
+#define PP_SAMPLE_UNDER_RANGE_SHIFT 21u
+#define PP_SAMPLE_UNDER_RANGE_MASK 0x01u
+#define PP_SAMPLE_OUTPUT_SHIFT 22u
+#define PP_SAMPLE_OUTPUT_MASK 0x01u
+#define PP_SAMPLE_RESERVED_SHIFT 23u
+#define PP_SAMPLE_RESERVED_MASK 0x01u
 #define PP_SAMPLE_LOGIC_SHIFT 24u
 #define PP_SAMPLE_LOGIC_MASK 0xFFu
 
+/* Layout of the info record: its size, then the offset of each field. */
+#define PP_INFO_SIZE 48u
+#define PP_INFO_OFFSET_PROTOCOL_VERSION 0u
+#define PP_INFO_OFFSET_HARDWARE_REVISION 1u
+#define PP_INFO_OFFSET_FIRMWARE_MAJOR 2u
+#define PP_INFO_OFFSET_FIRMWARE_MINOR 3u
+#define PP_INFO_OFFSET_FIRMWARE_PATCH 4u
+#define PP_INFO_OFFSET_CAL_STATE 5u
+#define PP_INFO_OFFSET_SETTLE_SAMPLES 6u
+#define PP_INFO_OFFSET_CHIP_ID 7u
+#define PP_INFO_OFFSET_CARRIER_SERIAL 15u
+#define PP_INFO_OFFSET_CARRIER_REVISION 31u
+#define PP_INFO_OFFSET_ZERO_R0 32u
+#define PP_INFO_OFFSET_ZERO_R1 36u
+#define PP_INFO_OFFSET_ZERO_R2 40u
+#define PP_INFO_OFFSET_ZERO_R3 44u
+
+/* Layout of the status record: its size, then the offset of each field. */
+#define PP_STATUS_SIZE 25u
+#define PP_STATUS_OFFSET_STATE 0u
+#define PP_STATUS_OFFSET_FAULTS 1u
+#define PP_STATUS_OFFSET_DROPPED_BLOCKS 3u
+#define PP_STATUS_OFFSET_MODE 7u
+#define PP_STATUS_OFFSET_RANGE_LOCK 8u
+#define PP_STATUS_OFFSET_SETPOINT_MV 9u
+#define PP_STATUS_OFFSET_VOUT_MV 11u
+#define PP_STATUS_OFFSET_VIN_MV 13u
+#define PP_STATUS_OFFSET_RAIL5_MV 15u
+#define PP_STATUS_OFFSET_TEMPERATURE_DC 17u
+#define PP_STATUS_OFFSET_SUPPLY 19u
+#define PP_STATUS_OFFSET_CC_CLASS 20u
+#define PP_STATUS_OFFSET_BUDGET_MA 21u
+#define PP_STATUS_OFFSET_TRIP_COUNT 23u
+#define PP_STATUS_OFFSET_NOTICES 24u
+
+/* Layout of the supply record: its size, then the offset of each field. */
+#define PP_SUPPLY_SIZE 4u
+#define PP_SUPPLY_OFFSET_SUPPLY 0u
+#define PP_SUPPLY_OFFSET_CC_CLASS 1u
+#define PP_SUPPLY_OFFSET_BUDGET_MA 2u
+
+/* Layout of the zero record: its size, then the offset of each field. */
+#define PP_ZERO_SIZE 16u
+#define PP_ZERO_OFFSET_ZERO_R0 0u
+#define PP_ZERO_OFFSET_ZERO_R1 4u
+#define PP_ZERO_OFFSET_ZERO_R2 8u
+#define PP_ZERO_OFFSET_ZERO_R3 12u
+
 #define PP_RANGE_COUNT 0x04u
 #define PP_RANGE_AUTO 0xFFu
-#define PP_CAL_TARGET_DAC 0x10u
+#define PP_SERIAL_SIZE 0x10u
+#define PP_ZERO_SCALE 0x100u
+#define PP_CAL_RECORD_MAX 0xFAu
 
 #endif /* PP_PROTO_DEFS_H */

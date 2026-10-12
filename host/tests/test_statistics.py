@@ -43,6 +43,26 @@ def test_mean_minimum_and_maximum_of_valid_samples() -> None:
     assert result.range_samples == (1, 2, 0, 0)
 
 
+def test_over_range_and_under_range_samples_are_left_out_too() -> None:
+    accumulator = StatisticsAccumulator(table())
+
+    accumulator.add(
+        words(
+            Sample(10, 0, output=True),
+            Sample(65535, 1, over_range=True),
+            Sample(30, 0, fault=True),
+            Sample(100, 2, under_range=True),
+        )
+    )
+
+    result = accumulator.result()
+    assert result.samples == 4
+    assert result.valid_samples == 2
+    assert result.invalid_samples == 2
+    assert result.mean_current == pytest.approx(20.0)
+    assert result.max_current == 30.0
+
+
 def test_invalid_samples_are_counted_and_left_out() -> None:
     accumulator = StatisticsAccumulator(table())
 

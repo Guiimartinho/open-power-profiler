@@ -15,8 +15,8 @@ from s3_power_profiler.errors import (
 )
 from s3_power_profiler.protocol import (
     BLOCK_SAMPLES,
-    CAL_TARGET_DAC,
     PROTOCOL_VERSION,
+    CalState,
     Command,
     CommandMessage,
     DeviceInfo,
@@ -39,7 +39,6 @@ from s3_power_profiler.protocol import (
     encode_response,
     encode_stream_payload,
 )
-from s3_power_profiler.protocol.commands import CalibrationWrite
 from s3_power_profiler.sim import SimulatorConfig, connect_simulator
 
 
@@ -103,7 +102,13 @@ def test_get_info_returns_the_identity_of_the_instrument() -> None:
         info = client.get_info()
 
     assert info == DeviceInfo(
-        protocol_version=PROTOCOL_VERSION, hardware_revision=0, firmware_version=(1, 2, 3)
+        protocol_version=PROTOCOL_VERSION,
+        hardware_revision=0,
+        firmware_version=(1, 2, 3),
+        cal_state=CalState.NOMINAL,
+        settle_samples=4,
+        chip_id=1,
+        zero_offsets=(1313.0, 1313.0, 1313.0, 1313.0),
     )
 
 
@@ -114,7 +119,14 @@ def test_get_status_returns_the_state_of_the_instrument() -> None:
         client.set_dut_power(True)
         status = client.get_status()
 
-    assert status == DeviceStatus(state=DeviceState.ARMED, faults=Fault(0), dropped_blocks=0)
+    assert status == DeviceStatus(
+        state=DeviceState.ARMED,
+        faults=Fault(0),
+        dropped_blocks=0,
+        rail5_mv=5000,
+        temperature=25.0,
+        budget_ma=450,
+    )
 
 
 def test_settings_reach_the_instrument() -> None:
@@ -125,14 +137,16 @@ def test_settings_reach_the_instrument() -> None:
         client.set_voltage(3300)
         client.set_range(2)
         client.set_down_n(40)
-        client.calibrate_zero()
-        client.write_calibration(CAL_TARGET_DAC, 2.0, 0.5)
+        zero = client.calibrate_zero()
+        client.store_calibration(b"a calibration record")
+        record = client.read_calibration()
 
     assert simulator.mode is Mode.SOURCE_METER
     assert simulator.voltage_mv == 3300
     assert simulator.range_lock == 2
     assert simulator.down_n == 40
-    assert simulator.calibration[CAL_TARGET_DAC] == CalibrationWrite(CAL_TARGET_DAC, 2.0, 0.5)
+    assert zero == (1313.0, 1313.0, 1313.0, 1313.0)
+    assert simulator.calibration_record == record == b"a calibration record"
 
 
 def test_capture_delivers_consecutive_blocks() -> None:
@@ -213,7 +227,14 @@ def test_fault_is_reported_and_can_be_cleared() -> None:
     ]
     assert status.state is DeviceState.FAULT
     assert status.faults == Fault.OVERCURRENT
-    assert cleared == DeviceStatus(state=DeviceState.IDLE, faults=Fault(0), dropped_blocks=0)
+    assert cleared == DeviceStatus(
+        state=DeviceState.IDLE,
+        faults=Fault(0),
+        dropped_blocks=0,
+        rail5_mv=5000,
+        temperature=25.0,
+        budget_ma=450,
+    )
 
 
 def test_start_discards_stream_frames_of_an_earlier_run() -> None:
@@ -269,7 +290,8 @@ def test_sequence_wraps_around(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_response_split_over_several_reads_is_put_together() -> None:
-    frame = response(0, Command.GET_INFO, data=bytes([PROTOCOL_VERSION, 0, 0, 1, 0]))
+    data = commands.encode_device_info(DeviceInfo(PROTOCOL_VERSION, 0, (0, 1, 0)))
+    frame = response(0, Command.GET_INFO, data=data)
     transport = ScriptedTransport([frame[:3], frame[3:9], frame[9:]])
 
     info = DeviceClient(transport).get_info()
@@ -359,7 +381,7 @@ def test_unknown_status_code_is_still_a_command_error() -> None:
 def test_response_data_that_is_too_short_is_a_payload_error() -> None:
     client = DeviceClient(ScriptedTransport([response(0, Command.GET_INFO, data=b"\x01")]))
 
-    with pytest.raises(PayloadError, match="GET_INFO needs 5 data bytes"):
+    with pytest.raises(PayloadError, match="GET_INFO returned 1 data bytes"):
         client.get_info()
 
 

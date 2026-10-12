@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import struct
 from collections.abc import Callable
+from dataclasses import replace
 from typing import Any
 
 import pytest
@@ -11,29 +12,38 @@ from hypothesis import strategies as st
 from s3_power_profiler.errors import PayloadError
 from s3_power_profiler.protocol import commands
 from s3_power_profiler.protocol._defs import (
-    CAL_TARGET_DAC,
+    CAL_RECORD_MAX,
     COMMAND_MAX_PAYLOAD,
     FRAME_MAX_PAYLOAD,
+    INFO_SIZE,
     PROTOCOL_VERSION,
     RANGE_AUTO,
     RANGE_COUNT,
+    STATUS_SIZE,
+    ZERO_SCALE,
+    CalState,
+    CcClass,
     Command,
     DeviceState,
     Event,
     Fault,
     Mode,
+    Notice,
     Status,
+    StatusNotice,
+    Supply,
 )
 from s3_power_profiler.protocol.commands import (
     MAX_COMMAND_ARGUMENTS,
     MAX_EVENT_DATA,
     MAX_RESPONSE_DATA,
-    CalibrationWrite,
     CommandMessage,
     DeviceInfo,
     DeviceStatus,
     EventMessage,
+    NoticeMessage,
     ResponseMessage,
+    SupplyReport,
     decode_command,
     decode_event,
     decode_response,
@@ -129,7 +139,7 @@ def test_event_round_trips(message: EventMessage) -> None:
 
 
 def test_largest_messages_fit_in_their_frames() -> None:
-    command = CommandMessage(Command.CAL_WRITE, bytes(MAX_COMMAND_ARGUMENTS))
+    command = CommandMessage(Command.CAL_STORE, bytes(MAX_COMMAND_ARGUMENTS))
     response = ResponseMessage(Command.GET_INFO, Status.OK, bytes(MAX_RESPONSE_DATA))
     event = EventMessage(Event.STATE_CHANGED, bytes(MAX_EVENT_DATA))
 
@@ -216,6 +226,7 @@ def test_describe_names_known_values_and_numbers_unknown_ones() -> None:
         (commands.build_start, Command.START),
         (commands.build_stop, Command.STOP),
         (commands.build_cal_zero, Command.CAL_ZERO),
+        (commands.build_cal_read, Command.CAL_READ),
         (commands.build_clear_fault, Command.CLEAR_FAULT),
     ],
 )
@@ -317,57 +328,157 @@ def test_set_down_n_rejects_bad_input() -> None:
         commands.parse_set_down_n(b"\x00\x00\x00")
 
 
-@pytest.mark.parametrize("target", [*range(RANGE_COUNT), CAL_TARGET_DAC])
-def test_cal_write_round_trips(target: int) -> None:
-    message = commands.build_cal_write(target, gain=2.0, offset=-0.5)
+def test_cal_store_carries_the_record_unchanged() -> None:
+    record = bytes(range(1, 143))
 
-    assert message.command_id == Command.CAL_WRITE
-    assert commands.parse_cal_write(message.arguments) == CalibrationWrite(target, 2.0, -0.5)
+    message = commands.build_cal_store(record)
 
-
-def test_cal_write_sends_32_bit_floats() -> None:
-    gain = 1.9073486328125e-09
-
-    written = commands.parse_cal_write(commands.build_cal_write(0, gain, 1310.72).arguments)
-
-    assert written.gain == pytest.approx(gain, rel=1e-6)
-    assert written.offset == struct.unpack("<f", struct.pack("<f", 1310.72))[0]
+    assert message.command_id == Command.CAL_STORE
+    assert commands.parse_cal_store(message.arguments) == record
 
 
-def test_cal_write_rejects_bad_input() -> None:
-    with pytest.raises(ValueError, match="calibration target"):
-        commands.build_cal_write(RANGE_COUNT, 1.0, 0.0)
-    with pytest.raises(ValueError, match="calibration values"):
-        commands.build_cal_write(0, 1e300, 0.0)
-    with pytest.raises(PayloadError, match="unknown target"):
-        commands.parse_cal_write(struct.pack("<Bff", RANGE_COUNT, 1.0, 0.0))
-    with pytest.raises(PayloadError, match="CAL_WRITE takes 9 argument bytes"):
-        commands.parse_cal_write(b"")
+def test_cal_store_takes_a_record_up_to_its_limit() -> None:
+    largest = bytes(CAL_RECORD_MAX)
+
+    message = commands.build_cal_store(largest)
+
+    assert commands.parse_cal_store(message.arguments) == largest
+    assert len(encode_command(message)) <= COMMAND_MAX_PAYLOAD
+
+
+@pytest.mark.parametrize("size", [0, CAL_RECORD_MAX + 1])
+def test_cal_store_rejects_a_record_of_the_wrong_size(size: int) -> None:
+    with pytest.raises(ValueError, match="calibration record"):
+        commands.build_cal_store(bytes(size))
+    with pytest.raises(PayloadError, match="CAL_STORE takes 1 to"):
+        commands.parse_cal_store(bytes(size))
+
+
+def test_zero_offsets_travel_in_steps_of_the_wire() -> None:
+    offsets = (1313.0, 1312.5, 1313.00390625, -1.0)
+
+    data = commands.encode_zero_offsets(offsets)
+
+    assert data == struct.pack("<4i", 336128, 336000, 336129, -256)
+    assert commands.decode_zero_offsets(data) == offsets
+    assert commands.decode_zero_offsets(data + b"\xff") == offsets
+
+
+def test_zero_offsets_reject_bad_input() -> None:
+    with pytest.raises(ValueError, match="expected 4 zero offsets"):
+        commands.encode_zero_offsets((0.0, 0.0, 0.0))
+    with pytest.raises(ValueError, match="zero offsets"):
+        commands.encode_zero_offsets((1e12, 0.0, 0.0, 0.0))
+    with pytest.raises(PayloadError, match="CAL_ZERO needs 16 data bytes"):
+        commands.decode_zero_offsets(bytes(15))
 
 
 # --- Response data ----------------------------------------------------------
 
+FULL_INFO = DeviceInfo(
+    protocol_version=PROTOCOL_VERSION,
+    hardware_revision=1,
+    firmware_version=(2, 3, 4),
+    cal_state=CalState.CALIBRATED,
+    settle_samples=7,
+    chip_id=0xE661A4D1234567AB,
+    carrier_serial="OPP-A2-0001",
+    carrier_revision=1,
+    zero_offsets=(1313.0, 1313.25, 1312.5, 1313.0),
+)
+
+FULL_STATUS = DeviceStatus(
+    state=DeviceState.STREAMING,
+    faults=Fault(0),
+    dropped_blocks=3,
+    mode=Mode.SOURCE_METER,
+    range_lock=2,
+    setpoint_mv=3300,
+    vout_mv=3298,
+    vin_mv=-12,
+    rail5_mv=5020,
+    temperature=31.8,
+    supply=Supply.USB_C,
+    cc_class=CcClass.CURRENT_3A0,
+    budget_ma=1700,
+    trip_count=1,
+    notices=StatusNotice.SETPOINT_SETTLED,
+)
+
 
 def test_device_info_round_trips() -> None:
-    info = DeviceInfo(
-        protocol_version=PROTOCOL_VERSION, hardware_revision=1, firmware_version=(2, 3, 4)
+    encoded = commands.encode_device_info(FULL_INFO)
+
+    assert len(encoded) == INFO_SIZE
+    assert encoded[:5] == bytes([PROTOCOL_VERSION, 1, 2, 3, 4])
+    assert commands.decode_device_info(encoded) == FULL_INFO
+
+
+def test_device_info_defaults_describe_an_instrument_without_a_record() -> None:
+    plain = DeviceInfo(
+        protocol_version=PROTOCOL_VERSION, hardware_revision=0, firmware_version=(0, 1, 0)
     )
 
-    assert commands.decode_device_info(commands.encode_device_info(info)) == info
-    assert commands.encode_device_info(info) == bytes([PROTOCOL_VERSION, 1, 2, 3, 4])
+    info = commands.decode_device_info(commands.encode_device_info(plain))
+
+    assert info == plain
+    assert info.cal_state is CalState.NOMINAL
+    assert info.carrier_serial == ""
+    assert info.zero_offsets == (0.0, 0.0, 0.0, 0.0)
 
 
 def test_device_info_ignores_fields_added_by_a_newer_instrument() -> None:
-    info = DeviceInfo(protocol_version=1, hardware_revision=0, firmware_version=(0, 1, 0))
+    encoded = commands.encode_device_info(FULL_INFO)
 
-    assert commands.decode_device_info(commands.encode_device_info(info) + b"\xff\xff") == info
+    assert commands.decode_device_info(encoded + b"\xff\xff") == FULL_INFO
+
+
+def test_device_info_matches_shared_vectors(vectors: dict[str, Any]) -> None:
+    for vector in vectors["records"]["info"]:
+        data = bytes.fromhex(vector["data"])
+
+        info = commands.decode_device_info(data)
+
+        assert info.protocol_version == vector["protocol_version"]
+        assert info.hardware_revision == vector["hardware_revision"]
+        assert info.firmware_version == (
+            vector["firmware_major"],
+            vector["firmware_minor"],
+            vector["firmware_patch"],
+        )
+        assert info.cal_state == vector["cal_state"]
+        assert info.settle_samples == vector["settle_samples"]
+        assert info.chip_id == vector["chip_id"]
+        assert info.carrier_serial == vector["carrier_serial"]
+        assert info.carrier_revision == vector["carrier_revision"]
+        assert info.zero_offsets == tuple(
+            vector[f"zero_r{index}"] / ZERO_SCALE for index in range(RANGE_COUNT)
+        )
+        assert commands.encode_device_info(info) == data, vector["name"]
+
+
+def test_device_info_names_the_version_of_an_older_instrument() -> None:
+    with pytest.raises(PayloadError, match="names protocol version 1"):
+        commands.decode_device_info(bytes([1, 0, 0, 1, 0]))
+    with pytest.raises(PayloadError, match="GET_INFO returned no data"):
+        commands.decode_device_info(b"")
 
 
 def test_device_info_rejects_bad_input() -> None:
-    with pytest.raises(PayloadError, match="GET_INFO needs 5 data bytes"):
-        commands.decode_device_info(bytes(4))
+    unknown_state = bytearray(commands.encode_device_info(FULL_INFO))
+    unknown_state[5] = len(CalState)
+    with pytest.raises(PayloadError, match="unknown calibration state"):
+        commands.decode_device_info(bytes(unknown_state))
+    bad_text = bytearray(commands.encode_device_info(FULL_INFO))
+    bad_text[15] = 0xFF
+    with pytest.raises(PayloadError, match="not ASCII"):
+        commands.decode_device_info(bytes(bad_text))
     with pytest.raises(ValueError, match="device info"):
         commands.encode_device_info(DeviceInfo(256, 0, (0, 0, 0)))
+    with pytest.raises(ValueError, match="longer than 16"):
+        commands.encode_device_info(replace(FULL_INFO, carrier_serial="X" * 17))
+    with pytest.raises(ValueError, match="not ASCII"):
+        commands.encode_device_info(replace(FULL_INFO, carrier_serial="n\u00famero"))
 
 
 @given(
@@ -381,22 +492,71 @@ def test_device_status_round_trips(state: DeviceState, faults: int, dropped: int
     assert commands.decode_device_status(commands.encode_device_status(status)) == status
 
 
-def test_device_status_layout() -> None:
+def test_device_status_round_trips_every_field() -> None:
+    encoded = commands.encode_device_status(FULL_STATUS)
+
+    assert len(encoded) == STATUS_SIZE
+    assert commands.decode_device_status(encoded) == FULL_STATUS
+    assert commands.decode_device_status(encoded + b"\x00") == FULL_STATUS
+
+
+def test_device_status_layout_starts_with_the_fields_of_version_1() -> None:
     status = DeviceStatus(
         state=DeviceState.FAULT, faults=Fault.OVERCURRENT | Fault.THERMAL, dropped_blocks=258
     )
 
     encoded = commands.encode_device_status(status)
 
-    assert encoded == struct.pack("<BHI", DeviceState.FAULT, 0b101, 258)
-    assert commands.decode_device_status(encoded + b"\x00") == status
+    assert encoded[:7] == struct.pack("<BHI", DeviceState.FAULT, 0b101, 258)
+    assert encoded[8] == RANGE_AUTO
+
+
+def test_device_status_matches_shared_vectors(vectors: dict[str, Any]) -> None:
+    for vector in vectors["records"]["status"]:
+        data = bytes.fromhex(vector["data"])
+
+        status = commands.decode_device_status(data)
+
+        assert status.state == vector["state"]
+        assert status.faults == vector["faults"]
+        assert status.dropped_blocks == vector["dropped_blocks"]
+        assert status.mode == vector["mode"]
+        expected_lock = None if vector["range_lock"] == RANGE_AUTO else vector["range_lock"]
+        assert status.range_lock == expected_lock
+        assert status.setpoint_mv == vector["setpoint_mv"]
+        assert status.vout_mv == vector["vout_mv"]
+        assert status.vin_mv == vector["vin_mv"]
+        assert status.rail5_mv == vector["rail5_mv"]
+        assert status.temperature == vector["temperature_dc"] / 10
+        assert status.supply == vector["supply"]
+        assert status.cc_class == vector["cc_class"]
+        assert status.budget_ma == vector["budget_ma"]
+        assert status.trip_count == vector["trip_count"]
+        assert status.notices == vector["notices"]
+        assert commands.encode_device_status(status) == data, vector["name"]
+
+
+@pytest.mark.parametrize(
+    ("offset", "value", "message"),
+    [
+        (0, len(DeviceState), "unknown state"),
+        (7, len(Mode), "unknown mode"),
+        (8, RANGE_COUNT, "unknown range"),
+        (19, len(Supply), "unknown supply"),
+        (20, len(CcClass), "unknown CC class"),
+    ],
+)
+def test_device_status_rejects_an_unknown_value(offset: int, value: int, message: str) -> None:
+    encoded = bytearray(commands.encode_device_status(FULL_STATUS))
+    encoded[offset] = value
+
+    with pytest.raises(PayloadError, match=message):
+        commands.decode_device_status(bytes(encoded))
 
 
 def test_device_status_rejects_bad_input() -> None:
-    with pytest.raises(PayloadError, match="GET_STATUS needs 7 data bytes"):
-        commands.decode_device_status(bytes(6))
-    with pytest.raises(PayloadError, match="unknown state"):
-        commands.decode_device_status(struct.pack("<BHI", len(DeviceState), 0, 0))
+    with pytest.raises(PayloadError, match=f"GET_STATUS needs {STATUS_SIZE} data bytes"):
+        commands.decode_device_status(bytes(STATUS_SIZE - 1))
     with pytest.raises(ValueError, match="device status"):
         commands.encode_device_status(DeviceStatus(DeviceState.IDLE, Fault(0), -1))
 
@@ -413,12 +573,57 @@ def test_fault_raised_round_trips(faults: int) -> None:
     assert commands.parse_fault_raised(event.data + b"\x00") == Fault(faults)
 
 
-@given(milliwatts=st.integers(min_value=0, max_value=0xFFFF))
-def test_power_budget_changed_round_trips(milliwatts: int) -> None:
-    event = commands.build_power_budget_changed(milliwatts)
+def test_supply_changed_round_trips() -> None:
+    report = SupplyReport(Supply.USB_C, CcClass.CURRENT_1A5, 1400)
 
-    assert event.event_id == Event.POWER_BUDGET_CHANGED
-    assert commands.parse_power_budget_changed(event.data) == milliwatts
+    event = commands.build_supply_changed(report)
+
+    assert event.event_id == Event.SUPPLY_CHANGED
+    assert event.data == struct.pack("<BBH", 1, 1, 1400)
+    assert commands.parse_supply_changed(event.data) == report
+    assert commands.parse_supply_changed(event.data + b"\x00") == report
+
+
+def test_supply_changed_matches_shared_vectors(vectors: dict[str, Any]) -> None:
+    for vector in vectors["records"]["supply"]:
+        data = bytes.fromhex(vector["data"])
+
+        report = commands.parse_supply_changed(data)
+
+        assert report == SupplyReport(
+            Supply(vector["supply"]), CcClass(vector["cc_class"]), vector["budget_ma"]
+        )
+        assert commands.build_supply_changed(report).data == data, vector["name"]
+
+
+def test_zero_offsets_match_shared_vectors(vectors: dict[str, Any]) -> None:
+    for vector in vectors["records"]["zero"]:
+        data = bytes.fromhex(vector["data"])
+
+        offsets = commands.decode_zero_offsets(data)
+
+        assert offsets == tuple(
+            vector[f"zero_r{index}"] / ZERO_SCALE for index in range(RANGE_COUNT)
+        )
+        assert commands.encode_zero_offsets(offsets) == data, vector["name"]
+
+
+@pytest.mark.parametrize("notice", [Notice.SETPOINT_SETTLED, Notice.DUT_ABOVE_SETPOINT])
+def test_a_notice_without_data_round_trips(notice: Notice) -> None:
+    event = commands.build_notice(notice)
+
+    assert event.event_id == Event.NOTICE
+    assert event.data == bytes([notice])
+    assert commands.parse_notice(event.data) == NoticeMessage(notice)
+
+
+def test_the_zero_taken_notice_carries_the_offsets() -> None:
+    offsets = (1313.0, 1313.5, 1312.0, 1314.0)
+
+    event = commands.build_notice(Notice.ZERO_TAKEN, offsets)
+
+    assert event.event_id == Event.NOTICE
+    assert commands.parse_notice(event.data) == NoticeMessage(Notice.ZERO_TAKEN, offsets)
 
 
 @pytest.mark.parametrize("state", list(DeviceState))
@@ -432,10 +637,24 @@ def test_state_changed_round_trips(state: DeviceState) -> None:
 def test_event_data_rejects_bad_input() -> None:
     with pytest.raises(PayloadError, match="FAULT_RAISED needs 2 data bytes"):
         commands.parse_fault_raised(b"\x00")
-    with pytest.raises(PayloadError, match="POWER_BUDGET_CHANGED needs 2 data bytes"):
-        commands.parse_power_budget_changed(b"")
-    with pytest.raises(ValueError, match="power budget"):
-        commands.build_power_budget_changed(0x10000)
+    with pytest.raises(PayloadError, match="SUPPLY_CHANGED needs 4 data bytes"):
+        commands.parse_supply_changed(bytes(3))
+    with pytest.raises(PayloadError, match="unknown supply"):
+        commands.parse_supply_changed(struct.pack("<BBH", len(Supply), 0, 450))
+    with pytest.raises(PayloadError, match="unknown CC class"):
+        commands.parse_supply_changed(struct.pack("<BBH", 0, len(CcClass), 450))
+    with pytest.raises(ValueError, match="supply report"):
+        commands.build_supply_changed(SupplyReport(Supply.MODULE, CcClass.DEFAULT, 0x10000))
+    with pytest.raises(PayloadError, match="NOTICE needs 1 data bytes"):
+        commands.parse_notice(b"")
+    with pytest.raises(PayloadError, match="unknown code"):
+        commands.parse_notice(bytes([0]))
+    with pytest.raises(PayloadError, match="NOTICE needs 16 data bytes"):
+        commands.parse_notice(bytes([Notice.ZERO_TAKEN]) + bytes(15))
+    with pytest.raises(ValueError, match="carries the zero offsets"):
+        commands.build_notice(Notice.ZERO_TAKEN)
+    with pytest.raises(ValueError, match="carries no zero offsets"):
+        commands.build_notice(Notice.SETPOINT_SETTLED, (0.0, 0.0, 0.0, 0.0))
     with pytest.raises(PayloadError, match="STATE_CHANGED needs 1 data bytes"):
         commands.parse_state_changed(b"")
     with pytest.raises(PayloadError, match="unknown state"):

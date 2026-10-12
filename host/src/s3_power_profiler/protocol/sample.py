@@ -1,9 +1,9 @@
 """The 32-bit sample word.
 
 Every sample carries its own context: the ADC code, the range that was active,
-whether the sample is inside the settling window of a range change, the fault
-latch and the eight logic inputs. The reserved bits are written as zero and
-ignored when reading.
+whether the sample is inside a settling window, the fault latch, the over-range
+and under-range marks, the request of the output switch and the eight logic
+inputs. The reserved bit is written as zero and ignored when reading.
 """
 
 from __future__ import annotations
@@ -22,8 +22,14 @@ from s3_power_profiler.protocol._defs import (
     SAMPLE_INVALID_SHIFT,
     SAMPLE_LOGIC_MASK,
     SAMPLE_LOGIC_SHIFT,
+    SAMPLE_OUTPUT_MASK,
+    SAMPLE_OUTPUT_SHIFT,
+    SAMPLE_OVER_RANGE_MASK,
+    SAMPLE_OVER_RANGE_SHIFT,
     SAMPLE_RANGE_MASK,
     SAMPLE_RANGE_SHIFT,
+    SAMPLE_UNDER_RANGE_MASK,
+    SAMPLE_UNDER_RANGE_SHIFT,
 )
 
 _WORD = struct.Struct("<I")
@@ -41,9 +47,14 @@ class Sample:
     Attributes:
         adc: Raw ADC code.
         range_index: Range that was active, 0 for R0 up to 3 for R3.
-        invalid: True inside the settling window of a range change.
+        invalid: True inside a settling window: after a range change, or
+            after a change of the supply of the instrument.
         fault: True while the over-current trip is latched.
         logic: Digital inputs, D0 in bit 0 up to D7 in bit 7.
+        over_range: True when the code is at full scale or the current is
+            above the range.
+        under_range: True when the code is below the zero of the range.
+        output: True while the output switch is requested on.
 
     Raises:
         ValueError: If a field does not fit in its bits of the sample word.
@@ -54,6 +65,18 @@ class Sample:
     invalid: bool = False
     fault: bool = False
     logic: int = 0
+    over_range: bool = False
+    under_range: bool = False
+    output: bool = False
+
+    @property
+    def flagged(self) -> bool:
+        """True for a sample that is not used as a measurement.
+
+        These are the samples inside a settling window and the over-range and
+        under-range ones (section 9 of the specification).
+        """
+        return self.invalid or self.over_range or self.under_range
 
     def __post_init__(self) -> None:
         if not 0 <= self.adc <= SAMPLE_ADC_MASK:
@@ -76,6 +99,9 @@ class SampleColumns:
         invalid: Settling-window flag of each sample.
         fault: Fault-latch flag of each sample.
         logic: Digital inputs of each sample.
+        over_range: Over-range mark of each sample.
+        under_range: Under-range mark of each sample.
+        output: Output request of each sample.
     """
 
     adc: tuple[int, ...]
@@ -83,6 +109,9 @@ class SampleColumns:
     invalid: tuple[bool, ...]
     fault: tuple[bool, ...]
     logic: tuple[int, ...]
+    over_range: tuple[bool, ...]
+    under_range: tuple[bool, ...]
+    output: tuple[bool, ...]
 
     def __len__(self) -> int:
         return len(self.adc)
@@ -95,6 +124,9 @@ def pack_sample(sample: Sample) -> int:
         | (sample.range_index << SAMPLE_RANGE_SHIFT)
         | (int(sample.invalid) << SAMPLE_INVALID_SHIFT)
         | (int(sample.fault) << SAMPLE_FAULT_SHIFT)
+        | (int(sample.over_range) << SAMPLE_OVER_RANGE_SHIFT)
+        | (int(sample.under_range) << SAMPLE_UNDER_RANGE_SHIFT)
+        | (int(sample.output) << SAMPLE_OUTPUT_SHIFT)
         | (sample.logic << SAMPLE_LOGIC_SHIFT)
     )
 
@@ -113,6 +145,9 @@ def unpack_sample(word: int) -> Sample:
         invalid=bool((word >> SAMPLE_INVALID_SHIFT) & SAMPLE_INVALID_MASK),
         fault=bool((word >> SAMPLE_FAULT_SHIFT) & SAMPLE_FAULT_MASK),
         logic=(word >> SAMPLE_LOGIC_SHIFT) & SAMPLE_LOGIC_MASK,
+        over_range=bool((word >> SAMPLE_OVER_RANGE_SHIFT) & SAMPLE_OVER_RANGE_MASK),
+        under_range=bool((word >> SAMPLE_UNDER_RANGE_SHIFT) & SAMPLE_UNDER_RANGE_MASK),
+        output=bool((word >> SAMPLE_OUTPUT_SHIFT) & SAMPLE_OUTPUT_MASK),
     )
 
 
@@ -151,4 +186,11 @@ def split_words(words: Sequence[int]) -> SampleColumns:
         invalid=tuple(bool((word >> SAMPLE_INVALID_SHIFT) & SAMPLE_INVALID_MASK) for word in words),
         fault=tuple(bool((word >> SAMPLE_FAULT_SHIFT) & SAMPLE_FAULT_MASK) for word in words),
         logic=tuple((word >> SAMPLE_LOGIC_SHIFT) & SAMPLE_LOGIC_MASK for word in words),
+        over_range=tuple(
+            bool((word >> SAMPLE_OVER_RANGE_SHIFT) & SAMPLE_OVER_RANGE_MASK) for word in words
+        ),
+        under_range=tuple(
+            bool((word >> SAMPLE_UNDER_RANGE_SHIFT) & SAMPLE_UNDER_RANGE_MASK) for word in words
+        ),
+        output=tuple(bool((word >> SAMPLE_OUTPUT_SHIFT) & SAMPLE_OUTPUT_MASK) for word in words),
     )

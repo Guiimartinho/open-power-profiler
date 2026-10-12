@@ -116,7 +116,7 @@ static void test_command_encode_enforces_the_command_payload_limit(void)
 {
     static uint8_t args[PP_COMMAND_MAX_PAYLOAD];
     static uint8_t out[PP_COMMAND_MAX_PAYLOAD + 8u];
-    pp_command_t command = {.id = PP_CMD_CAL_WRITE, .args = args};
+    pp_command_t command = {.id = PP_CMD_CAL_STORE, .args = args};
     size_t len = 0u;
     memset(args, 0x3C, sizeof(args));
 
@@ -253,9 +253,10 @@ static void test_command_decode_accepts_an_unknown_id(void)
 static void test_command_is_known_for_every_command_of_the_definition(void)
 {
     const pp_command_id_t known[] = {
-        PP_CMD_GET_INFO,  PP_CMD_GET_STATUS, PP_CMD_SET_MODE,   PP_CMD_SET_VOLTAGE,
-        PP_CMD_DUT_POWER, PP_CMD_SET_RANGE,  PP_CMD_SET_DOWN_N, PP_CMD_START,
-        PP_CMD_STOP,      PP_CMD_CAL_ZERO,   PP_CMD_CAL_WRITE,  PP_CMD_CLEAR_FAULT,
+        PP_CMD_GET_INFO,    PP_CMD_GET_STATUS, PP_CMD_SET_MODE,   PP_CMD_SET_VOLTAGE,
+        PP_CMD_DUT_POWER,   PP_CMD_SET_RANGE,  PP_CMD_SET_DOWN_N, PP_CMD_START,
+        PP_CMD_STOP,        PP_CMD_CAL_ZERO,   PP_CMD_CAL_READ,   PP_CMD_CAL_STORE,
+        PP_CMD_CLEAR_FAULT,
     };
     size_t known_count = sizeof(known) / sizeof(known[0]);
     size_t accepted = 0u;
@@ -276,8 +277,9 @@ static void test_event_is_known_for_every_event_of_the_definition(void)
 {
     const pp_event_id_t known[] = {
         PP_EVENT_FAULT_RAISED,
-        PP_EVENT_POWER_BUDGET_CHANGED,
         PP_EVENT_STATE_CHANGED,
+        PP_EVENT_SUPPLY_CHANGED,
+        PP_EVENT_NOTICE,
     };
     size_t known_count = sizeof(known) / sizeof(known[0]);
     size_t accepted = 0u;
@@ -291,6 +293,13 @@ static void test_event_is_known_for_every_event_of_the_definition(void)
         }
     }
     TEST_ASSERT_EQUAL_size_t(known_count, accepted);
+}
+
+/* Codes that version 2 of the protocol retired are not used again (D-103). */
+static void test_retired_codes_are_unknown(void)
+{
+    TEST_ASSERT_FALSE(pp_command_is_known(0x31u)); /* CAL_WRITE of version 1 */
+    TEST_ASSERT_FALSE(pp_event_is_known(0x02u));   /* POWER_BUDGET_CHANGED of version 1 */
 }
 
 int main(void)
@@ -310,5 +319,6 @@ int main(void)
     RUN_TEST(test_command_decode_accepts_an_unknown_id);
     RUN_TEST(test_command_is_known_for_every_command_of_the_definition);
     RUN_TEST(test_event_is_known_for_every_event_of_the_definition);
+    RUN_TEST(test_retired_codes_are_unknown);
     return UNITY_END();
 }

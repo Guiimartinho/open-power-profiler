@@ -36,6 +36,9 @@ samples = st.builds(
     invalid=st.booleans(),
     fault=st.booleans(),
     logic=st.integers(min_value=0, max_value=SAMPLE_LOGIC_MASK),
+    over_range=st.booleans(),
+    under_range=st.booleans(),
+    output=st.booleans(),
 )
 words = st.integers(min_value=0, max_value=WORD_MAX)
 
@@ -47,6 +50,9 @@ def sample_of(vector: dict[str, Any]) -> Sample:
         invalid=bool(vector["invalid"]),
         fault=bool(vector["fault"]),
         logic=vector["logic"],
+        over_range=bool(vector["over_range"]),
+        under_range=bool(vector["under_range"]),
+        output=bool(vector["output"]),
     )
 
 
@@ -105,6 +111,26 @@ def test_sample_flags_default_to_false() -> None:
     sample = Sample(adc=1, range_index=2)
 
     assert (sample.invalid, sample.fault, sample.logic) == (False, False, 0)
+    assert (sample.over_range, sample.under_range, sample.output) == (False, False, False)
+
+
+def test_sample_is_flagged_inside_a_window_and_outside_its_range() -> None:
+    assert not Sample(adc=1, range_index=0).flagged
+    assert Sample(adc=1, range_index=0, invalid=True).flagged
+    assert Sample(adc=65535, range_index=0, over_range=True).flagged
+    assert Sample(adc=1, range_index=0, under_range=True).flagged
+    # The fault latch and the output request are context, not marks.
+    assert not Sample(adc=1, range_index=3, fault=True, output=True).flagged
+
+
+def test_the_marks_sit_on_the_bits_of_the_specification() -> None:
+    assert pack_sample(Sample(adc=0, range_index=0, invalid=True)) == 1 << 18
+    assert pack_sample(Sample(adc=0, range_index=0, fault=True)) == 1 << 19
+    assert pack_sample(Sample(adc=0, range_index=0, over_range=True)) == 1 << 20
+    assert pack_sample(Sample(adc=0, range_index=0, under_range=True)) == 1 << 21
+    assert pack_sample(Sample(adc=0, range_index=0, output=True)) == 1 << 22
+    # Bit 23 is reserved: it is ignored when a word is read.
+    assert unpack_sample(1 << 23) == Sample(adc=0, range_index=0)
 
 
 @pytest.mark.parametrize("word", [-1, WORD_MAX + 1])
@@ -166,5 +192,8 @@ def test_split_words_gives_one_column_per_field(block: list[Sample]) -> None:
         invalid=tuple(sample.invalid for sample in block),
         fault=tuple(sample.fault for sample in block),
         logic=tuple(sample.logic for sample in block),
+        over_range=tuple(sample.over_range for sample in block),
+        under_range=tuple(sample.under_range for sample in block),
+        output=tuple(sample.output for sample in block),
     )
     assert len(columns) == len(block)

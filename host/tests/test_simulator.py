@@ -9,10 +9,11 @@ import pytest
 from s3_power_profiler.device import DeviceClient
 from s3_power_profiler.protocol import (
     BLOCK_SAMPLES,
-    CAL_TARGET_DAC,
     COMMAND_MAX_PAYLOAD,
     MAX_STREAM_SAMPLES,
     PROTOCOL_VERSION,
+    CalState,
+    CcClass,
     Command,
     CommandMessage,
     DeviceInfo,
@@ -28,6 +29,7 @@ from s3_power_profiler.protocol import (
     ResponseMessage,
     Status,
     StreamPayload,
+    Supply,
     commands,
     decode_event,
     decode_response,
@@ -36,7 +38,6 @@ from s3_power_profiler.protocol import (
     encode_frame,
     split_words,
 )
-from s3_power_profiler.protocol.commands import CalibrationWrite
 from s3_power_profiler.sim.simulator import Simulator, SimulatorConfig
 from s3_power_profiler.transport.memory import memory_pair
 
@@ -116,7 +117,8 @@ def state_changes(frames: list[Frame]) -> list[DeviceState]:
 SET_SOURCE = commands.build_set_mode(Mode.SOURCE_METER)
 POWER_ON = commands.build_dut_power(True)
 POWER_OFF = commands.build_dut_power(False)
-CAL_WRITE = commands.build_cal_write(0, 1.0, 0.0)
+CAL_READ = commands.build_cal_read()
+CAL_STORE = commands.build_cal_store(b"a calibration record")
 
 
 # --- Start-up ---------------------------------------------------------------
@@ -167,7 +169,14 @@ def test_failed_selftest_ends_in_fault() -> None:
 
 @pytest.mark.parametrize(
     "message",
-    [SET_SOURCE, POWER_ON, commands.build_start(), commands.build_clear_fault(), CAL_WRITE],
+    [
+        SET_SOURCE,
+        POWER_ON,
+        commands.build_start(),
+        commands.build_clear_fault(),
+        CAL_READ,
+        CAL_STORE,
+    ],
 )
 def test_commands_are_answered_busy_before_boot(message: CommandMessage) -> None:
     bench = Bench(boot=False)
@@ -193,7 +202,13 @@ def test_get_info_reports_the_configured_identity() -> None:
     info = commands.decode_device_info(bench.ask(commands.build_get_info()).data)
 
     assert info == DeviceInfo(
-        protocol_version=PROTOCOL_VERSION, hardware_revision=2, firmware_version=(1, 4, 7)
+        protocol_version=PROTOCOL_VERSION,
+        hardware_revision=2,
+        firmware_version=(1, 4, 7),
+        cal_state=CalState.NOMINAL,
+        settle_samples=4,
+        chip_id=1,
+        zero_offsets=(1313.0, 1313.0, 1313.0, 1313.0),
     )
 
 
@@ -204,7 +219,14 @@ def test_get_status_reports_state_faults_and_dropped_blocks() -> None:
 
     status = commands.decode_device_status(bench.ask(commands.build_get_status()).data)
 
-    assert status == DeviceStatus(state=DeviceState.STREAMING, faults=Fault(0), dropped_blocks=2)
+    assert status == DeviceStatus(
+        state=DeviceState.STREAMING,
+        faults=Fault(0),
+        dropped_blocks=2,
+        rail5_mv=5000,
+        temperature=25.0,
+        budget_ma=450,
+    )
 
 
 # --- State machine ----------------------------------------------------------
@@ -219,7 +241,8 @@ def test_get_status_reports_state_faults_and_dropped_blocks() -> None:
         (DeviceState.IDLE, commands.build_stop(), Status.WRONG_STATE, DeviceState.IDLE),
         (DeviceState.IDLE, SET_SOURCE, Status.OK, DeviceState.IDLE),
         (DeviceState.IDLE, commands.build_cal_zero(), Status.OK, DeviceState.IDLE),
-        (DeviceState.IDLE, CAL_WRITE, Status.OK, DeviceState.IDLE),
+        (DeviceState.IDLE, CAL_READ, Status.OK, DeviceState.IDLE),
+        (DeviceState.IDLE, CAL_STORE, Status.OK, DeviceState.IDLE),
         (DeviceState.IDLE, commands.build_clear_fault(), Status.OK, DeviceState.IDLE),
         (DeviceState.ARMED, POWER_ON, Status.OK, DeviceState.ARMED),
         (DeviceState.ARMED, POWER_OFF, Status.OK, DeviceState.IDLE),
@@ -227,7 +250,8 @@ def test_get_status_reports_state_faults_and_dropped_blocks() -> None:
         (DeviceState.ARMED, commands.build_stop(), Status.WRONG_STATE, DeviceState.ARMED),
         (DeviceState.ARMED, SET_SOURCE, Status.WRONG_STATE, DeviceState.ARMED),
         (DeviceState.ARMED, commands.build_cal_zero(), Status.WRONG_STATE, DeviceState.ARMED),
-        (DeviceState.ARMED, CAL_WRITE, Status.OK, DeviceState.ARMED),
+        (DeviceState.ARMED, CAL_READ, Status.OK, DeviceState.ARMED),
+        (DeviceState.ARMED, CAL_STORE, Status.WRONG_STATE, DeviceState.ARMED),
         (DeviceState.STREAMING, POWER_ON, Status.OK, DeviceState.STREAMING),
         (DeviceState.STREAMING, POWER_OFF, Status.WRONG_STATE, DeviceState.STREAMING),
         (DeviceState.STREAMING, commands.build_start(), Status.WRONG_STATE, DeviceState.STREAMING),
@@ -239,7 +263,8 @@ def test_get_status_reports_state_faults_and_dropped_blocks() -> None:
             Status.WRONG_STATE,
             DeviceState.STREAMING,
         ),
-        (DeviceState.STREAMING, CAL_WRITE, Status.WRONG_STATE, DeviceState.STREAMING),
+        (DeviceState.STREAMING, CAL_READ, Status.OK, DeviceState.STREAMING),
+        (DeviceState.STREAMING, CAL_STORE, Status.WRONG_STATE, DeviceState.STREAMING),
         (DeviceState.FAULT, POWER_ON, Status.FAULT_ACTIVE, DeviceState.FAULT),
         (DeviceState.FAULT, POWER_OFF, Status.FAULT_ACTIVE, DeviceState.FAULT),
         (DeviceState.FAULT, commands.build_start(), Status.FAULT_ACTIVE, DeviceState.FAULT),
@@ -254,7 +279,8 @@ def test_get_status_reports_state_faults_and_dropped_blocks() -> None:
         (DeviceState.FAULT, commands.build_set_range(1), Status.FAULT_ACTIVE, DeviceState.FAULT),
         (DeviceState.FAULT, commands.build_set_down_n(10), Status.FAULT_ACTIVE, DeviceState.FAULT),
         (DeviceState.FAULT, commands.build_cal_zero(), Status.FAULT_ACTIVE, DeviceState.FAULT),
-        (DeviceState.FAULT, CAL_WRITE, Status.FAULT_ACTIVE, DeviceState.FAULT),
+        (DeviceState.FAULT, CAL_READ, Status.FAULT_ACTIVE, DeviceState.FAULT),
+        (DeviceState.FAULT, CAL_STORE, Status.FAULT_ACTIVE, DeviceState.FAULT),
         (DeviceState.FAULT, commands.build_get_info(), Status.OK, DeviceState.FAULT),
         (DeviceState.FAULT, commands.build_get_status(), Status.OK, DeviceState.FAULT),
         (DeviceState.FAULT, commands.build_clear_fault(), Status.OK, DeviceState.IDLE),
@@ -352,8 +378,8 @@ def test_command_frame_without_payload_is_a_bad_argument() -> None:
         CommandMessage(Command.START, b"\x00"),
         CommandMessage(Command.STOP, b"\x00"),
         CommandMessage(Command.CAL_ZERO, b"\x00"),
-        CommandMessage(Command.CAL_WRITE, b"\x00"),
-        CommandMessage(Command.CAL_WRITE, struct.pack("<Bff", 9, 1.0, 0.0)),
+        CommandMessage(Command.CAL_READ, b"\x00"),
+        CommandMessage(Command.CAL_STORE, b""),
         CommandMessage(Command.CLEAR_FAULT, b"\x00"),
     ],
 )
@@ -419,23 +445,88 @@ def test_set_down_n_changes_the_step_down_rule() -> None:
     assert bench.simulator.down_n == 25
 
 
-def test_cal_write_stores_the_values_of_each_target() -> None:
+def test_cal_store_keeps_the_record_and_cal_read_returns_it() -> None:
     bench = Bench()
+    record = bytes(range(64))
+    assert bench.ask(CAL_READ).data == b""
+    assert bench.simulator.calibration_record == b""
 
-    assert bench.ask(commands.build_cal_write(1, 2.0, 0.5)).ok
-    assert bench.ask(commands.build_cal_write(CAL_TARGET_DAC, 4.0, -1.0)).ok
+    assert bench.ask(commands.build_cal_store(record)).ok
 
-    assert dict(bench.simulator.calibration) == {
-        1: CalibrationWrite(1, 2.0, 0.5),
-        CAL_TARGET_DAC: CalibrationWrite(CAL_TARGET_DAC, 4.0, -1.0),
-    }
+    assert bench.simulator.calibration_record == record
+    assert bench.ask(CAL_READ).data == record
 
 
-def test_calibration_view_is_read_only() -> None:
-    calibration: Any = Bench().simulator.calibration
+def test_get_info_tells_whether_a_record_is_stored() -> None:
+    config = SimulatorConfig(
+        chip_id=0xABCDEF0123456789, carrier_serial="OPP-0007", settle_samples=7
+    )
+    bench = Bench(config)
 
-    with pytest.raises(TypeError, match="does not support item assignment"):
-        calibration[0] = CalibrationWrite(0, 1.0, 0.0)
+    before = commands.decode_device_info(bench.ask(commands.build_get_info()).data)
+    assert bench.ask(CAL_STORE).ok
+    after = commands.decode_device_info(bench.ask(commands.build_get_info()).data)
+
+    assert (before.cal_state, before.carrier_serial, before.carrier_revision) == (
+        CalState.NOMINAL,
+        "",
+        0,
+    )
+    assert (after.cal_state, after.carrier_serial, after.carrier_revision) == (
+        CalState.CALIBRATED,
+        "OPP-0007",
+        1,
+    )
+    assert before.chip_id == after.chip_id == 0xABCDEF0123456789
+    assert after.settle_samples == 7
+    assert after.zero_offsets == config.zero_offsets
+
+
+def test_cal_zero_returns_the_zero_offsets() -> None:
+    offsets = (1313.0, 1312.5, 1313.25, 1314.0)
+    bench = Bench(SimulatorConfig(zero_offsets=offsets))
+
+    response = bench.ask(commands.build_cal_zero())
+
+    assert commands.decode_zero_offsets(response.data) == offsets
+
+
+def test_get_status_reports_the_source_and_the_supply() -> None:
+    bench = Bench(SimulatorConfig(rail5_mv=4980, temperature=31.5, budget_ma=450))
+    assert bench.ask(SET_SOURCE).ok
+    assert bench.ask(commands.build_set_voltage(3300)).ok
+    assert bench.ask(commands.build_set_range(2)).ok
+
+    idle = commands.decode_device_status(bench.ask(commands.build_get_status()).data)
+    assert bench.ask(POWER_ON).ok
+    armed = commands.decode_device_status(bench.ask(commands.build_get_status()).data)
+
+    assert (idle.mode, idle.range_lock, idle.setpoint_mv, idle.vout_mv) == (
+        Mode.SOURCE_METER,
+        2,
+        3300,
+        0,
+    )
+    assert (armed.state, armed.vout_mv) == (DeviceState.ARMED, 3300)
+    assert (armed.rail5_mv, armed.temperature, armed.budget_ma) == (4980, 31.5, 450)
+    assert (armed.supply, armed.cc_class) == (Supply.MODULE, CcClass.DEFAULT)
+
+
+def test_get_status_reports_no_set_point_in_ampere_mode() -> None:
+    bench = Bench()
+    assert bench.ask(POWER_ON).ok
+
+    status = commands.decode_device_status(bench.ask(commands.build_get_status()).data)
+
+    assert (status.mode, status.range_lock) == (Mode.AMPERE_METER, None)
+    assert (status.setpoint_mv, status.vout_mv) == (0, 0)
+
+
+def test_config_rejects_a_serial_that_does_not_fit() -> None:
+    with pytest.raises(ValueError, match="carrier_serial"):
+        SimulatorConfig(carrier_serial="X" * 17)
+    with pytest.raises(ValueError, match="carrier_serial"):
+        SimulatorConfig(carrier_serial="n\u00famero")
 
 
 def test_frames_that_are_not_commands_are_ignored() -> None:

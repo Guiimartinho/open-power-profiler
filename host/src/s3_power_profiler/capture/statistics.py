@@ -1,7 +1,8 @@
 """Statistics over captured samples.
 
-Samples flagged invalid lie inside the settling window of a range change. They
-are counted, and left out of every statistic.
+A flagged sample is no measurement: it lies inside a settling window, or its
+code is over-range or under-range (section 9 of the specification). Flagged
+samples are counted, and left out of every statistic.
 """
 
 from __future__ import annotations
@@ -17,9 +18,20 @@ from s3_power_profiler.protocol import (
     SAMPLE_FAULT_SHIFT,
     SAMPLE_INVALID_MASK,
     SAMPLE_INVALID_SHIFT,
+    SAMPLE_OVER_RANGE_MASK,
+    SAMPLE_OVER_RANGE_SHIFT,
     SAMPLE_RANGE_MASK,
     SAMPLE_RANGE_SHIFT,
+    SAMPLE_UNDER_RANGE_MASK,
+    SAMPLE_UNDER_RANGE_SHIFT,
 )
+
+_FLAGGED = (
+    (SAMPLE_INVALID_MASK << SAMPLE_INVALID_SHIFT)
+    | (SAMPLE_OVER_RANGE_MASK << SAMPLE_OVER_RANGE_SHIFT)
+    | (SAMPLE_UNDER_RANGE_MASK << SAMPLE_UNDER_RANGE_SHIFT)
+)
+"""Bits of a sample word that mark it as no measurement."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -29,7 +41,8 @@ class CaptureStatistics:
     Attributes:
         samples: Samples received, valid or not.
         valid_samples: Samples used for the statistics.
-        invalid_samples: Samples left out because they were flagged invalid.
+        invalid_samples: Samples left out because they were flagged: inside
+            a settling window, over-range or under-range.
         fault_samples: Samples taken while the fault latch was set.
         range_samples: Valid samples in each range, R0 first.
         mean_current: Mean current in amperes, or None without valid samples.
@@ -69,7 +82,7 @@ class StatisticsAccumulator:
         self._fault_samples += sum(
             1 for word in words if (word >> SAMPLE_FAULT_SHIFT) & SAMPLE_FAULT_MASK
         )
-        valid = [word for word in words if not (word >> SAMPLE_INVALID_SHIFT) & SAMPLE_INVALID_MASK]
+        valid = [word for word in words if not word & _FLAGGED]
         if not valid:
             return
         for word in valid:

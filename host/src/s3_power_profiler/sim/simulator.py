@@ -14,11 +14,11 @@ State rules, applied in this order:
 * During BOOT and SELFTEST every other command is answered with BUSY.
 * In FAULT every other command except CLEAR_FAULT is answered with
   FAULT_ACTIVE. CLEAR_FAULT returns to IDLE.
-* SET_MODE and CAL_ZERO are accepted only in IDLE.
+* SET_MODE, CAL_ZERO and CAL_STORE are accepted only in IDLE.
 * DUT_POWER on moves IDLE to ARMED; DUT_POWER off moves ARMED to IDLE and is
   refused while STREAMING. Asking for the present state changes nothing.
 * START is accepted only in ARMED and STOP only in STREAMING.
-* SET_VOLTAGE needs source meter mode; CAL_WRITE is refused while STREAMING.
+* SET_VOLTAGE needs source meter mode.
 * A command that asks for anything else is answered with WRONG_STATE.
 
 Every state change is announced with a STATE_CHANGED event, sent after the
@@ -28,9 +28,8 @@ response when a command caused it.
 from __future__ import annotations
 
 import threading
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
-from types import MappingProxyType
 
 from s3_power_profiler.errors import PayloadError, TransportClosedError
 from s3_power_profiler.protocol import (
@@ -43,6 +42,8 @@ from s3_power_profiler.protocol import (
     SAMPLE_ADC_MASK,
     SAMPLE_LOGIC_MASK,
     SEQUENCE_MODULO,
+    SERIAL_SIZE,
+    CalState,
     Command,
     DeviceInfo,
     DeviceState,
@@ -57,6 +58,7 @@ from s3_power_profiler.protocol import (
     Sample,
     Status,
     StreamPayload,
+    ZeroOffsets,
     commands,
     decode_command,
     encode_event,
@@ -65,7 +67,6 @@ from s3_power_profiler.protocol import (
     encode_stream_payload,
     pack_sample,
 )
-from s3_power_profiler.protocol.commands import CalibrationWrite
 from s3_power_profiler.transport.base import Transport
 
 _Reply = tuple[Status, bytes]
@@ -76,6 +77,7 @@ _WRONG_STATE: _Reply = (Status.WRONG_STATE, b"")
 
 _QUERIES = frozenset({int(Command.GET_INFO), int(Command.GET_STATUS)})
 _STARTING_STATES = frozenset({DeviceState.BOOT, DeviceState.SELFTEST})
+_OUTPUT_ON_STATES = frozenset({DeviceState.ARMED, DeviceState.STREAMING})
 _UNKNOWN_COMMAND_ID = 0
 _READ_SIZE = 4096
 _LOGIC_SHIFT = 4
@@ -104,6 +106,16 @@ class SimulatorConfig:
         min_voltage_mv: Lowest voltage SET_VOLTAGE accepts, in millivolts.
         max_voltage_mv: Highest voltage SET_VOLTAGE accepts, in millivolts.
         down_n: Initial sample count of the step-down rule.
+        chip_id: Identifier of the controller reported by GET_INFO.
+        carrier_serial: Serial number reported once a calibration record
+            is stored.
+        carrier_revision: Carrier revision reported with the serial number.
+        zero_offsets: Zero offset of each range, in codes, as CAL_ZERO and
+            GET_INFO report them.
+        rail5_mv: The 5 V rail that GET_STATUS reports, in millivolts.
+        temperature: Board temperature that GET_STATUS reports, in degrees
+            Celsius.
+        budget_ma: Input current budget that GET_STATUS reports.
 
     Raises:
         ValueError: If a value is outside what the protocol can carry.
@@ -122,6 +134,13 @@ class SimulatorConfig:
     min_voltage_mv: int = 800
     max_voltage_mv: int = 5000
     down_n: int = 100
+    chip_id: int = 1
+    carrier_serial: str = "SIM-0001"
+    carrier_revision: int = 1
+    zero_offsets: ZeroOffsets = (1313.0, 1313.0, 1313.0, 1313.0)
+    rail5_mv: int = 5000
+    temperature: float = 25.0
+    budget_ma: int = 450
 
     def __post_init__(self) -> None:
         if not 1 <= self.block_samples <= MAX_STREAM_SAMPLES:
@@ -138,6 +157,8 @@ class SimulatorConfig:
             raise ValueError("min_voltage_mv and max_voltage_mv must be ordered and not negative")
         if self.down_n < 1:
             raise ValueError("down_n must be at least 1")
+        if not self.carrier_serial.isascii() or len(self.carrier_serial) > SERIAL_SIZE:
+            raise ValueError(f"carrier_serial must be ASCII of at most {SERIAL_SIZE} characters")
 
 
 class Simulator:
@@ -162,7 +183,7 @@ class Simulator:
         self._faults = Fault(0)
         self._range_lock: int | None = None
         self._down_n = self._config.down_n
-        self._calibration: dict[int, CalibrationWrite] = {}
+        self._calibration_record = b""
         self._sample_number = 0
         self._frames_since_drop = 0
         self._pending_dropped = 0
@@ -181,7 +202,8 @@ class Simulator:
             Command.START: self._on_start,
             Command.STOP: self._on_stop,
             Command.CAL_ZERO: self._on_cal_zero,
-            Command.CAL_WRITE: self._on_cal_write,
+            Command.CAL_READ: self._on_cal_read,
+            Command.CAL_STORE: self._on_cal_store,
             Command.CLEAR_FAULT: self._on_clear_fault,
         }
 
@@ -218,9 +240,9 @@ class Simulator:
         return self._down_n
 
     @property
-    def calibration(self) -> Mapping[int, CalibrationWrite]:
-        """Values stored by CAL_WRITE, by target."""
-        return MappingProxyType(self._calibration)
+    def calibration_record(self) -> bytes:
+        """The record stored by CAL_STORE, empty when none was stored."""
+        return self._calibration_record
 
     @property
     def dropped_blocks(self) -> int:
@@ -426,23 +448,44 @@ class Simulator:
         span = config.adc_high - config.adc_low
         adc = config.adc_low + span * distance // (config.waveform_period // 2)
         logic = (number >> _LOGIC_SHIFT) & SAMPLE_LOGIC_MASK
-        return pack_sample(Sample(adc=adc, range_index=range_index, invalid=invalid, logic=logic))
+        # The stream runs with the output on, so every sample says so.
+        sample = Sample(adc=adc, range_index=range_index, invalid=invalid, logic=logic, output=True)
+        return pack_sample(sample)
 
     # --- Command handlers ----------------------------------------------------
 
     def _on_get_info(self, arguments: bytes) -> _Reply:
         commands.parse_no_arguments(arguments, "GET_INFO")
+        config = self._config
+        calibrated = bool(self._calibration_record)
         info = DeviceInfo(
             protocol_version=PROTOCOL_VERSION,
-            hardware_revision=self._config.hardware_revision,
-            firmware_version=self._config.firmware_version,
+            hardware_revision=config.hardware_revision,
+            firmware_version=config.firmware_version,
+            cal_state=CalState.CALIBRATED if calibrated else CalState.NOMINAL,
+            settle_samples=config.settle_samples,
+            chip_id=config.chip_id,
+            carrier_serial=config.carrier_serial if calibrated else "",
+            carrier_revision=config.carrier_revision if calibrated else 0,
+            zero_offsets=config.zero_offsets,
         )
         return Status.OK, commands.encode_device_info(info)
 
     def _on_get_status(self, arguments: bytes) -> _Reply:
         commands.parse_no_arguments(arguments, "GET_STATUS")
+        source = self._mode is Mode.SOURCE_METER
+        output_on = self._state in _OUTPUT_ON_STATES
         status = DeviceStatus(
-            state=self._state, faults=self._faults, dropped_blocks=self._dropped_blocks
+            state=self._state,
+            faults=self._faults,
+            dropped_blocks=self._dropped_blocks,
+            mode=self._mode,
+            range_lock=self._range_lock,
+            setpoint_mv=self._voltage_mv if source else 0,
+            vout_mv=self._voltage_mv if source and output_on else 0,
+            rail5_mv=self._config.rail5_mv,
+            temperature=self._config.temperature,
+            budget_ma=self._config.budget_ma,
         )
         return Status.OK, commands.encode_device_status(status)
 
@@ -506,13 +549,17 @@ class Simulator:
         commands.parse_no_arguments(arguments, "CAL_ZERO")
         if self._state is not DeviceState.IDLE:
             return _WRONG_STATE
-        return _OK
+        return Status.OK, commands.encode_zero_offsets(self._config.zero_offsets)
 
-    def _on_cal_write(self, arguments: bytes) -> _Reply:
-        values = commands.parse_cal_write(arguments)
-        if self._state is DeviceState.STREAMING:
+    def _on_cal_read(self, arguments: bytes) -> _Reply:
+        commands.parse_no_arguments(arguments, "CAL_READ")
+        return Status.OK, self._calibration_record
+
+    def _on_cal_store(self, arguments: bytes) -> _Reply:
+        record = commands.parse_cal_store(arguments)
+        if self._state is not DeviceState.IDLE:
             return _WRONG_STATE
-        self._calibration[values.target] = values
+        self._calibration_record = record
         return _OK
 
     def _on_clear_fault(self, arguments: bytes) -> _Reply:
