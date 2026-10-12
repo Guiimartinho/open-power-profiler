@@ -58,6 +58,12 @@ path = "src/circuit_sim/__init__.py"
 [tool.hatch.build.targets.wheel]
 packages = ["src/circuit_sim"]
 
+[tool.hatch.build.targets.sdist]
+# The source distribution is the package and its tests. The benches, the
+# models, the netlist snapshot and the results are files of the repository,
+# not of the package, and the last two carry the license of the hardware.
+include = ["/src", "/tests", "/README.md"]
+
 [tool.ruff]
 # The rules live in the ruff.toml at the root of the repository. This section
 # only tells the import sorter where the first-party package is.
