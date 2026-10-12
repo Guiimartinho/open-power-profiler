@@ -12799,7 +12799,7 @@
 				)
 			)
 		)
-		(property "Value" "1n 50V C0G"
+		(property "Value" "10n 50V C0G"
 			(at 0 1.43 180)
 			(layer "F.Fab")
 			(hide yes)
@@ -12845,7 +12845,7 @@
 				)
 			)
 		)
-		(property "MPN" "C0603C102J5GACTU"
+		(property "MPN" "GRM1885C1H103JA01D"
 			(at 0 0 180)
 			(layer "F.Fab")
 			(hide yes)
@@ -12857,7 +12857,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "KEMET"
+		(property "Manufacturer" "Murata"
 			(at 0 0 180)
 			(layer "F.Fab")
 			(hide yes)
@@ -53678,7 +53678,7 @@
 				)
 			)
 		)
-		(property "Value" "803 type, 3.08 V"
+		(property "Value" "Detector, ms time-out"
 			(at 0 2.4 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -56096,7 +56096,7 @@
 				)
 			)
 		)
-		(property "Value" "0.33R"
+		(property "Value" "0.33R 1%"
 			(at 0 1.65 0)
 			(layer "F.Fab")
 			(hide yes)
@@ -56142,6 +56142,30 @@
 				)
 			)
 		)
+		(property "MPN" "ERJ-6RQFR33V"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "ae5df462-26c9-4357-a208-da03488b775f")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Manufacturer" "Panasonic"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "c11402a5-e179-4cad-bac2-0bc4269d1c17")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "R_*")
 		(path "/0138ac09-93e0-5d3f-aaa7-bd142f9bbe9d/af86f21a-5c1f-5a1e-ae50-ea26d9478b7c")
 		(sheetname "/Power Input/")
@@ -56152,7 +56176,7 @@
 				(pins "1" "2")
 			)
 		)
-		(attr smd exclude_from_bom dnp)
+		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.227064 -0.735)
@@ -58587,7 +58611,7 @@
 				)
 			)
 		)
-		(property "Value" "1n 50V C0G"
+		(property "Value" "10n 50V C0G"
 			(at 0 1.43 180)
 			(layer "F.Fab")
 			(hide yes)
@@ -58633,7 +58657,7 @@
 				)
 			)
 		)
-		(property "MPN" "C0603C102J5GACTU"
+		(property "MPN" "GRM1885C1H103JA01D"
 			(at 0 0 180)
 			(layer "F.Fab")
 			(hide yes)
@@ -58645,7 +58669,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "KEMET"
+		(property "Manufacturer" "Murata"
 			(at 0 0 180)
 			(layer "F.Fab")
 			(hide yes)
@@ -81085,7 +81109,7 @@
 				)
 			)
 		)
-		(property "Value" "10u 25V"
+		(property "Value" "10u 25V X5R"
 			(at 0 1.68 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -81131,6 +81155,30 @@
 				)
 			)
 		)
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 0 0 270)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "a3f55b65-2321-4e89-aa0a-2e1a37bdeadd")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Manufacturer" "Samsung Electro-Mechanics"
+			(at 0 0 270)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "4bcd78cd-760d-419e-b7ff-2c4dc4446021")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "C_*")
 		(path "/0138ac09-93e0-5d3f-aaa7-bd142f9bbe9d/0786a1b6-8024-559c-a0d8-9585ee45c9e6")
 		(sheetname "/Power Input/")
@@ -81141,7 +81189,7 @@
 				(pins "1" "2")
 			)
 		)
-		(attr smd exclude_from_bom dnp)
+		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -0.261252 0.735)
@@ -82505,7 +82553,7 @@
 				)
 			)
 		)
-		(property "Value" "1n 50V C0G"
+		(property "Value" "10n 50V C0G"
 			(at 0 1.43 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -82551,7 +82599,7 @@
 				)
 			)
 		)
-		(property "MPN" "C0603C102J5GACTU"
+		(property "MPN" "GRM1885C1H103JA01D"
 			(at 0 0 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -82563,7 +82611,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "KEMET"
+		(property "Manufacturer" "Murata"
 			(at 0 0 270)
 			(layer "F.Fab")
 			(hide yes)
