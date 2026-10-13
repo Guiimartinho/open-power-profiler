@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import enum
 
-PROTOCOL_VERSION = 1
+PROTOCOL_VERSION = 2
 
 FRAME_MAGIC = 0xA55A
 FRAME_HEADER_SIZE = 8
@@ -39,7 +39,8 @@ class Command(enum.IntEnum):
     START = 0x20
     STOP = 0x21
     CAL_ZERO = 0x30
-    CAL_WRITE = 0x31
+    CAL_READ = 0x32
+    CAL_STORE = 0x33
     CLEAR_FAULT = 0x40
 
 
@@ -54,8 +55,9 @@ class Status(enum.IntEnum):
 
 class Event(enum.IntEnum):
     FAULT_RAISED = 0x01
-    POWER_BUDGET_CHANGED = 0x02
     STATE_CHANGED = 0x03
+    SUPPLY_CHANGED = 0x04
+    NOTICE = 0x05
 
 
 class DeviceState(enum.IntEnum):
@@ -72,6 +74,29 @@ class Mode(enum.IntEnum):
     SOURCE_METER = 0x01
 
 
+class Supply(enum.IntEnum):
+    MODULE = 0x00
+    USB_C = 0x01
+
+
+class CcClass(enum.IntEnum):
+    DEFAULT = 0x00
+    CURRENT_1A5 = 0x01
+    CURRENT_3A0 = 0x02
+
+
+class Notice(enum.IntEnum):
+    SETPOINT_SETTLED = 0x01
+    DUT_ABOVE_SETPOINT = 0x02
+    ZERO_TAKEN = 0x03
+
+
+class CalState(enum.IntEnum):
+    CALIBRATED = 0x00
+    NOMINAL = 0x01
+    FOREIGN = 0x02
+
+
 class Fault(enum.IntFlag):
     """Bits of the 16-bit fault flags."""
 
@@ -79,6 +104,24 @@ class Fault(enum.IntFlag):
     POWER_LIMIT = 1 << 1
     THERMAL = 1 << 2
     SELFTEST = 1 << 3
+    SEQUENCER = 1 << 4
+    REVERSE_CURRENT = 1 << 5
+    CARRIER_SUPPLY = 1 << 6
+    ANALOG_RAILS = 1 << 7
+    VIN_OVERVOLTAGE = 1 << 8
+    VIN_RANGE = 1 << 9
+    SOURCE_OVERLOAD = 1 << 10
+    EXTERNAL_VOLTAGE = 1 << 11
+    START_CHECK = 1 << 12
+    START_OVERCURRENT = 1 << 13
+    WATCHDOG = 1 << 14
+
+
+class StatusNotice(enum.IntFlag):
+    """Bits of the notice byte of the status record."""
+
+    SETPOINT_SETTLED = 1 << 0
+    DUT_ABOVE_SETPOINT = 1 << 1
 
 
 # Sample word fields: shift, then mask of the shifted-down value.
@@ -90,11 +133,79 @@ SAMPLE_INVALID_SHIFT = 18
 SAMPLE_INVALID_MASK = 0x01
 SAMPLE_FAULT_SHIFT = 19
 SAMPLE_FAULT_MASK = 0x01
-SAMPLE_RESERVED_SHIFT = 20
-SAMPLE_RESERVED_MASK = 0x0F
+SAMPLE_OVER_RANGE_SHIFT = 20
+SAMPLE_OVER_RANGE_MASK = 0x01
+SAMPLE_UNDER_RANGE_SHIFT = 21
+SAMPLE_UNDER_RANGE_MASK = 0x01
+SAMPLE_OUTPUT_SHIFT = 22
+SAMPLE_OUTPUT_MASK = 0x01
+SAMPLE_RESERVED_SHIFT = 23
+SAMPLE_RESERVED_MASK = 0x01
 SAMPLE_LOGIC_SHIFT = 24
 SAMPLE_LOGIC_MASK = 0xFF
 
+# Layout of the info record, for the struct module.
+INFO_FORMAT = "<BBBBBBBQ16sBiiii"
+INFO_FIELDS = (
+    "protocol_version",
+    "hardware_revision",
+    "firmware_major",
+    "firmware_minor",
+    "firmware_patch",
+    "cal_state",
+    "settle_samples",
+    "chip_id",
+    "carrier_serial",
+    "carrier_revision",
+    "zero_r0",
+    "zero_r1",
+    "zero_r2",
+    "zero_r3",
+)
+INFO_SIZE = 48
+
+# Layout of the status record, for the struct module.
+STATUS_FORMAT = "<BHIBBHHhHhBBHBB"
+STATUS_FIELDS = (
+    "state",
+    "faults",
+    "dropped_blocks",
+    "mode",
+    "range_lock",
+    "setpoint_mv",
+    "vout_mv",
+    "vin_mv",
+    "rail5_mv",
+    "temperature_dc",
+    "supply",
+    "cc_class",
+    "budget_ma",
+    "trip_count",
+    "notices",
+)
+STATUS_SIZE = 25
+
+# Layout of the supply record, for the struct module.
+SUPPLY_FORMAT = "<BBH"
+SUPPLY_FIELDS = (
+    "supply",
+    "cc_class",
+    "budget_ma",
+)
+SUPPLY_SIZE = 4
+
+# Layout of the zero record, for the struct module.
+ZERO_FORMAT = "<iiii"
+ZERO_FIELDS = (
+    "zero_r0",
+    "zero_r1",
+    "zero_r2",
+    "zero_r3",
+)
+ZERO_SIZE = 16
+
 RANGE_COUNT = 0x04
 RANGE_AUTO = 0xFF
-CAL_TARGET_DAC = 0x10
+SERIAL_SIZE = 0x10
+ZERO_SCALE = 0x100
+CAL_RECORD_MAX = 0xFA

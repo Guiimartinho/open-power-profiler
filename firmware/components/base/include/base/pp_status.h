@@ -1,7 +1,7 @@
 /*
  * Status codes returned by the hardware-independent code.
  *
- * Adapters translate them to esp_err_t at the boundary with ESP-IDF.
+ * Adapters translate the errors of the SDK into these codes at the boundary.
  */
 #ifndef PP_STATUS_H
 #define PP_STATUS_H

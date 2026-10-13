@@ -8,7 +8,7 @@ import pytest
 from s3_power_profiler import __version__
 from s3_power_profiler.cli import build_parser, format_current, main, run_simulate
 from s3_power_profiler.device import DeviceClient
-from s3_power_profiler.protocol import BLOCK_SAMPLES
+from s3_power_profiler.protocol import BLOCK_SAMPLES, PROTOCOL_VERSION
 
 CURRENT_LINE = "Current (nominal calibration, design targets): "
 
@@ -74,7 +74,7 @@ def test_simulate_reports_a_capture_without_gaps(capsys: pytest.CaptureFixture[s
     lines = capsys.readouterr().out.splitlines()
     assert status == 0
     assert lines[:6] == [
-        "Instrument: simulated, protocol 1, hardware revision 0, firmware 0.1.0",
+        f"Instrument: simulated, protocol {PROTOCOL_VERSION}, hardware revision 0, firmware 0.1.0",
         f"Blocks read: 8 of 8 ({8 * BLOCK_SAMPLES} samples)",
         "Gaps: 0 (0 samples missing, 0 blocks dropped by the instrument)",
         "Link: 0 CRC errors, 0 bytes discarded",

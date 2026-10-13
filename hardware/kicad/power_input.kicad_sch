@@ -2895,7 +2895,7 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "U3 (eFuse B) does the same for the supply from the USB connector of the controller\nmodule: same thresholds (R5, R6), limit 0.76 A (0.67 A to 0.85 A, R13), fastest ramp,\nturn-on delay about 0.08 ms typical. R17 defines VBUS_P while U3 is off.\nR14, C5: position for a damper of VBUS_P, not fitted. Fit 0.33 ohm and 10 uF if the\nbench shows VBUS_P above 6.0 V when the data cable is plugged again.\nU5 drives +5V from USB-C (VBUS_CP) while PR1 is above 1.0 V, that is while VBUS_CP is\nabove 2.37 V (2.15 V to 2.59 V, calculated from R18, R19), otherwise from the module\n(VBUS_P). It blocks reverse current into both inputs. C8 delays PR1 by 0.19 ms, until\nthe ramp of U4 is nearly complete.\nOrder of the thresholds on a falling rail: supervisor of +5V 3.83 V to 4.00 V (next\nsheet), eFuse off 2.67 V to 2.87 V, change of source 2.15 V to 2.59 V. The multiplexer\nleaves USB-C only when U4 is already off.\nSRC_ST (TP5): open = USB-C in use, low = supply of the module in use."
+	(text "U3 (eFuse B) does the same for the supply from the USB connector of the controller\nmodule: same thresholds (R5, R6), limit 0.76 A (0.67 A to 0.85 A, R13), fastest ramp,\nturn-on delay about 0.08 ms typical. R17 defines VBUS_P while U3 is off.\nR14 and C5 (0.33 ohm, 10 uF) damp VBUS_P when the data cable is plugged again while USB-C\nfeeds +5V: without them VBUS_P reaches 5.94 V (simulated); U5 is rated 6.0 V (datasheet).\nU5 drives +5V from USB-C (VBUS_CP) while PR1 is above 1.0 V, that is while VBUS_CP is\nabove 2.37 V (2.15 V to 2.59 V, calculated from R18, R19), otherwise from the module\n(VBUS_P). It blocks reverse current into both inputs. C8 delays PR1 by 0.19 ms, until\nthe ramp of U4 is nearly complete.\nOrder of the thresholds on a falling rail: supervisor of +5V 3.83 V to 4.00 V (next\nsheet), eFuse off 2.67 V to 2.87 V, change of source 2.15 V to 2.59 V. The multiplexer\nleaves USB-C only when U4 is already off.\nSRC_ST (TP5): open = USB-C in use, low = supply of the module in use."
 		(exclude_from_sim no)
 		(at 162.56 15.24 0)
 		(effects
@@ -4708,10 +4708,10 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(uuid "0786a1b6-8024-559c-a0d8-9585ee45c9e6")
 		(property "Reference" "C5"
 			(at 167.892 161.81 0)
@@ -4724,7 +4724,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10u 25V"
+		(property "Value" "10u 25V X5R"
 			(at 167.892 163.61 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4758,6 +4758,28 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 165.1 162.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 165.1 162.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Samsung Electro-Mechanics"
 			(at 165.1 162.56 0)
 			(hide yes)
 			(show_name no)
@@ -9162,10 +9184,10 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(uuid "af86f21a-5c1f-5a1e-ae50-ea26d9478b7c")
 		(property "Reference" "R14"
 			(at 166.876 150.38 0)
@@ -9178,7 +9200,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "0.33R"
+		(property "Value" "0.33R 1%"
 			(at 166.876 152.18 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9212,6 +9234,28 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 165.1 151.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "ERJ-6RQFR33V"
+			(at 165.1 151.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Panasonic"
 			(at 165.1 151.13 0)
 			(hide yes)
 			(show_name no)

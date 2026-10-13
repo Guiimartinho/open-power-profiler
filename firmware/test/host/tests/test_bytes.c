@@ -61,6 +61,33 @@ static void test_bytes_round_trip_at_the_limits(void)
     }
 }
 
+static void test_bytes_u64le_writes_and_reads_low_byte_first(void)
+{
+    const uint8_t expected[8] = {0xEFu, 0xCDu, 0xABu, 0x89u, 0x67u, 0x45u, 0x23u, 0x01u};
+    uint8_t buffer[8] = {0};
+
+    pp_put_u64le(buffer, UINT64_C(0x0123456789ABCDEF));
+
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, buffer, 8u);
+    TEST_ASSERT_EQUAL_HEX64(UINT64_C(0x0123456789ABCDEF), pp_get_u64le(expected));
+}
+
+static void test_bytes_u64le_round_trip_at_the_limits(void)
+{
+    const uint64_t values[] = {UINT64_C(0),
+                               UINT64_C(1),
+                               UINT64_C(0x00000000FFFFFFFF),
+                               UINT64_C(0x0000000100000000),
+                               UINT64_C(0x8000000000000000),
+                               UINT64_C(0xFFFFFFFFFFFFFFFF)};
+    uint8_t buffer[8];
+
+    for (size_t i = 0u; i < (sizeof(values) / sizeof(values[0])); i++) {
+        pp_put_u64le(buffer, values[i]);
+        TEST_ASSERT_EQUAL_HEX64(values[i], pp_get_u64le(buffer));
+    }
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -69,5 +96,7 @@ int main(void)
     RUN_TEST(test_bytes_get_u16le_reads_low_byte_first);
     RUN_TEST(test_bytes_get_u32le_reads_low_byte_first);
     RUN_TEST(test_bytes_round_trip_at_the_limits);
+    RUN_TEST(test_bytes_u64le_writes_and_reads_low_byte_first);
+    RUN_TEST(test_bytes_u64le_round_trip_at_the_limits);
     return UNITY_END();
 }

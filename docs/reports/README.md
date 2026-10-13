@@ -8,8 +8,9 @@ and their exit criteria are in section 13 of the
 
 No report is filed, and no phase is closed: nothing has been built and
 nothing has been measured. Phase 1 is not started: the software that
-exists was written ahead of it and is tested without hardware, and neither
-the port to the Pico SDK nor the bench work has begun.
+exists was written ahead of it and is tested without hardware. The
+firmware builds for the Pico 2 since 2026-10-12, with no adapter and no
+PIO program yet, and the bench work has not begun.
 
 | Phase | What is measured | Report |
 | --- | --- | --- |
@@ -56,11 +57,13 @@ not name the hardware of phases 3 and 4 yet. The first report on a carrier
 board belongs to revision A in phase 5. The layout review with scripts is
 done, and the seven points in which the drawn board deviates from the
 earlier text of section 10 of the specification are recorded as decisions
-D-87 to D-93. What still precedes fabrication is the drawing of the
-decisions that followed the circuit simulations (D-95, D-96 and D-98), a
-review of the board by a person in the KiCad editor, the open items of the
-layout that need a part moved, the silkscreen and test point items, and
-the open checks (section 13 and section 16 of the specification). The
+D-87 to D-93. Of the four decisions that followed the circuit simulations,
+three are drawn since 2026-10-10 (D-95, D-97 and D-98). What still
+precedes fabrication is the drawing of the fourth (D-96), a new run of
+the benches that the drawn decisions touch, a review of the board by a
+person in the KiCad editor, the open items of the layout that need a part
+moved, the silkscreen and test point items, and the open checks
+(section 13 and section 16 of the specification). The
 [hardware guide](../../hardware/README.md) lists them.
 
 One measurement on that first board is already named: the temperature rise
@@ -72,8 +75,9 @@ The first report to expect is the one of phase 1. Its three prototypes need
 no carrier board: a Pico 2 with an ADC evaluation module, an evaluation
 module of the pre-regulator with the tracking amplifier and the linear
 regulator on an adapter (D-55), and the boost converter with 10 µF at its
-output. Before it can be written the firmware has to be
-ported to the Pico SDK, which is not started.
+output. Before it can be written the firmware needs the capture
+through PIO and DMA and the USB link, which are not written; its build
+for the Pico 2 exists.
 
 ## Rules
 

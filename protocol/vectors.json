@@ -1,5 +1,5 @@
 {
-  "protocol_version": 1,
+  "protocol_version": 2,
   "crc": [
     {
       "name": "check_string",
@@ -87,6 +87,9 @@
       "range": 2,
       "invalid": 0,
       "fault": 0,
+      "over_range": 0,
+      "under_range": 0,
+      "output": 0,
       "reserved": 0,
       "logic": 165,
       "word": 2768376372
@@ -97,6 +100,9 @@
       "range": 0,
       "invalid": 0,
       "fault": 0,
+      "over_range": 0,
+      "under_range": 0,
+      "output": 0,
       "reserved": 0,
       "logic": 0,
       "word": 0
@@ -107,9 +113,12 @@
       "range": 3,
       "invalid": 1,
       "fault": 1,
+      "over_range": 1,
+      "under_range": 1,
+      "output": 1,
       "reserved": 0,
       "logic": 255,
-      "word": 4279238655
+      "word": 4286578687
     },
     {
       "name": "invalid_during_range_change",
@@ -117,6 +126,9 @@
       "range": 1,
       "invalid": 1,
       "fault": 0,
+      "over_range": 0,
+      "under_range": 0,
+      "output": 0,
       "reserved": 0,
       "logic": 1,
       "word": 17137664
@@ -127,9 +139,202 @@
       "range": 3,
       "invalid": 0,
       "fault": 1,
+      "over_range": 0,
+      "under_range": 0,
+      "output": 0,
       "reserved": 0,
       "logic": 0,
       "word": 786431
+    },
+    {
+      "name": "over_range_at_full_scale",
+      "adc": 65535,
+      "range": 1,
+      "invalid": 0,
+      "fault": 0,
+      "over_range": 1,
+      "under_range": 0,
+      "output": 1,
+      "reserved": 0,
+      "logic": 0,
+      "word": 5373951
+    },
+    {
+      "name": "under_range_with_output_on",
+      "adc": 256,
+      "range": 0,
+      "invalid": 0,
+      "fault": 0,
+      "over_range": 0,
+      "under_range": 1,
+      "output": 1,
+      "reserved": 0,
+      "logic": 128,
+      "word": 2153775360
+    },
+    {
+      "name": "output_on_only",
+      "adc": 1313,
+      "range": 3,
+      "invalid": 0,
+      "fault": 0,
+      "over_range": 0,
+      "under_range": 0,
+      "output": 1,
+      "reserved": 0,
+      "logic": 0,
+      "word": 4392225
     }
-  ]
+  ],
+  "records": {
+    "info": [
+      {
+        "name": "info_calibrated",
+        "protocol_version": 2,
+        "hardware_revision": 1,
+        "firmware_major": 0,
+        "firmware_minor": 1,
+        "firmware_patch": 0,
+        "cal_state": 0,
+        "settle_samples": 7,
+        "chip_id": 16600730919611230123,
+        "carrier_serial": "OPP-A2-0001",
+        "carrier_revision": 1,
+        "zero_r0": 336128,
+        "zero_r1": 336200,
+        "zero_r2": 335990,
+        "zero_r3": 336064,
+        "data": "02010001000007ab674523d1a461e64f50502d41322d30303031000000000001002105004821050076200500c0200500"
+      },
+      {
+        "name": "info_nominal_without_a_record",
+        "protocol_version": 2,
+        "hardware_revision": 1,
+        "firmware_major": 0,
+        "firmware_minor": 1,
+        "firmware_patch": 0,
+        "cal_state": 1,
+        "settle_samples": 7,
+        "chip_id": 1,
+        "carrier_serial": "",
+        "carrier_revision": 0,
+        "zero_r0": 0,
+        "zero_r1": 0,
+        "zero_r2": 0,
+        "zero_r3": 0,
+        "data": "020100010001070100000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      {
+        "name": "info_serial_of_full_length",
+        "protocol_version": 2,
+        "hardware_revision": 0,
+        "firmware_major": 0,
+        "firmware_minor": 0,
+        "firmware_patch": 0,
+        "cal_state": 2,
+        "settle_samples": 0,
+        "chip_id": 18446744073709551615,
+        "carrier_serial": "0123456789ABCDEF",
+        "carrier_revision": 0,
+        "zero_r0": -1,
+        "zero_r1": 0,
+        "zero_r2": 0,
+        "zero_r3": -2147483648,
+        "data": "02000000000200ffffffffffffffff3031323334353637383941424344454600ffffffff000000000000000000000080"
+      }
+    ],
+    "status": [
+      {
+        "name": "status_idle_on_the_module_input",
+        "state": 2,
+        "faults": 0,
+        "dropped_blocks": 0,
+        "mode": 0,
+        "range_lock": 255,
+        "setpoint_mv": 0,
+        "vout_mv": 0,
+        "vin_mv": 0,
+        "rail5_mv": 4980,
+        "temperature_dc": 253,
+        "supply": 0,
+        "cc_class": 0,
+        "budget_ma": 450,
+        "trip_count": 0,
+        "notices": 0,
+        "data": "0200000000000000ff0000000000007413fd000000c2010000"
+      },
+      {
+        "name": "status_streaming_in_source_mode",
+        "state": 4,
+        "faults": 0,
+        "dropped_blocks": 3,
+        "mode": 1,
+        "range_lock": 255,
+        "setpoint_mv": 3300,
+        "vout_mv": 3298,
+        "vin_mv": 12,
+        "rail5_mv": 5020,
+        "temperature_dc": 318,
+        "supply": 1,
+        "cc_class": 2,
+        "budget_ma": 1700,
+        "trip_count": 0,
+        "notices": 1,
+        "data": "0400000300000001ffe40ce20c0c009c133e010102a4060001"
+      },
+      {
+        "name": "status_fault_with_every_field_set",
+        "state": 5,
+        "faults": 32767,
+        "dropped_blocks": 4294967295,
+        "mode": 1,
+        "range_lock": 3,
+        "setpoint_mv": 5000,
+        "vout_mv": 65535,
+        "vin_mv": -32768,
+        "rail5_mv": 65535,
+        "temperature_dc": -200,
+        "supply": 1,
+        "cc_class": 1,
+        "budget_ma": 1400,
+        "trip_count": 255,
+        "notices": 3,
+        "data": "05ff7fffffffff01038813ffff0080ffff38ff01017805ff03"
+      }
+    ],
+    "supply": [
+      {
+        "name": "supply_module_default",
+        "supply": 0,
+        "cc_class": 0,
+        "budget_ma": 450,
+        "data": "0000c201"
+      },
+      {
+        "name": "supply_usb_c_3a",
+        "supply": 1,
+        "cc_class": 2,
+        "budget_ma": 1700,
+        "data": "0102a406"
+      }
+    ],
+    "zero": [
+      {
+        "name": "zero_at_the_pedestal",
+        "zero_r0": 336128,
+        "zero_r1": 336128,
+        "zero_r2": 336128,
+        "zero_r3": 336128,
+        "data": "00210500002105000021050000210500"
+      },
+      {
+        "name": "zero_with_negative_values",
+        "zero_r0": -256,
+        "zero_r1": 0,
+        "zero_r2": 1,
+        "zero_r3": 2147483647,
+        "data": "00ffffff0000000001000000ffffff7f"
+      }
+    ]
+  }
 }

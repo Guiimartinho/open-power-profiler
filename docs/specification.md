@@ -44,11 +44,13 @@ schematic, the simulations or the bench measurements.
   raised
   four points for a decision before boards are ordered, which the project
   owner decided on 2026-10-10: decisions D-95 to D-98, with the sections
-  that they change. In fourteen places the simulations differ from a
-  figure or a rule that this document states, or show something that it
-  does not state. Those are not decided: no requirement, figure or rule
-  of this document was changed on their account, and the end of section
-  16 lists them as open. A simulation is not a measurement: every active
+  that they change. In fourteen places the simulations differed from a
+  figure or a rule that this document stated, or showed something that
+  it did not state. Twelve of them are corrected in the text since
+  2026-10-10, three of them by decisions D-99 to D-101; two wait for the
+  run of the benches on the drawn decisions; and the questions that the
+  corrections leave are listed as open at the end of section 16. A
+  simulation is not a measurement: every active
   part in it is a model written from a datasheet, a typical part at room
   temperature.
 - The schematic in [`../hardware/kicad/`](../hardware/kicad/) is draft A2. Every
@@ -58,16 +60,18 @@ schematic, the simulations or the bench measurements.
   review closes no check of section 16. Its parts are the candidates of this
   document, no check of section 16 is closed (D-37), and nothing has been built
   or measured.
-- Three decisions of 2026-10-10 are not drawn yet. This document states
-  the decided design: 10 nF at the capacitors C32 to C34 of the rail
-  monitor (D-95), a position for a capacitor at the input of the buffer
-  U28 (D-96), and the damper R14 with C5 fitted (D-98). The schematic, the
-  board, the bill of materials and the netlist snapshot of the simulations
-  still hold the earlier state: 1 nF, no position at U28, R14 and C5
-  without parts. Drawing the three is the first item of section 16 before
-  the board is ordered. D-97 leaves the position U9 without a part and
-  changes no copper: only the text of that position follows, in the
-  schematic and on the board.
+- Three decisions of 2026-10-10 that follow the circuit simulations are
+  drawn since the same day, as changes of values and of fitted parts
+  that move no copper: 10 nF at the capacitors C32 to C34 of the rail
+  monitor (D-95), the damper R14 with C5 fitted (D-98), and the text of
+  the position U9, which stays without a part (D-97). The schematic, the
+  board, the bill of materials and the netlist snapshot of the
+  simulations hold them, and the electrical rules check and the design
+  rules check report nothing. A fourth is not drawn: the position for a
+  capacitor at the input of the buffer U28 (D-96), which needs a
+  footprint and copper. The circuit simulations were not run again:
+  their results are those of the circuit before these changes
+  (section 16).
 - The board of the draft was placed by a generator and routed automatically
   (D-86), which left 28 of its 984 connections open. Its layout was reviewed
   on 2026-10-10, with scripts and checked by independent calculation: every
@@ -88,9 +92,9 @@ schematic, the simulations or the bench measurements.
   as KiCad numbers them (D-45), so the drawings also hold resistors R1 to
   R3 and diodes D1 to D7. Where this document means one of those parts, it
   says so or gives the value of the part.
-- The firmware in [`../firmware/`](../firmware/) still builds for the
-  ESP32-S3. Its hardware-independent code is not affected by D-39; the port
-  of its adapters and of its build to the Pico SDK is not done yet
+- The firmware in [`../firmware/`](../firmware/) builds for the Pico 2 with
+  the Pico SDK since 2026-10-12. Its hardware-independent code was not
+  affected by D-39; no adapter and no PIO program is written yet
   (section 6).
 - Every deviation from this document is recorded as a new entry in the
   decision log (section 15), with the reason.
@@ -295,9 +299,9 @@ Input stage:
 - The 5 V rail carries about 74 µF, of which 47 µF is an electrolytic
   capacitor (C11); about 62 µF remain at 5 V (estimate from the bias
   curves of the ceramic parts).
-- The damper at input 2 in the drawing above is decision D-98. It is not
-  drawn yet: the schematic of draft A2 has its two positions without
-  parts (section 4.1).
+- The damper at input 2 in the drawing above is decision D-98. It is
+  fitted in the schematic since 2026-10-10; draft A2 had drawn its two
+  positions without parts (section 4.1).
 
 Supervisor (D-48). A voltage supervisor on the 5 V rail (candidate:
 TPS3808G01, U6) drives the open-drain signal 5V_OK:
@@ -367,12 +371,12 @@ of 3V3_C (R41, R43, R44). A 10 nF capacitor from each threshold node and
 from the sense node of −4 V_A to ground (C32 to C34, D-95) keeps an edge
 of the line from moving its own threshold: in the package every output
 pin is the neighbor of an inverting input. The value was 1 nF until D-95,
-and the drawings of draft A2 still show 1 nF. With 10 nF the three nodes
+and the drawings hold 10 nF since 2026-10-10. With 10 nF the three nodes
 follow their dividers with time constants of about 0.09 ms, 0.25 ms and
 0.36 ms (calculated from the resistor values, each node alone; a tenth of
 that with 1 nF). The figures of this document for the edges of PWR_GOOD
-at power-up and at power-off were simulated with 1 nF; they are simulated
-again when the change is drawn (section 16). PWR_GOOD is low when any of
+at power-up and at power-off were simulated with 1 nF; the run with
+10 nF is open (section 16). PWR_GOOD is low when any of
 these holds (calculated from the resistor values; the bands include the
 tolerances and the drift of the parts):
 
@@ -438,7 +442,7 @@ Input stage (D-47):
   the multiplexer; the resistor defines that node when the jumper is open.
 - Damper of the module input (D-98): 10 µF behind 0.33 Ω (C5, R14) at
   the output of that limiter. D-84 had left the two positions without
-  parts, and the drawings of draft A2 still show them so.
+  parts; they are fitted in the schematic since 2026-10-10.
 - A Schottky diode lies across each limiter, anode on its output (D4,
   D3). When a cable is pulled it returns the charge behind the limiter, so
   that the output stays within 0.3 V of the input, which is the rating of the
@@ -759,8 +763,13 @@ to ground only the 5 V rail and +13.5 V are up.
   amplifier with gain 2.1 (U17, R57, R58), powered from +12 V_A and
   −4 V_A, drives the SET pin through R60 (1 kΩ). The output is the SET drive
   plus about 10 mV, the SET pin current in that resistor (datasheet value):
-  0.01 V to 5.26 V in 1.28 mV steps, nominal codes 616 for 0.80 V and 3893 for
-  5.00 V (calculated).
+  0.03 V to 5.26 V in 1.28 mV steps, nominal codes 616 for 0.80 V and 3893 for
+  5.00 V (calculated; code 0 gives 30.96 mV, because the swing of the DAC
+  ends above ground, simulated on 2026-10-10). R60 also limits the current of the
+  clamp between the SET pin and the output of the regulator when a DUT
+  holds the output above the set-point: 3.453 mA with 5.0 V on a set-point
+  of 0.80 V, against 10 mA at the most (simulated on 2026-10-10; datasheet
+  value).
   - Ceiling: the DAC cannot deliver more than twice its reference input,
     so no SPI frame can command more than 5.26 V nominal and 5.39 V at
     the tolerance limits (calculated); a wrong gain bit halves the output.
@@ -809,8 +818,9 @@ to ground only the 5 V rail and +13.5 V are up.
   curve is at or above that at every voltage.
 - Beyond the curve the regulator is in dropout and the output sags by 10 to 22
   times the missing headroom, up to 0.6 V, because the pre-regulator follows the
-  sagging output (simulated: 4.48 V into 5 Ω at a 5.0 V set-point with a
-  regulator at the guaranteed dropout, without oscillation). With a
+  sagging output (simulated on 2026-10-10: 4.729 V into 5 Ω at a 5.0 V
+  set-point with a regulator at the guaranteed dropout, 4.858 V with a
+  typical regulator). With a
   constant-power DUT the state feeds itself: the output collapses and restarts.
   Firmware reports an overload and opens the output switch when the VOUT monitor
   reads more than 0.3 V below an unchanged set-point for 20 ms (F-32).
@@ -863,15 +873,21 @@ to ground only the 5 V rail and +13.5 V are up.
 - Output switch: back-to-back N-MOSFET pair at VOUT (Q15, Q16), off at
   reset, opened by hardware on a fault (D-71). It closes as a source follower
   behind R117 (2.2 MΩ) and C74 (10 nF): the output rises with 0.44 V/ms,
-  falling to 0.21 V/ms near 5 V, and reaches 90 % after about 20 ms at 5.0 V; it
-  starts to rise 6 ms to 7 ms after the request (simulated). That limits the
+  falling to 0.21 V/ms near 5 V, and reaches 90 % after about 20 ms at 5.0 V
+  (simulated). With 100 µF it is at 10 % of its voltage 6.458 ms after the
+  request at 5 V and 5.381 ms at 0.8 V; over the corners the start spans
+  from 3.888 ms, the first 50 mV at 0.8 V in the fast corner, to 10.03 ms,
+  10 % at 5 V into 2200 µF in the slow corner (simulated on 2026-10-10).
+  That limits the
   in-rush in both modes, with the trip armed and no blanking: 0.39 A into
   1000 µF and 0.85 A into 2200 µF at 5 V, and about 2200 µF nominal is the
   largest DUT capacitance that starts without a trip (simulated); 1800 µF is the
   figure for a capacitor with a tolerance of 20 % (section 11). The output
   switch is the last switch to close and the first to open (F-23). It opens
   through one diode of D20 and R116 (220 Ω): the gate is below 2 V within
-  7 µs (simulated), slowly enough for the pair to absorb the energy of the
+  7 µs at 5 V, 6.258 µs to 6.833 µs over the runs, and after 7.274 µs to
+  8.109 µs at 0.8 V (simulated on 2026-10-10), slowly enough for the pair
+  to absorb the energy of the
   supply leads at a trip. After the turn-off the gate rests at a diode drop and
   decays with 31 ms (calculated), and a transistor with a low threshold passes
   microamperes meanwhile (simulated): readings with the output open are taken
@@ -903,7 +919,16 @@ to ground only the 5 V rail and +13.5 V are up.
   into the divider of channel 2, so one channel reads the rail and tells which
   input supplies it: the bands are 1.93 V to 2.50 V with USB-C in use and 1.07 V
   to 1.39 V with the module input in use, and firmware separates them at 1.67 V
-  (calculated; F-11).
+  (calculated; F-11). With the resistors at their limits the bands are
+  1.911 V to 2.527 V and 1.057 V to 1.409 V (simulated on 2026-10-10): on
+  USB-C the channel is at the full scale of the converter, 2.5 V, from
+  about 5.44 V of the rail (calculated from that figure), which is an
+  open point of section 16.
+- The inputs of the monitor converter leak 1 nA typical and 1 µA at the
+  most (datasheet value). At that maximum the reading of channel 0 is off
+  by 120 mV, that of channel 1 by 430 mV and that of channel 2 by 120 mV
+  (simulated on 2026-10-10). The limits of F-26 and F-28 do not hold these
+  errors, which is an open point of section 16.
 - The VOUT channel has a source resistance of 54.5 kΩ and a filter of 5.5 ms
   (calculated); at 100 SPS the charge step of the converter costs 0.97 LSB,
   1.3 mV at VOUT, and at 1 kSPS 4.9 LSB (calculated). Rule F-33 for an external
@@ -1031,18 +1056,29 @@ thresholds.
   threshold each is an off MOSFET like the range switches. Their body
   diodes carry the pulse when a charged DUT is connected to a lower output
   voltage.
-  - Hot plug of 100 µF or a short circuit, worst delays (simulated): 8.8 A
-    in each part, or 14.2 A in one part when their thresholds are at
-    opposite limits, above 5 A for at most 0.54 µs, ladder at most 3.9 V.
-    The pulsed rating is 21 A (datasheet value).
+  - Hot plug of 100 µF or a short circuit, worst delays (simulated on
+    2026-10-10): 7.235 A in each part with both at the same threshold,
+    12.16 A in one part when their thresholds are at opposite limits, and
+    19.26 A in the worst combination, a short circuit at 5.5 V through
+    20 nH with the thresholds at opposite limits; ladder at most 3.822 V.
+    A hot plug holds a part above 5 A for 285.6 ns at the most. In a short
+    circuit from a supply that holds its voltage, a part with a low
+    threshold carries more than 5 A until the trip has opened the output,
+    for up to 14.79 µs. The pulsed rating is 21 A (datasheet value). The
+    spread of the clamp at amperes is an assumption, and in source mode,
+    where the regulator limits its current, these figures are an upper
+    bound.
   - A capacitor charged to 5.0 V to 5.5 V connected to an output at 0.8 V:
     10.8 A to 12.5 A in each body diode for about 2 µs, against the same
     21 A. These figures are estimates: the simulation had less capacitance
     behind the source switch than the board.
-  - R3 carries up to 27 A for microseconds in the same events, above the
-    14.1 A and 20 A its datasheet gives for 10 ms. That is accepted on the
-    energy, about 1 mJ against 200 mJ (calculated), and checked by the
-    pulse series of section 11.
+  - R3 carries up to 29.52 A for microseconds in the same events, and
+    32.33 A with a short circuit across the terminals (5 mΩ and 50 nH),
+    above the 14.1 A and 20 A its datasheet gives for 10 ms. That is
+    accepted on the energy, 1.36 mJ in a hot plug and 2.609 mJ with the
+    short circuit across the terminals, against 200 mJ (simulated on
+    2026-10-10; the 200 mJ calculated), and checked by the pulse series of
+    section 11.
   - The two parts do not share a sustained current: one carries nearly all of
     it and would heat by 104 K at 3 A and by 144 K at 4 A in 5 ms
     (calculated). The clamp is a surge path only; section 4.4 has the rule
@@ -1145,9 +1181,13 @@ milliseconds of latency. The range state lives in hardware.
     cycles) in R3, and keeps it open until firmware clears the fault (D-76).
     The time is a constant of the build, never below 10 µs and never above
     20 µs (F-18): the short-circuit figures of the output switch hold up to
-    20 µs (simulated). It lets the recharge of the DUT capacitor after a step
-    to 1.0 A pass, which holds the comparator high for up to 8.6 µs
-    (simulated, 56 µF at the DUT, lowest threshold).
+    20 µs (simulated). The count runs with R3 selected only (D-99). It
+    lets the recharge of the DUT capacitor after a step to 1.0 A pass: the
+    comparator is then high for up to 12.83 µs from its first edge, of
+    which 8.174 µs at the most with R3 selected (simulated on 2026-10-10:
+    47 µF to 100 µF at the DUT, thresholds at opposite ends of their
+    tolerance, worst delays, 2 mΩ in the capacitor; the longest time
+    belongs to 82 µF, and no run of 40 trips).
   - The trip is armed before the output switch closes and has no blanking
     window at DUT power on. The slow turn-on of the output switch (section
     4.2) keeps the in-rush below the trip level for a DUT of up to about
@@ -1157,10 +1197,17 @@ milliseconds of latency. The range state lives in hardware.
   - Ampere mode with long supply leads: the leads ring against the capacitor
     at the DUT, and a step to 1.0 A can hold the current above the trip level
     for 12 µs to 29 µs with 1 µH to 3 µH of leads and 10 µF to 100 µF at the
-    DUT; the trip then acts. With 100 µF at the VIN terminals the longest
-    time is 2.1 µs (all simulated). The trip can act on load steps above
-    about 0.7 A; the user documentation asks for that capacitor with leads
-    longer than about 0.5 m and load steps above 0.5 A (section 4.9).
+    DUT; the trip then acts (simulated). With 100 µF at the VIN terminals
+    the result depends on the resistance of the leads (simulated on
+    2026-10-10): with 50 mΩ per microhenry the current is above the level
+    for 54.2 ns at the most and no run trips; with 10 mΩ per microhenry
+    and 47 µF or more at the DUT it stays above it for up to 32.75 µs, and
+    2 of 8 runs trip. The trip can act on load steps above about 0.7 A,
+    and from 0.9 A with leads of 3 µH and 10 mΩ per microhenry. The user
+    documentation asks for that capacitor with leads longer than about
+    0.5 m and load steps above 0.5 A, and says that leads of low
+    resistance with a large capacitor at the DUT can still trip
+    (section 4.9, D-100).
   - With the output below 0.2 V the linear range of the amplifier near
     full scale is not established (section 4.5). Range 3 above 1 A, the
     trip level and the jump level are specified for output voltages of
@@ -1192,7 +1239,7 @@ milliseconds of latency. The range state lives in hardware.
   Firmware drives no line of the ladder before PWR_GOOD is high (F-2, section
   4.11). It starts the sequencer and the trip and selects R3 before it closes
   a mode switch; the output switch closes last, and only through the
-  sequencer, never by a plain write to its pin (F-20, F-23). A mode switch
+  trip program, never by a plain write to its pin (F-20, F-23, D-104). A mode switch
   counts as closed 40 ms after its request (F-24, section 4.2).
 - Without firmware. In reset, or with no program started, the pull-down
   resistors hold every switch open, and the over-voltage detector of VIN acts
@@ -1340,7 +1387,10 @@ milliseconds of latency. The range state lives in hardware.
     about 2.25 V through PWR_GOOD (section 4.11).
 - Interface mode: three-wire mode with the DIN pin tied to 3V3_C. The
   rising edge of the convert-start line is the sampling instant; the result
-  is shifted out by 16 clock cycles while that line is still high.
+  is shifted out by 16 clock cycles after that line has fallen (datasheet
+  of the converter as the simulation of 2026-10-10 reads it; this document
+  said "while that line is still high" before, and the check of the timing
+  in section 16 is open).
 - Digital lines (D-75): 220 Ω in each of the three lines at the converter,
   RN5: convert-start, clock and data. The clock and the convert-start
   line have 47 Ω at the controller as well (RN4) and 4.7 kΩ to ground
@@ -1353,8 +1403,12 @@ milliseconds of latency. The range state lives in hardware.
     0.3 V beyond the supply and the datasheet gives no current figure, so
     this is a mitigation and not a rating that is kept; firmware releases the
     lines when PWR_GOOD falls (F-7, section 4.11).
-  - Cost in timing: about 1 ns on the two inputs and about 3 ns on the
-    data line (estimates).
+  - Cost in timing: the clock edge is valid at the converter 2.251 ns to
+    12.57 ns after the command of the pad, and the data arrive 5.015 ns to
+    11.5 ns later than the converter alone gives them (simulated on
+    2026-10-10 over weak and strong pads, with assumed capacitances of
+    tracks, pins and pads). The earlier estimates, about 1 ns and about
+    3 ns, left out the resistance of the pads.
 - Conversion timing: a PIO state machine of the controller makes the
   convert-start pulse and the 16 clock pulses of every sample from the system
   clock (D-40), never an interrupt handler. Sampling jitter then does not
@@ -1369,7 +1423,9 @@ milliseconds of latency. The range state lives in hardware.
   cycles per bit at 100 kSPS, 9.375 MHz or less, and is 15 MHz at the most:
   converter data and side data (section 4.7) are read in one window, which is
   36.9 ns wide at 9.375 MHz and 16.9 ns at 15 MHz (calculated from the
-  datasheet delays; the 4 ns of the 220 Ω in the data line are an estimate).
+  datasheet delays with 4 ns for the 220 Ω in the data line, an estimate
+  that the simulation of 2026-10-10 puts at 5.015 ns to 11.5 ns; the window
+  at 15 MHz is an open check of section 16).
 - Oversampling option: 500 kSPS (300 cycles per sample, still an integer)
   decimated by 5 in firmware, with 10 system clock cycles per bit, 15 MHz. It
   improves noise and relaxes the anti-alias filter. Phase 1 records the noise
@@ -1414,8 +1470,9 @@ order of the 16 side bits of a sample is therefore:
   side of the 1 kΩ series resistors of the multiplexer and of the gate
   driver (section 5). They report what the range sequencer commands, not
   what the switches have done: the multiplexer follows within its
-  switching time, and the DUT voltage starts to rise 6 ms to 7 ms after
-  the output bit (simulated, D-71). With the pins of the controller
+  switching time, and the DUT voltage starts to rise 3.888 ms to 10.03 ms
+  after the output bit, 6.458 ms at 5 V with 100 µF (simulated on
+  2026-10-10, D-71). With the pins of the controller
   released the pull-downs R95, R91 and R93 make the three bits
   read 0: range 0, output off.
 - Comparator bits: the push-pull outputs of U31 and U32, powered
@@ -1437,9 +1494,9 @@ order of the 16 side bits of a sample is therefore:
   limits). The flag reports that the rails are present, not that they are
   in tolerance, and it cannot see a 3V3_C that stands low: firmware checks
   the rails on the monitor converter (rule F-12). C32, C33 and
-  C34, 10 nF each by D-95 and still 1 nF on the drawings of draft A2,
-  at the comparator inputs keep an edge of the flag from moving its own
-  thresholds (simulated with an estimated pin capacitance).
+  C34, 10 nF each since D-95 and 1 nF before it, at the comparator
+  inputs keep an edge of the flag from moving its own thresholds
+  (simulated with an estimated pin capacitance).
 - Levels of PWR_GOOD: the divider puts the high level at 0.82 of 3V3_C at
   the register, and at 0.79 with the pad pull-down of GP28 on, against the
   0.7 that the register needs (calculated; datasheet). The controller
@@ -1469,6 +1526,13 @@ order of the 16 side bits of a sample is therefore:
 
 ### 4.8 Digital Inputs
 
+- Range of a line (D-101): a logic input D0 to D7 is specified for 0 V to
+  5.5 V at the port. No voltage beyond that range is specified as
+  withstood: +12 V at a line leaves 6.588 V to 8.562 V at the pin of the
+  translator behind the 1 kΩ of the line, 7.728 V behind 100 Ω and
+  11.58 V from a source of 0.1 Ω, against a rating of 6.5 V (simulated on
+  2026-10-10; datasheet value). Whether a withstand voltage is designed
+  in is an open point of section 16.
 - 8 logic channels, D0 to D7, through a level translator U38
   (candidate: SN74LVC8T245) whose DUT-side supply is a buffered copy of
   the ladder output, so they follow the DUT logic level from 1.65 V to
@@ -1586,8 +1650,10 @@ order of the 16 side bits of a sample is therefore:
     Without 3V3_A it reports nothing; PWR_GOOD covers that rail.
   - While the switch is closed the supply has to stay between 0.8 V and 5.0 V;
     no part protects the DUT from a supply that jumps out of that range. The
-    detector opens the switch 4 µs to 45 µs after the terminal passes the
-    threshold. A reversal opens it through the transistor at the gates within
+    detector opens the switch 2.199 µs to 78.34 µs after the terminal passes
+    the threshold, the first on a step to 20 V and the second on a step to
+    5.6 V (simulated on 2026-10-10). A reversal opens it through the
+    transistor at the gates within
     5 µs to 35 µs from 5 V, within 2 ms from 1.5 V, and near 1 V possibly not at
     all. What arrives in that time reaches the DUT: 9.2 V for a supply that
     steps to 20 V in 1 µs and −2.4 V for one that steps to −20 V (all
@@ -1602,11 +1668,15 @@ order of the 16 side bits of a sample is therefore:
     the shunts and is not part of the reading.
   - A load that steps above 0.5 A behind supply leads longer than about 0.5 m
     needs 100 µF across the VIN terminals; the user documentation says so. The
-    capacitor keeps the dip of the supply small and keeps the leads from holding
-    the current above the trip level for longer than the trip waits (2.1 µs with
-    100 µF, simulated; section 4.4). The board carries none: it would ring to
-    twice the voltage at every hot plug of the supply and load a battery with
-    its leakage.
+    capacitor keeps the dip of the supply small. With leads of 50 mΩ per
+    microhenry it also keeps them from holding the current above the trip
+    level for longer than the trip waits (54.2 ns at the most). With leads
+    of 10 mΩ per microhenry and 47 µF or more at the DUT it does not
+    (32.75 µs), and the trip can still act: the user documentation says
+    that too (simulated on 2026-10-10; section 4.4, D-100). Which
+    capacitor ends those trips is an open point of section 16. The board
+    carries none: it would ring to twice the voltage at every hot plug of
+    the supply and load a battery with its leakage.
 - Mode switches (D-61, D-62): each pair has the same gate network; the
   parts of the ampere pair are named, those of the source pair are
   R78, C60, R81, D16, R77, R83, Q6, R85 and
@@ -1618,7 +1688,9 @@ order of the 16 side bits of a sample is therefore:
     so the supply node of the ladder does not ring when a pair closes on
     a live supply (simulated: 5.00 V and no current in the ladder clamp).
     R84 (2.2 MΩ) from gate to common source leaves 95.7 % of the
-    drive, at least 6.2 V of gate-source voltage (calculated).
+    drive (calculated): 6.122 V of gate-source voltage at 5 V and 5.739 V
+    at 5.4 V with +12 V_A at its lower limit of 11.4 V and the largest
+    on-resistance (simulated on 2026-10-10; "at least 6.2 V" before).
   - Opening: one diode of D17 and R79 (22 Ω) discharge the gate into the
     driver. The turn-off diode is a low-leakage type: a Schottky diode would
     leak as much as the ramp charges with. A closure that follows an opening
@@ -1654,12 +1726,18 @@ order of the 16 side bits of a sample is therefore:
   40 °C is an estimate) and is an open check of section 16: the guaranteed
   figure equals the resolution of R-04.
   - At a trip the suppressor carries the current of the DUT cable in the forward
-    direction: at most 11.6 A against a surge rating of 50 A (simulated;
-    datasheet value), and the terminal goes to −0.8 V to −1.7 V for microseconds
-    (simulated with an assumed forward curve).
+    direction: up to 14.37 A, with 3 µH of cable and a trip after 20 µs,
+    against a surge rating of 50 A (simulated on 2026-10-10; datasheet
+    value). The terminal goes to −1.32 V at the most for microseconds, and
+    to −1.807 V with a suppressor of 0.15 Ω of forward resistance
+    (simulated on 2026-10-10; the forward curve is an assumption on both
+    sides).
   - Output off: the terminal withstands −0.8 V from a source limited to 0.5 A,
-    and +15 V. A positive strike beyond that ends in the avalanche rating of the
-    output transistor (39 mJ, datasheet value). A stiff reversed source destroys
+    and +15 V. A positive strike beyond that is limited by the suppressor,
+    not by the avalanche of the output transistor: 24 V behind 1 Ω leave
+    19.4 V at the terminal and 17.38 V across Q16, with 89.24 W in the
+    suppressor against 400 W for a pulse of a millisecond (simulated on
+    2026-10-10; datasheet value). A stiff reversed source destroys
     the suppressor: VOUT has no reverse-polarity protection.
   - Output on: VOUT must not be driven above the set voltage. No part bounds it
     below 16.7 V, the lowest breakdown voltage of the suppressor (datasheet
@@ -1675,9 +1753,11 @@ order of the 16 side bits of a sample is therefore:
   unmeasured (calculated).
   - A charged DUT must not be plugged into a live output: connect and disconnect
     with the output off. Plugged in live, it sends 3 A to 17 A through D11
-    for microseconds and takes the input of the regulator 0.32 V to 0.94 V below
-    its output for 3 µs to 21 µs, outside the −0.3 V of the datasheet
-    (simulated). Switched on in the order of section 4.2, the same DUT meets the
+    for microseconds and takes the input of the regulator 1.013 V to 1.04 V
+    below its output, more than 0.3 V below it for 22.82 µs to 24.72 µs,
+    outside the −0.3 V of the datasheet (simulated on 2026-10-10 with a
+    charged capacitor of 100 µF on leads of 0.2 µH to 1 µH; no part covers
+    this case). Switched on in the order of section 4.2, the same DUT meets the
     ramp of the output switch and gives 14 mA (simulated).
   - External voltage: above about 5.7 V a voltage on the terminal reaches the
     output of the pre-regulator through D11. The over-voltage level of that
@@ -1733,11 +1813,17 @@ order of the 16 side bits of a sample is therefore:
 
 ### 4.10 Error & Noise Budget (Estimates)
 
-Estimated from typical datasheet figures at G = 19.93 and 50 kHz bandwidth:
-amplifier about 1.2 µV RMS referred to input, ADC about 1.0 µV RMS, R0
-thermal noise about 1.1 µV RMS. A simulation of the chain of section 4.5
-with its filter gives about 2.1 µV RMS at the shunt, which is the figure of
-the table. Every value of this section is a datasheet value, a calculation,
+The terms in R0, referred to the shunt (simulated on 2026-10-10 with
+models written from the datasheets, typical figures, G = 19.93): amplifier
+with its gain resistor 1.102 µV RMS, shunt 877 nV, multiplexer channels
+620.2 nV, filter and driver 325.7 nV, pedestal 56.82 nV; the chain alone
+1.575 µV, and 1.322 µV with the 100 nF at the output and a quiet supply.
+The ADC adds 1.629 µV RMS (datasheet value at a reference of 2.5 V,
+referred to the shunt). Together that is 2.1 µV to 2.3 µV RMS at the
+shunt, 2.098 nA to 2.266 nA in R0; the table keeps about 2.1 µV. An
+earlier estimate of this section had 1.2 µV for the amplifier, 1.0 µV
+for the ADC and 1.1 µV for the shunt, without the multiplexer and the
+filter. Every value of this section is a datasheet value, a calculation,
 a simulation or an estimate, as stated; all are to be replaced by
 measurements in phase 2.
 
@@ -2037,10 +2123,10 @@ is beside the USB connector.
 | 4 | 6 | GATE_R3 | Out | Range switch R3 (PIO 1) |
 | 5 | 7 | MUX_A0 | Out | Multiplexer address, bit 0 (PIO 1) |
 | 6 | 9 | MUX_A1 | Out | Multiplexer address, bit 1 (PIO 1) |
-| 7 | 10 | GATE_OUT | Out | Output switch (PIO 1) |
+| 7 | 10 | GATE_OUT | Out | Output switch (PIO 2) |
 | 8 | 11 | CMP_UP | In | Step-up comparator (PIO 1) |
 | 9 | 12 | CMP_JUMP | In | Jump-up comparator (PIO 1) |
-| 10 | 14 | CMP_OC | In | Over-current comparator (PIO 1) |
+| 10 | 14 | CMP_OC | In | Over-current comparator (PIO 2) |
 | 11 | 15 | VIN_OV | In | Over-voltage on VIN |
 | 12 | 16 | SPI_MISO | In | Data from the monitor ADC (SPI1) |
 | 13 | 17 | MON_CS | Out | Monitor ADC chip select |
@@ -2063,10 +2149,11 @@ is beside the USB connector.
   ADC_VREF (pin 35) are not connected. RUN (pin 30) goes to the reset
   button SW1.
 - The groups follow what a PIO state machine needs: its output pins and its
-  input pins are runs of consecutive GPIO numbers. GP2 to GP7 are the
-  outputs of the range sequencer and GP8 to GP10 its inputs; GP16 and GP17
-  are the inputs of the acquisition state machine and GP19 to GP21 its
-  outputs.
+  input pins are runs of consecutive GPIO numbers. GP2 to GP6 are the
+  outputs of the range sequencer in PIO 1 and GP8 and GP9 its inputs. GP7
+  is the output of the trip program in PIO 2, which reads GP10 and the
+  range line GP4 as inputs (D-104). GP16 and GP17 are the inputs of the
+  acquisition state machine and GP19 to GP21 its outputs.
 - The acquisition pins have the ground pins 23 and 28 among them.
 - Every GPIO of the headers is in use. A further signal means giving up the
   console or sharing the SPI bus.
@@ -2166,11 +2253,19 @@ clocks the converter, and DMA moves its words to memory. The firmware is
 built with the Pico SDK (C and CMake); the USB stack is TinyUSB, which the
 SDK brings.
 
-Status: the firmware in the repository still has the ESP-IDF adapters of the
-first plan. The hardware-independent code of every component is unchanged by
-D-39; its adapters and its build are ported in phase 1 (section 13). The
-rules of section 6.6 are requirements for that port; none of them is
-implemented yet.
+Status on 2026-10-12: the build is ported. The firmware directory is a
+project of the Pico SDK that compiles the hardware-independent code of
+every component for the RP2350 and produces an image for the Pico 2; the
+project for the controller of the first plan is removed. The image
+starts the console and the device state machine. It drives one pin, the
+console output, which leads to the console header alone (section 5), and
+no line into a carrier circuit: no adapter and no PIO program is written.
+Whether rules F-1, F-2 and F-7 mean the console pins too is an open
+point of the firmware design. The rules
+of section 6.6 are requirements for them; none is implemented end to
+end, and the unit tests hold the logic of a first part of them. A design
+one level below this section is in [`firmware/`](firmware/README.md).
+Nothing has run on a controller.
 
 ```text
                   ┌──────────────────────────────────────────┐
@@ -2378,7 +2473,7 @@ temperature sensor, 6 +12 V_A, 7 −4 V_A. A clock is one cycle of the
 | F-5 | Drive strength 12 mA on GP2, GP3, GP4, GP7 and GP26, 4 mA on every other output. Pad pull-downs off on GP13, GP22 and GP28 after start. Pad pull-up on GP1. No pad toward the carrier is ever isolated (ISO bit) while it is an output, and no low-power state that powers the switched core domain down is entered while a path is closed. | The input-high level of the gate drivers behind 1 kΩ pull-downs. The watchdog: its reset frees a pad only through the pad registers, and an isolated pad keeps its level (RP2350 datasheet). The console input, which otherwise floats on an open header pin. |
 | F-6 | GP13 and GP22 are plain outputs, both high before the first clock and never both low. SPI1 runs in mode 0,0 at 500 kHz or less. The DAC frame is `0x5000 \| code` (reference input buffered, gain 2, output active); a unit test shows that no other upper nibble can be sent. | The DAC code: with both selects low a monitor frame is read as a DAC word. The monitor converter, whose only timing figure below 5 V is 1 MHz at 2.7 V (datasheet); the edges behind RN1 take 156 ns (calculated). The set-point scale: the reference divider R55, R56 is a 1 kΩ source, and the unbuffered reference input would load it by 0.6 %, 30 mV at 5.0 V (calculated). |
 | F-7 | A falling edge of PWR_GOOD (interrupt on GP28, handler in RAM at the highest priority), or the loss of the VBUS sense of the module while the input of the module supplies: within 50 µs GATE_OUT is low, both groups of state machines are stopped, and every output toward the carrier is driven low and then released. The two chip selects are released without being driven. The interrupt is armed only once PWR_GOOD is valid (F-2); its first edge latches the fault "carrier supply" and masks the interrupt until the flag has been valid again. Then the start begins again at F-2. Where the sequencer program has room, a low PWR_GOOD also forces GATE_OUT low inside the PIO block. | The digital inputs of the ADC (DVDD + 0.3 V, datasheet) and every other carrier input while the module outlives the rails: the flag falls 0.05 ms to 0.07 ms after the rails begin to fall and does not lead them (simulated), so the reaction shortens the exposure and the series resistors bound it. A chip select driven high would feed 3V3_A through the pull-up and hold it at 0.76 V, above the 0.7 V the ADC needs before it is powered again (calculated; datasheet). |
-| F-8 | The watchdog of the RP2350 is enabled before any gate line is driven, with a time-out of 100 ms or less and a reset that includes the pad and IO registers. Only the supervision task reloads it, after a complete monitor cycle. The two debug pause bits are cleared in release builds. A watchdog restart sets a fault flag and leaves the instrument in IDLE with the DAC at zero. | Everything that only firmware guards: with a hung program the output would stay on with the thermal limit, the budget and the rails test gone. After the reset R93 pulls GATE_OUT low and the gate of the output pair is below 2 V within 7 µs (simulated). The rule does not replace F-21: the 1 Ω shunt and the ladder clamp do not last 100 ms. A development build halted in a debugger keeps the output on. |
+| F-8 | The watchdog of the RP2350 is enabled before any gate line is driven, with a time-out of 100 ms or less and a reset that includes the pad and IO registers. Only the supervision task reloads it, after a complete monitor cycle. The two debug pause bits are cleared in release builds. A watchdog restart sets a fault flag and leaves the instrument in IDLE with the DAC at zero. | Everything that only firmware guards: with a hung program the output would stay on with the thermal limit, the budget and the rails test gone. After the reset R93 pulls GATE_OUT low and the gate of the output pair is below 2 V within 7 µs at 5 V and after 7.274 µs to 8.109 µs at 0.8 V (simulated on 2026-10-10). The rule does not replace F-21: the 1 Ω shunt and the ladder clamp do not last 100 ms. A development build halted in a debugger keeps the output on. |
 | F-9 | A restart into the USB boot loader never names a GPIO of the headers as activity indicator. | The gate lines: the boot loader would toggle one. |
 
 #### Monitor, Supplies and Budget
@@ -2398,9 +2493,9 @@ temperature sensor, 6 +12 V_A, 7 −4 V_A. A clock is one cycle of the
 | --- | --- | --- |
 | F-16 | CMP_JUMP is never blanked. It forces R3 (GATE_R3 high and address 11, the lower gates low after the overlap) within 100 ns of its pin, in every state of the sequencer and with the range locked. | R-07: the droop limit rests on this figure. The ladder clamp, which carries the step until R3 conducts. |
 | F-17 | CMP_UP is ignored from the first change of a gate or address line of a range change until 2.0 µs (300 clocks) after the last one, up and down. Every range change is make-before-break: the gate of the new branch rises about 1 µs before the gate of the old one falls. | The range logic against a bounce after its own step. The DUT, which is never left on R0 alone during a change (section 4.3). |
-| F-18 | The over-current trip acts in R3 only: GATE_OUT goes low when CMP_OC has been high without interruption for T_OC = 12 µs (1800 clocks) and stays low until firmware clears the latch. T_OC is a build constant, never below 10 µs and never above 20 µs, changed only by a build after the measurement of phase 3. The trip is armed whenever a path can close, with no blanking at a start. | The 0.1 Ω shunt R110, the ladder clamp and the DUT. Below about 9 µs the trip would act on the recharge of the DUT capacitor after a range step (simulated need 8.6 µs); the short-circuit figures of the output switch hold up to 20 µs (simulated). |
+| F-18 | The over-current trip acts in R3 only: GATE_OUT goes low when CMP_OC has been high without interruption for T_OC = 12 µs (1800 clocks) with R3 selected, and stays low until firmware clears the latch. The count runs with R3 selected only: time for which CMP_OC is high before R3 is selected does not count (D-99). T_OC is a build constant, never below 10 µs and never above 20 µs, changed only by a build after the measurement of phase 3. The trip is armed whenever a path can close, with no blanking at a start. | The 0.1 Ω shunt R110, the ladder clamp and the DUT. Below about 9 µs the trip would act on the recharge of the DUT capacitor after a range step: CMP_OC is then high for up to 8.174 µs with R3 selected, and for up to 12.83 µs from its first edge (simulated on 2026-10-10); the short-circuit figures of the output switch hold up to 20 µs (simulated). |
 | F-19 | After a trip R3 stays selected, in source mode the source is stopped in the order of F-29, GATE_OUT stays low until the fault is cleared and DUT_POWER on is refused for 100 ms. There is no automatic retry. Consecutive trips are counted and reported. A trip within 100 ms of GATE_OUT is reported as "start over-current". | R110 and the clamp against repeated surges. A start trips with more than about 2200 µF at the DUT (simulated; 1800 µF for a capacitor with a tolerance of 20 %) or with a DUT that draws more at low voltage. |
-| F-20 | The sequencer and the trip are started in step 3 of F-3 and never with PWR_GOOD low. R3 is selected before a mode pair closes, and the trip is armed once R3 has settled, 2 µs after the last gate change. GATE_OUT goes high only through the sequencer program, never by a plain write to the pin. | The comparators before their rails and their reference are valid. The in-rush through the shunt, which must meet R3 and an armed trip. |
+| F-20 | The sequencer and the trip are started in step 3 of F-3 and never with PWR_GOOD low. R3 is selected before a mode pair closes, and the trip is armed once R3 has settled, 2 µs after the last gate change. GATE_OUT goes high only through the trip program (D-104), never by a plain write to the pin. | The comparators before their rails and their reference are valid. The in-rush through the shunt, which must meet R3 and an armed trip. |
 | F-21 | CMP_JUMP read high for more than 1 ms while R3 is not selected means that the sequencer is not acting: firmware forces GATE_OUT low no later than 2 ms after the first such reading and reports a fault. A code of 65535 alone is not the criterion: a locked range may sit between the full scale of the converter and the jump level. | The ladder clamp Q10, Q11: one of the two carries nearly all the current and heats by 96 K in 2 ms at 4 A (144 K in 5 ms, calculated). The 1 Ω shunt R107, which takes 6.3 W to 8.4 W in that state (calculated); range 2 is calibrated again after such a fault. |
 | F-22 | While a mode pair is closed, a code below 650 for 100 samples (a stored constant) is flagged as under-range. R3 is requested at once, at the latest 2 ms after the first such sample and also with the range locked, and no step down is requested until 1 s after the flag clears. If the code stays below 650 in R3 (about 13 mA backward, calculated) for 100 ms, the output switch opens and a reverse-current fault is reported. | The body diodes of the clamp transistors and of Q14, and R110, with a current that flows backward through the ladder (D-69). |
 
@@ -2408,17 +2503,17 @@ temperature sensor, 6 +12 V_A, 7 −4 V_A. A clock is one cycle of the
 
 | Rule | Firmware | Guards |
 | --- | --- | --- |
-| F-23 | The output pair is the last switch to close and the first to open; in normal operation a mode pair opens only after it. The two mode requests are never high together, and after a request fell 5 ms pass before either is raised. The mode is changed with the output pair open. GATE_SRC and GATE_AMP are driven low before their pins are released. | The linear regulator, whose input must not fall below its output, and the external supply. The hardware interlock keeps source mode if both requests are high (D-62); the rule keeps that case out of normal operation. The paths of F-7, F-26 and F-27 open a mode pair under load: VIN then rises to 20 V to 24 V at 0.5 A to 1 A with 0.5 µH of leads, inside the ratings (estimate). |
-| F-24 | DUT power on, both modes: R3 selected and the trip armed (F-20); the set-point at its working value (F-28) or VIN in its window (F-26); the mode pair; 40 ms, after which the path counts as closed for the range logic, the calibration and the result of DUT_POWER; then GATE_OUT. The output counts as on 50 ms after GATE_OUT. | The in-rush, which the slow gate networks of both pairs limit only in this order (D-61, D-71). The GATE_OUT bit of a sample reports the command; the DUT voltage starts to rise 6 ms to 7 ms later (simulated). |
+| F-23 | The output pair is the last switch to close and the first to open; in normal operation a mode pair opens only after it. The two mode requests are never high together, and after a request fell 5 ms pass before either is raised. The mode is changed with the output pair open. GATE_SRC and GATE_AMP are driven low before their pins are released. | The linear regulator, whose input must not fall below its output, and the external supply. The hardware interlock keeps source mode if both requests are high (D-62); the rule keeps that case out of normal operation. The paths of F-7, F-26 and F-27 open a mode pair under load: VIN then rises to 16.01 V to 25.12 V at 0.5 A to 1 A with 0.5 µH of leads, inside the ratings (simulated on 2026-10-10). |
+| F-24 | DUT power on, both modes: R3 selected and the trip armed (F-20); the set-point at its working value (F-28) or VIN in its window (F-26); the mode pair; 40 ms, after which the path counts as closed for the range logic, the calibration and the result of DUT_POWER; then GATE_OUT. The output counts as on 50 ms after GATE_OUT. | The in-rush, which the slow gate networks of both pairs limit only in this order (D-61, D-71). The GATE_OUT bit of a sample reports the command; the DUT voltage starts to rise 3.888 ms to 10.03 ms later, 6.458 ms at 5 V with 100 µF (simulated on 2026-10-10). |
 | F-25 | GATE_AMP is raised only when channel 0 reads below the voltage of VIN (channel 1) plus 0.1 V, or below 0.3 V. After 3 s without that a fault is reported. | The supply of the user. With the output switch open the ladder node keeps its voltage and falls only with 0.57 s (R90 with C62 and C63, calculated); closing the ampere pair on a lower voltage pushes that charge into the supply and lifts a rail that cannot sink current. |
-| F-26 | The ampere pair is closed only while VIN_OV is low and after channel 1 has read 0.6 V to 5.4 V for 100 ms. It is opened within 20 ms when the reading falls below 0.6 V. VIN is the reading times 44 (27 mV per count); the offset of the channel is stored at calibration. A VIN fault is reported as out of range (absent or reversed) or as over-voltage. | The DUT and the ampere pair on a supply outside 0.8 V to 5.0 V (R-09). The lower limit is 0.6 V because a true 0.8 V can read 0.67 V before calibration; an absent or reversed supply reads below 0.13 V (calculated). |
+| F-26 | The ampere pair is closed only while VIN_OV is low and after channel 1 has read 0.6 V to 5.4 V for 100 ms. It is opened within 20 ms when the reading falls below 0.6 V. VIN is the reading times 44 (27 mV per count); the offset of the channel is stored at calibration. A VIN fault is reported as out of range (absent or reversed) or as over-voltage. | The DUT and the ampere pair on a supply outside 0.8 V to 5.0 V (R-09). The lower limit is 0.6 V because a true 0.8 V can read 0.67 V before calibration; an absent or reversed supply reads below 0.13 V (calculated). With the input leakage of the monitor converter at its maximum of 1 µA the reading is off by 430 mV, more than these 130 mV (simulated on 2026-10-10; open point of section 16). |
 | F-27 | VIN_OV is an interrupt source. When it goes high the output switch is opened, GATE_AMP goes low and stays low for 5 ms or more, and the fault is reported. | The DUT: the detector holds the pair open in hardware (D-43), but when it releases while the request is still high the pair closes again without its ramp. |
 
 #### Source
 
 | Rule | Firmware | Guards |
 | --- | --- | --- |
-| F-28 | Start of the source, the only sequence. With PWR_GOOD valid, channel 7 in its window, the output pair and both mode pairs open and SMU_ON low: (1) the DAC to the code of 0.80 V; (2) 200 ms; (3) SMU_ON high; (4) 5 ms; (5) the DAC to the working value, 80 ms; (6) R3, the source pair closed; (7) 60 ms, then channel 0 within 100 mV of the set-point, or a fault; (8) the output pair closed, last. No other path sets SMU_ON. A unit test covers the sequencer. | The pre-regulator, which is never asked for less than 1.2 V and never enabled on a charged output capacitor: its bleeder needs the 200 ms. The 5 V rail, into which the converter would return that charge. The check of step 7 allows for the filter of channel 0, which is 43 mV behind after 30 ms (calculated). |
+| F-28 | Start of the source, the only sequence. With PWR_GOOD valid, channel 7 in its window, the output pair and both mode pairs open and SMU_ON low: (1) the DAC to the code of 0.80 V; (2) 200 ms; (3) SMU_ON high; (4) 5 ms; (5) the DAC to the working value, 80 ms; (6) R3, the source pair closed; (7) 60 ms, then channel 0 within 100 mV of the set-point, or a fault; (8) the output pair closed, last. No other path sets SMU_ON. A unit test covers the sequencer. | The pre-regulator, which is never asked for less than 1.2 V and never enabled on a charged output capacitor: its bleeder needs the 200 ms. The 5 V rail, into which the converter would return that charge. The check of step 7 allows for the filter of channel 0, which is 43 mV behind after 30 ms (calculated). With the input leakage of the monitor converter at its maximum of 1 µA channel 0 is off by 120 mV, more than the 100 mV of step 7 (simulated on 2026-10-10; open point of section 16). |
 | F-29 | Stop: the output pair open (after F-31 when it applies), the source pair open, SMU_ON low, the DAC at zero. SMU_ON is never taken low while a path from the regulator output to a DUT is closed, except in F-7 and in a watchdog reset, where all lines fall together. | The linear regulator U18 with its input collapsing under a charged output. |
 | F-30 | SET_VOLTAGE is limited to 0.80 V to 5.00 V in calibrated codes. Before calibration the output is 10 mV + code × 1.2817 mV. The set-point is calibrated at nine points or more, at room temperature. A set-point is reported as settled when three consecutive readings of channel 0 are inside the band, not after a fixed time. The DAC at zero with SMU_ON low is the idle state. | The DUT. The hardware ceiling is 5.26 V nominal and 5.39 V at the tolerance limits for any DAC frame (calculated, D-58); the limit of 5.00 V is firmware. The integral error of the DAC, 15.4 mV at its limit, needs the nine points (datasheet). |
 | F-31 | Channel 0 more than 0.3 V above the DAC value for 100 ms with the output on: firmware writes the code of the reading minus 0.2 V (never above the code of 5.00 V), reports "DUT above the set-point" and follows the reading down in each monitor cycle until the set-point of the user is reached. A command opens no switch between the regulator output and the DUT while channel 0 is more than 0.3 V above the DAC value: first the DAC goes to the reading minus 0.2 V and 30 ms pass. Trips open at once. | The linear regulator against an output above its input, and the 5 V rail: it has no path back to the source and no clamp below 6 V, so a set-point must not fall faster than the rail absorbs what the pre-regulator returns. |
@@ -2429,19 +2524,19 @@ temperature sensor, 6 +12 V_A, 7 −4 V_A. A clock is one cycle of the
 
 | Rule | Program or firmware | Guards |
 | --- | --- | --- |
-| F-34 | Acquisition program: convert-start high for 108 clocks or more and still high at the end of the conversion; 16 clock pulses; 4 clocks or more between the last falling edge and the next convert-start; 16 clocks or more per bit at 100 kSPS (9.375 MHz or less) and 10 clocks per bit (15 MHz) for the 500 kSPS option; the load line of the registers low for 3 clocks or more; clock divider 1. The program never runs with PWR_GOOD low (F-3, F-7). | Converter data and side data in one sampling window: 16.9 ns at 15 MHz against two clocks, 13.3 ns (calculated). The conversion time of the ADC, 710 ns at the most (datasheet), against 720 ns. |
-| F-35 | Seven samples are flagged invalid from the first sample whose range bits differ from the sample before; the count is a stored constant and every change restarts it. Samples are flagged for 5 ms when the supplying input changes or the 5 V rail steps by more than 0.3 V. A sample is flagged over-range when its code is 65535 or its CMP_JUMP bit is set. | The meaning of the samples while the chain settles (45 µs to 0.1 % of range, simulated) and while −4 V_A may leave regulation for milliseconds. |
+| F-34 | Acquisition program: convert-start high for 108 clocks or more and still high at the end of the conversion; 16 clock pulses; 4 clocks or more between the last falling edge and the next convert-start; 16 clocks or more per bit at 100 kSPS (9.375 MHz or less) and 10 clocks per bit (15 MHz) for the 500 kSPS option; the load line of the registers low for 3 clocks or more; clock divider 1. The program never runs with PWR_GOOD low (F-3, F-7). | Converter data and side data in one sampling window: 16.9 ns at 15 MHz against two clocks, 13.3 ns (calculated; with the line delays simulated on 2026-10-10 the window at 15 MHz is an open check of section 16). The conversion time of the ADC, 710 ns at the most (datasheet), against 720 ns. |
+| F-35 | Seven samples are flagged invalid from the first sample whose range bits differ from the sample before; the count is a stored constant and every change restarts it. Samples are flagged for 5 ms when the supplying input changes or the 5 V rail steps by more than 0.3 V. A sample is flagged over-range when its code is 65535 or its CMP_JUMP bit is set. | The meaning of the samples while the chain settles (45 µs to 0.1 % of range, simulated) and while −4 V_A may leave regulation for milliseconds. A load step of 1 A moves the 5 V rail by 282.3 mV behind a cable of 0.15 Ω, so ordinary load steps come close to the 0.3 V (simulated on 2026-10-10; open point of section 16). |
 | F-36 | A zero calibration waits for a stable channel 6, 5 s after PWR_GOOD at the most. Readings with the output open (start-up zero, CAL_ZERO, leakage) are taken 200 ms or more after GATE_OUT fell or after a reset. The zero with the output on and the terminals open is taken 300 ms or more after GATE_OUT rose. | The calibration on rails and gates that still move: +12 V_A creeps from 11 V to 12 V with 0.18 s, and the gate of the output pair decays with 31 ms (calculated). |
 
 Rules for the host that follow from the same hardware (logic channels
 invalid below 1.67 V of output voltage, samples after DUT power on marked
 as settling, flagged samples filled in statistics) are in sections 4.8, 8
-and 9. What these rules send to the host is not in the protocol of
-section 7 yet: a mark for over-range and under-range samples (F-22,
-F-35), the invalid mark for the 5 ms after a change of supply (F-35;
-section 7.3 defines it for a range change only), the fault flags of
-section 6.4 beyond the four of section 7.4, the input in use and the CC
-class (F-14). Section 16 lists it as an open item.
+and 9. What these rules send to the host is in the protocol of section 7
+since its version 2 (D-103): the marks for over-range and under-range
+samples (F-22, F-35), the invalid mark for the 5 ms after a change of
+supply (F-35), one fault flag for each cause of section 6.4, the input in
+use, the CC class and the budget as a current (F-14), the count of trips
+(F-19) and the notices of the source (F-30, F-31).
 
 ## 7. Host Protocol
 
@@ -2492,10 +2587,19 @@ both directions.
 | --- | --- | --- |
 | 15:0 | adc | Raw ADC code |
 | 17:16 | range | Active range, R0 to R3 |
-| 18 | invalid | Sample inside the settling window of a range change |
+| 18 | invalid | Sample inside a settling window: after a range change, or for 5 ms after a change of the supplying input or a step of the 5 V rail (F-35) |
 | 19 | fault | Over-current trip latched |
-| 23:20 | reserved | Zero |
+| 20 | over_range | Code 65535, or the jump comparator set at the sample (F-35) |
+| 21 | under_range | Code below the level of rule F-22 for 100 samples |
+| 22 | output | The output switch is requested on: the GATE_OUT bit of the sample |
+| 23 | reserved | Zero |
 | 31:24 | logic | Digital inputs D0 to D7 |
+
+A sample with one of the bits 18, 20 and 21 set is a flagged sample: the
+host does not use its value and puts the first valid sample after it in
+its place (section 9). Bit 22 is the instant from which it counts the
+250 ms of output settling: the first sample in which the bit is set after
+one in which it was clear.
 
 ### 7.4 Commands
 
@@ -2505,8 +2609,8 @@ the command code, a status code and the response data.
 
 | Command | Code | Arguments | Purpose |
 | --- | --- | --- | --- |
-| GET_INFO | `0x01` | None | Protocol version, firmware version, hardware revision, range table, calibration |
-| GET_STATUS | `0x02` | None | State, faults, dropped blocks, VOUT, VIN, the 5 V rail, temperature, power budget |
+| GET_INFO | `0x01` | None | Protocol version, firmware version, hardware revision, state of the calibration, identity, zero offsets |
+| GET_STATUS | `0x02` | None | State, faults, dropped blocks, mode, locked range, set-point, VOUT, VIN, the 5 V rail, temperature, supply in use, budget, trips, notices |
 | SET_MODE | `0x10` | Mode, 1 byte: 0 ampere meter, 1 source meter | Select the mode (only in IDLE) |
 | SET_VOLTAGE | `0x11` | Millivolts, 2 bytes | Output voltage in source mode |
 | DUT_POWER | `0x12` | On, 1 byte: 0 or 1 | Turn the output switch on or off |
@@ -2514,8 +2618,9 @@ the command code, a status code and the response data.
 | SET_DOWN_N | `0x14` | Samples, 2 bytes | Number of samples for the step-down rule |
 | START | `0x20` | None | Start the sample stream |
 | STOP | `0x21` | None | Stop the sample stream |
-| CAL_ZERO | `0x30` | None | Run the zero calibration (output open) |
-| CAL_WRITE | `0x31` | Target, 1 byte: 0 to 3 for a range, `0x10` for the DAC; gain and offset, 4-byte floats | Store gain and offset values |
+| CAL_ZERO | `0x30` | None | Run the zero calibration (output open); returns the four zero offsets |
+| CAL_READ | `0x32` | None | Return the calibration record of section 8 |
+| CAL_STORE | `0x33` | The calibration record, 1 to 250 bytes | Store the calibration record |
 | CLEAR_FAULT | `0x40` | None | Reset the over-current latch |
 
 | Status | Code |
@@ -2533,13 +2638,13 @@ Which commands a state accepts, checked in this order:
 - During BOOT and SELFTEST every other command answers "busy".
 - In FAULT every other command answers "fault active", except CLEAR_FAULT,
   which returns to IDLE.
-- SET_MODE and CAL_ZERO are accepted only in IDLE.
+- SET_MODE, CAL_ZERO and CAL_STORE are accepted only in IDLE: a record is
+  written to flash with every path open (section 6.3).
 - DUT_POWER on moves IDLE to ARMED. DUT_POWER off moves ARMED to IDLE and is
   refused while STREAMING. Asking for the present state changes nothing and
   answers OK.
 - START is accepted only in ARMED and STOP only in STREAMING.
 - SET_VOLTAGE needs source meter mode and a value from 800 mV to 5000 mV.
-  CAL_WRITE is refused while STREAMING.
 - Any other request answers "wrong state". A command code the device does
   not know answers "unknown command", and a command frame without a payload
   answers "bad argument" with command code 0.
@@ -2551,20 +2656,85 @@ the device without a request. Every change of state is announced with a
 | Event | Code | Data |
 | --- | --- | --- |
 | Fault raised | `0x01` | Fault flags, 2 bytes |
-| Power budget changed | `0x02` | Budget in mW, 2 bytes |
 | State changed | `0x03` | State, 1 byte |
+| Supply changed | `0x04` | Supply in use, 1 byte; CC class, 1 byte; budget in mA, 2 bytes (F-14, D-49) |
+| Notice | `0x05` | Notice code, 1 byte; the four zero offsets after code 3 |
 
-- Fault flags: bit 0 over-current, bit 1 power limit, bit 2 thermal, bit 3
-  self-test.
 - States are numbered 0 to 5 in the order BOOT, SELFTEST, IDLE, ARMED,
   STREAMING, FAULT.
-- The response data of GET_INFO, GET_STATUS and CAL_ZERO is provisional
-  until the protocol is frozen in phase 6. For now GET_INFO returns the
-  protocol version, the hardware revision and the firmware major, minor and
-  patch numbers, one byte each; GET_STATUS returns the state (1 byte), the
-  fault flags (2 bytes) and the dropped blocks (4 bytes); CAL_ZERO returns
-  no data. A receiver ignores bytes after the fields it knows, so fields can
-  be appended.
+- Supply in use: 0 the input of the controller module, 1 the USB-C input.
+  CC class: 0 default current or no USB-C source, 1 for 1.5 A, 2 for
+  3.0 A (F-13, F-14).
+- Notice codes: 1 set-point settled (F-30), 2 DUT above the set-point
+  (F-31), 3 a new zero was taken (section 8), followed by the four zero
+  offsets.
+- Version 1 had the command CAL_WRITE with code `0x31` and the event
+  "power budget changed" with code `0x02`. Neither code is used again
+  (D-103).
+
+Fault flags, one for each cause of section 6.4:
+
+| Bit | Flag | Rule |
+| --- | --- | --- |
+| 0 | Over-current | F-18, F-19 |
+| 1 | Power limit | F-14 |
+| 2 | Thermal | F-15 |
+| 3 | Self-test | Section 6.4 |
+| 4 | Sequencer not acting | F-21 |
+| 5 | Reverse current | F-22 |
+| 6 | Carrier supply | F-2, F-7 |
+| 7 | Analog rails | F-3, F-12 |
+| 8 | VIN over-voltage | F-27 |
+| 9 | VIN out of range | F-26 |
+| 10 | Source overload | F-32 |
+| 11 | External voltage | F-33 |
+| 12 | Start check | F-25, F-28 |
+| 13 | Start over-current, set together with bit 0 | F-19 |
+| 14 | Watchdog restart | F-8 |
+
+Response data. The layouts are fixed and stay provisional until the
+protocol is frozen in phase 6. A receiver ignores bytes after the fields
+it knows, so fields can be appended. Every multi-byte field is
+little-endian; "signed" marks the fields that are.
+
+GET_INFO, 48 bytes:
+
+| Offset | Size | Field |
+| --- | --- | --- |
+| 0 | 1 | Protocol version |
+| 1 | 1 | Hardware revision |
+| 2 | 3 | Firmware version: major, minor, patch |
+| 5 | 1 | State of the calibration: 0 a valid record of this chip, 1 no record or a corrupt one, 2 the record of another chip (section 8) |
+| 6 | 1 | Settling window in samples (F-35) |
+| 7 | 8 | Chip identifier of the controller (D-82) |
+| 15 | 16 | Serial number of the carrier from the record, text padded with zeros |
+| 31 | 1 | Revision of the carrier from the record |
+| 32 | 16 | Zero offset of ranges 0 to 3, each 4 bytes, signed, in 1/256 of a code |
+
+GET_STATUS, 25 bytes:
+
+| Offset | Size | Field |
+| --- | --- | --- |
+| 0 | 1 | State |
+| 1 | 2 | Fault flags |
+| 3 | 4 | Dropped blocks |
+| 7 | 1 | Mode |
+| 8 | 1 | Locked range, 0 to 3, or `0xFF` for automatic ranging |
+| 9 | 2 | Set-point in mV |
+| 11 | 2 | VOUT in mV (monitor channel 0) |
+| 13 | 2 | VIN in mV, signed (channel 1) |
+| 15 | 2 | The 5 V rail in mV (channel 2, F-11) |
+| 17 | 2 | Board temperature in 0.1 °C, signed (channel 5) |
+| 19 | 1 | Supply in use |
+| 20 | 1 | CC class |
+| 21 | 2 | Budget in mA (F-14) |
+| 23 | 1 | Consecutive trips (F-19) |
+| 24 | 1 | Notices: bit 0 set-point settled (F-30), bit 1 DUT above the set-point (F-31) |
+
+CAL_ZERO returns the zero offsets of ranges 0 to 3, 16 bytes in the form
+of GET_INFO. CAL_READ returns the calibration record and CAL_STORE takes
+it as its arguments; the protocol carries the record as one block and
+section 8 defines it. CAL_READ returns no data when no record is stored.
 
 ### 7.5 Single Definition
 
@@ -2581,11 +2751,14 @@ the protocol; the definition file decides it.
   nominal gain `VREF / (65536 × G × R[r])`. Nominal values: G = 19.93, and
   for R[r] the shunt with R0 in parallel, 1 kΩ, 31.95 Ω, 0.999 Ω and
   0.1 Ω (calculated, section 4.3).
-- Storage: per-range gain and offset, DAC gain and offset, the settling
-  window length and the calibration temperature, in the flash of the module,
-  with a version field, a CRC, the 64-bit chip identifier of the RP2350 and
-  the serial number and revision of the carrier, entered at calibration and
-  written on the carrier (D-82, section 10.7). A missing or corrupt table
+- Storage: per-range gain and offset, the set-points of the DAC, the
+  closed-switch zero, the settling window length, the calibration
+  temperature, the offset of the VIN channel and the thermal limit, in the
+  flash of the module, with a version field, a CRC, the 64-bit chip
+  identifier of the RP2350 and the serial number and revision of the
+  carrier, entered at calibration and written on the carrier (D-82,
+  section 10.7). The record at the end of this section is its layout
+  (D-103). A missing or corrupt table
   falls back to nominal values and is flagged in GET_INFO. A record whose
   chip identifier does not match, a flash image copied to another module, is
   reported by GET_INFO as not calibrated; nominal values are then used and
@@ -2630,6 +2803,49 @@ the protocol; the definition file decides it.
   4 nA after 200 ms (simulated). The time is a constant of the host, which
   marks these samples and leaves them out of statistics below 1 µA
   (section 9).
+
+The calibration record (D-103). The host builds the record and sends it
+with CAL_STORE; CAL_READ returns it. All fields are little-endian.
+
+| Offset | Size | Field |
+| --- | --- | --- |
+| 0 | 2 | Mark, `0x4350` |
+| 2 | 1 | Version of the record, 1 |
+| 3 | 1 | Reserved, zero |
+| 4 | 2 | Length of the record in bytes, the CRC included |
+| 6 | 8 | Chip identifier of the controller |
+| 14 | 16 | Serial number of the carrier, text padded with zeros |
+| 30 | 1 | Revision of the carrier |
+| 31 | 1 | Settling window in samples (F-35) |
+| 32 | 2 | Calibration temperature in 0.1 °C, signed |
+| 34 | 2 | Offset of the VIN channel in mV, signed (F-26) |
+| 36 | 2 | Thermal limit in 0.1 °C, signed (F-15) |
+| 38 | 1 | Number N of DAC points: 0, or 9 to 16 (F-30) |
+| 39 | 1 | Reserved, zero |
+| 40 | 16 | Gain of ranges 0 to 3, 4-byte floats, amperes per code |
+| 56 | 16 | Offset of ranges 0 to 3, 4-byte floats, codes |
+| 72 | 4 | Closed-switch zero of R0, 4-byte float, codes (D-59) |
+| 76 | 4 × N | DAC points: code, 2 bytes, and output in 0.1 mV, 2 bytes |
+| 76 + 4 × N | 2 | CRC-16 of section 7.1 over the bytes before it |
+
+- The record is 78 to 142 bytes long. The protocol carries it as a block
+  of 250 bytes at the most, and a change of the fields is a new version
+  of the record, not of the protocol.
+- CAL_STORE is accepted in IDLE only. The device checks the mark, the
+  version, the length and the CRC. The chip identifier in a record it
+  receives is zero or its own; it writes its own and computes the CRC
+  again before it stores the record. A record with another identifier
+  is refused, so the record of one instrument cannot be stored into
+  another.
+- The device uses the settling window, the offset of the VIN channel, the
+  thermal limit and the DAC points. Gains, offsets and the closed-switch
+  zero are for the host, which converts the codes; the device keeps them
+  and returns them.
+- The constants of the input model of rule F-14 are not in version 1 of
+  the record. They are defined on the first board and enter with a new
+  version of the record.
+- The layout is a design. Neither the firmware component that stores the
+  record nor the tool that writes it exists yet.
 
 ## 9. Host Software
 
@@ -3216,11 +3432,12 @@ The exit check above, condition by condition:
   set-point path, and the single opening for the acquisition lines.
 - Not met: the 1:1 print has not been compared with the parts.
 
-What stands before fabrication, in this order: the decisions that follow
-the circuit simulations are drawn (D-95, D-96 and D-98; section 16), of
-which the position for a capacitor at U28 adds a footprint and tracks to
-this board, while the other two change a value and fit parts on pads
-that exist; a person opens the board in KiCad and reviews it; the open
+What stands before fabrication, in this order: the last of the decisions
+that follow the circuit simulations is drawn, the position for a
+capacitor at U28 (D-96; section 16), which adds a footprint and tracks
+to this board; the other two, D-95 and D-98, changed a value and fitted
+parts on pads that exist and are drawn since 2026-10-10; a person opens
+the board in KiCad and reviews it; the open
 items that are to be closed are a change of placement with a local
 redraw; the silkscreen and test point items follow. The seven points
 above are decided (D-87 to D-93) and stand in the way of nothing. The
@@ -3258,7 +3475,7 @@ criterion is a range, it is the calculated tolerance of the parts.
 | R-13 | Short circuit at the end of 1 m of cable from the on state: source mode at 5.0 V; ampere mode from a 5 V supply of 10 A or more through leads of 0.5 m and of 2 m | Trip, fault reported; VOUT above −2.5 V; in ampere mode TP33 below 11.5 V and TP27 below 36 V; terminal leakage unchanged afterward; no damage |
 | R-13 | DUT power on into 100 µF, 1000 µF and 1800 µF at 0.8 V, 3.3 V and 5.0 V in both modes; 2200 µF recorded | No trip, no overshoot, peak below 1.0 A |
 | R-13 | DUT power on into a short circuit | Trip near 1.15 A after about 7 ms; fault reported |
-| R-13 | Step to 1.0 A with 10 µF to 100 µF at the DUT: source mode, and ampere mode with 100 µF at the VIN terminals | No trip; over-current comparator (TP46) high for less than 10 µs |
+| R-13 | Step to 1.0 A with 10 µF to 100 µF at the DUT: source mode, and ampere mode with 100 µF at the VIN terminals | Source mode, and ampere mode with supply leads of 50 mΩ per microhenry or more: no trip. Ampere mode with leads of less resistance: the trips are recorded (D-100). Over-current comparator (TP46) high for less than 10 µs with R3 selected (D-99) |
 | R-13 | Pulse series, 100 times each, in source mode at 5.0 V unless stated: hot plug of a discharged 100 µF capacitor in range 0 and in range 2; short circuit at the terminals in range 0 and in range 2; a 100 µF capacitor charged to 5.0 V connected to the output at 0.8 V | No damage; leakage across the ladder at 100 mV and the gain of R2 and R3 within 0.1 % of the values before the series |
 | R-13 | Reverse current of 100 mA and of 2 A from VOUT to VIN in ampere mode (F-22) | Samples flagged; range 3 within 2 ms; fault and open output within 0.2 s; no damage |
 | R-13 | Source mode at 0.8 V: a 5.0 V source connected to VOUT and removed; then an external voltage raised slowly through 5.3 V, not above 5.5 V (F-31, F-33) | Set-point follows within 100 ms; the 5 V rail (TP6) moves less than 100 mV; output switch open within 0.5 ms of 5.3 V; no damage |
@@ -3330,9 +3547,9 @@ host/         Python package: protocol, transports, device client,
               capture, simulator, command line (viewer and analysis are
               not written)
 protocol/     Protocol definition, generator and shared test vectors
-docs/         This specification, component checks, test reports, and the
-              pages for the protocol reference and the calibration
-              procedure (both not written)
+docs/         This specification, the firmware design, component checks,
+              test reports, and the pages for the protocol reference
+              and the calibration procedure (both not written)
 tools/        board/: the package that calculates the board figures from
               the board file (squares of a pour, a path on one layer,
               pair lengths, surface leakage), tested without hardware;
@@ -3440,8 +3657,10 @@ are drawn (section 10.8). Its figures are calculated from the drawn
 copper; nothing is built or measured. The draft is the hypothesis that
 the phases test: the checks of section 16 and the results of phases 1 to
 4 change it. The seven deviations of section 10.8 are decided (D-87 to
-D-93). Before revision A is fabricated in phase 5, the decisions D-95,
-D-96 and D-98 are drawn, a person reviews the board in KiCad, and the open
+D-93). Before revision A is fabricated in phase 5, decision D-96 is
+drawn (D-95 and D-98 are, since 2026-10-10), the benches that these
+decisions touch are run again, a person reviews the board in KiCad, and
+the open
 items of that section that need parts moved are closed or accepted.
 
 ## 14. Risk Register
@@ -3469,7 +3688,7 @@ items of that section that need parts moved are closed or accepted.
 | A dip of the 5 V rail below 3.9 V, or the USB-C cable pulled while the data cable stays | Carrier restarts; the DUT loses its supply for 0.3 s to 0.7 s | Accepted and documented; the controller and the USB link stay up and report the loss of the carrier supply (F-7) |
 | A weak USB-C source (about 3 V to 4.1 V) keeps the carrier off although the computer port is good; firmware cannot read the cause | Instrument does not start, no hint | User documentation; PWR_GOOD low is reported |
 | Boost converter starts on an input limited to 0.67 A to 0.85 A without under-voltage lock-out or soft start | Start hangs or repeats on the data cable alone | Measured in phase 1; as drawn the converter starts in one go (simulated on 2026-10-10; below 2.7 V it is outside its datasheet). The position at its enable pin (U9) stays without a part, and a remedy, if one is needed, is a detector with a time-out of milliseconds, not the 803 type with 0.24 s (D-97) |
-| Inputs of the input multiplexer come within 25 mV to 85 mV of their 6 V absolute maximum when the data cable is plugged again (simulated) | Multiplexer stressed at every plug | Damper on that input, 0.33 Ω with 10 µF (R14, C5), fitted by D-98 and not drawn yet: 5.502 V at input 2 with it in the runs made (simulated on 2026-10-10); measured with a short cable (section 16) |
+| Inputs of the input multiplexer come within 25 mV to 85 mV of their 6 V absolute maximum when the data cable is plugged again (simulated) | Multiplexer stressed at every plug | Damper on that input, 0.33 Ω with 10 µF (R14, C5), fitted by D-98 and drawn since 2026-10-10: 5.502 V at input 2 with it in the runs made (simulated on 2026-10-10); measured with a short cable (section 16) |
 | In-rush of the carrier on the USB port of the computer | The port shuts down at plug-in | 10 µF or less directly at each connector; ramps of 0.3 A to 0.9 A and a hardware limit of 0.85 A on the computer port (D-47); the 50 µC of the USB in-rush test is not met (the carrier adds 0.3 mC to 0.8 mC to the 0.12 mC of the module, simulated); check of section 16; the jumper can be cut and the USB-C input used |
 | PWR_GOOD does not watch the 3V3_C rail | A weak logic rail shows as data errors, not as a supply fault | Stated in section 4.11; the self-test does not claim to cover that rail |
 | Candidate part unsuitable or unavailable | Redesign | Section 16 checks first; second sources named for passives, diodes, the reference and the regulator grades; stock read on 2026-10-09; parts with long lead times bought with the first order |
@@ -3480,9 +3699,9 @@ items of that section that need parts moved are closed or accepted.
 | Range sequencer wrong or not started | No range switching; the ladder clamps and the 1 Ω shunt carry the load current | Pull-downs keep every switch open after reset and select R0; programs tested in an emulator and on the bench; firmware opens the output within 2 ms when the jump comparator stays high outside R3 (F-21); watchdog of 100 ms (D-81, F-8); an over-voltage on VIN is blocked with no program involved |
 | The two ladder clamps do not share the current: one would rise by 104 K at 3 A and 144 K at 4 A in 5 ms (calculated) | Clamp degraded, leakage across the ladder | Only with the sequencer and the trip both failing; output opened by firmware within 2 ms; range 2 recalibrated after a reported sequencer fault |
 | Reaction of the sequencer slower than estimated | R-07 not met above about 300 ns (472 mV to 519 mV simulated) | Measured in phase 1; the jump-up comparator reaches the highest range in one step |
-| Supply leads ring against the DUT capacitor in ampere mode: trip on steps above 0.7 A | Nuisance trip | 100 µF at the VIN terminals with leads longer than about 0.5 m and load steps above 0.5 A (user documentation, section 4.9); measured in phase 3 |
+| Supply leads ring against the DUT capacitor in ampere mode: trip on steps above 0.7 A | Nuisance trip | With leads of low resistance and 47 µF or more at the DUT the trip can act with that capacitor too (D-100; open point of section 16). 100 µF at the VIN terminals with leads longer than about 0.5 m and load steps above 0.5 A (user documentation, section 4.9); measured in phase 3 |
 | Charge left on the supply node of the ladder (0.57 s through R90) is pushed into the external supply when the ampere switch closes on a lower voltage | A low-voltage rail of the user is lifted for about 10 ms | Firmware closes the switch only when the supply node reads below VIN + 0.1 V or below 0.3 V, and reports a fault after 3 s (F-25); no part discharges the node |
-| External supply leaves 0.8 V to 5.0 V while the ampere switch is closed, faster than the detector opens it (4 µs to 45 µs) | The DUT sees the excursion: 9.2 V for a step to 20 V, −2.4 V for a step to −20 V (simulated) | Written limit in the user documentation; the PPK2 guide promises nothing for this case |
+| External supply leaves 0.8 V to 5.0 V while the ampere switch is closed, faster than the detector opens it (2.199 µs to 78.34 µs, simulated on 2026-10-10) | The DUT sees the excursion: 9.2 V for a step to 20 V, −2.4 V for a step to −20 V (simulated) | Written limit in the user documentation; the PPK2 guide promises nothing for this case |
 | More than 20 V on VIN | Suppressor D14 lost above 22 V; the fuse does not protect it | Limit on the silkscreen and in the user documentation; the part is replaced |
 | Stiff reversed source or a voltage above the set-point on VOUT with the output on | Suppressor D21 destroyed; no part bounds VOUT below 16.7 V | Documented limits; connect and disconnect with the output off; firmware reports reverse current and opens the output |
 | Reverse current through the ladder with firmware not acting | Body diodes of the range switches and clamps overheat above about 1 A (estimate) | Firmware selects R3 within 2 ms and opens the output after 100 ms (F-22); watchdog of 100 ms (F-8); 4 A for 100 ms tolerated (estimate, to be measured) |
@@ -3591,12 +3810,12 @@ shown by calculation or simulation and stays a bench item of section 16:
 | D-68 | Shunt parts: thin-film resistors of 1 kΩ and 33 Ω, 0.1 % and 25 ppm/°C, in 0805 for ranges 0 and 1; a two-terminal 1 Ω chip, 0.5 % and 25 ppm/°C, on the four-pad Kelvin land for range 2; a four-terminal 0.1 Ω part, 0.25 % and 50 ppm/°C, for range 3 (single source) | The four-terminal 0.1 % parts that sections 4.3 and 17 asked for do not exist at 1 Ω and 0.1 Ω; the tolerance is calibrated per range and the drift stays inside R-05 (calculated) |
 | D-69 | Reverse current through the ladder is not measured: firmware flags it, selects range 3 at once and opens the output switch after 100 ms above about 13 mA. Without firmware the ladder tolerates 1 A continuously and 4 A for the 100 ms of the watchdog (estimates) | The same limit as the PPK2; the stress is thermal and slow, so a firmware reaction is fast enough |
 | D-70 | VOUT is protected by one unidirectional 15 V suppressor to ground (PTVS15VS1UR, candidate, single source) in place of the diode clamp to a 5.6 V node | The clamp was the free-wheel path of the cable at every trip, 2.4 A to 6.6 A through a 160 mA diode (simulated), had no ESD rating and loaded a live DUT with 0.27 mA to 0.45 mA while the instrument was off (calculated) |
-| D-71 | The output switch turns on through 2.2 MΩ and 10 nF, about 20 ms to 90 % at 5 V (simulated), and is the last switch to close; it turns off through a diode and 220 Ω, the gate below 2 V within 7 µs (simulated). It has a 10 Ω stopper at its gates and a 100 kΩ pull-down on the driver side, and no resistor from gate to source | Closing in 0.1 µs was a hot plug of the DUT capacitor, answered by the trip; opening in 0.1 µs lowered no current and threw the energy of the supply leads into the ladder; a resistor from gate to source would draw its current from the measured node |
+| D-71 | The output switch turns on through 2.2 MΩ and 10 nF, about 20 ms to 90 % at 5 V (simulated), and is the last switch to close; it turns off through a diode and 220 Ω, the gate below 2 V within 7 µs (simulated; at 0.8 V it takes 7.274 µs to 8.109 µs, simulated on 2026-10-10, section 4.2). It has a 10 Ω stopper at its gates and a 100 kΩ pull-down on the driver side, and no resistor from gate to source | Closing in 0.1 µs was a hot plug of the DUT capacitor, answered by the trip; opening in 0.1 µs lowered no current and threw the energy of the supply leads into the ladder; a resistor from gate to source would draw its current from the measured node |
 | D-72 | The DUT-side supply of the level translator comes from the output of the guard buffer through its own 1 kΩ and is held between ground and the 5 V rail by a Schottky pair; the 47 Ω branch of the buffer serves the guard and the monitor only (amends D-32) | The buffer can reach −4 V and +12 V while the supply pin of the translator is rated −0.5 V to 6.5 V (datasheet), and the supply current of the translator shifted the monitor reading |
 | D-73 | The ADC driver and the cathode of its clamp are supplied from VDRV = 1.091 × VREF, 2.73 V (calculated), made by a buffer amplifier of its own (replaces the 3V3_A supply of the driver) | The converter input is rated REF + 0.3 V (datasheet); a rail derived from the reference cannot pass that while the buffer is supplied, and it puts no current into the reference |
 | D-74 | Over-current trip at 115 mV across the shunt, 1.15 A in range 3 (1.2 A before); the threshold string and the divider are 0.1 % resistors | With the ±10 mV of the comparators the trip has to stay below the full scale of the converter, 122.3 mV at the least, and above 1 A: it lies between 111.4 mV and 118.7 mV (calculated) |
 | D-75 | Converter interface: 220 Ω in the clock, convert-start and data lines at the converter, and one 22 µF reference capacitor behind 0.22 Ω at its REF pin | Layout rule of the converter datasheet; the lines are driven into a dead supply for up to 0.1 ms at power-off (simulated) |
-| D-76 | Settling window of 7 samples after a range change; the step-up comparator ignored until 2.0 µs after the last line change of a range change; over-current qualification time of 12 µs, a constant of the build between 10 µs and 20 µs; a diode pair clamps the comparator input node to 3V3_A and ground; the comparator outputs stay active high | After a range change the chain needs 45 µs to 0.1 % of range and 65 µs to 1 LSB, and the longest overshoot that is no fault lasts 8.6 µs (simulated); the comparator inputs are rated VDD + 1.0 V (datasheet); the loss of 3V3_A is reported by PWR_GOOD |
+| D-76 | Settling window of 7 samples after a range change; the step-up comparator ignored until 2.0 µs after the last line change of a range change; over-current qualification time of 12 µs, a constant of the build between 10 µs and 20 µs; a diode pair clamps the comparator input node to 3V3_A and ground; the comparator outputs stay active high | After a range change the chain needs 45 µs to 0.1 % of range and 65 µs to 1 LSB, and the longest overshoot that is no fault lasts 8.6 µs (simulated; D-99 has the figures of 2026-10-10); the comparator inputs are rated VDD + 1.0 V (datasheet); the loss of 3V3_A is reported by PWR_GOOD |
 | D-77 | SPI and acquisition lines: 4.7 kΩ pull resistors at the module pins hold both chip selects inactive and the other lines low while the controller pins float; 2.2 kΩ sits in the slow SPI lines and 1.5 kΩ, behind 47 Ω, in the DAC select; SPI1 runs at 500 kHz or less | With the controller in reset or out of its sockets both converters were selected and the lines floated, and a pin could push 27 mA to 57 mA into an unpowered input (calculated) |
 | D-78 | The status lines reach the controller through series resistors: VIN_OV through 4.7 kΩ and PWR_GOOD through 1 kΩ; the taps of the shift register stay on the carrier side | A pin set as an output by mistake could override the interlock of D-43 or overload an open-drain flag |
 | D-79 | Logic inputs: 330 Ω in series and 470 kΩ to ground per line (1 kΩ and 1 MΩ before); R-10 re-baselined to 1.65 V to 5.5 V at the supply of the level translator | The transition time at the translator input, and an open input that has to read low at the leakage limit (datasheet); 1.65 V is the datasheet limit of the translator and the figure of the PPK2 |
@@ -3619,6 +3838,12 @@ shown by calculation or simulation and stays a bench item of section 16:
 | D-96 | A position for a capacitor from the non-inverting input of the buffer of the driver rail, U28 (D-73), to ground is added to the board. Its value is chosen on the bench, and the position may stay empty (decided by the project owner on 2026-10-10 on the recommendation of the circuit simulations; not drawn yet when recorded) | As drawn the loop of the buffer has 41.92° of phase margin, and 54.04° with that input held through 100 Ω, because R126, 10 kΩ, works against the input capacitance of the amplifier, 6 pF between the inputs and 2 pF from each (datasheet); the loop is stable, and it needs R129 with the model written for the project and with the model of the manufacturer (simulated on 2026-10-10). No run with the capacitor exists |
 | D-97 | The position U9 at the enable pin of the boost converter stays without a part, and the 803 type with its time-out of 0.24 s is no longer the part meant for it: a remedy, if the test of phase 1 asks for one, is a detector with a time-out of milliseconds. Supersedes D-84 for the detector (decided by the project owner on 2026-10-10 on the recommendation of the circuit simulations) | As drawn the converter starts in one go on an input limited to 0.67 A to 0.85 A. With the 0.24 s part fitted and a converter of typical current limit, the 5 V rail falls to the level of the detector 177.5 µs to 249 µs after the enable, and the converter is stopped for the time-out of the part, 0.24 s typical (datasheet). In the runs at 0.76 A, with 1 mA drawn from the +13.5 V rail, which is an assumption, every attempt then starts from an output without charge, 4 starts in a run of 1.1 s; with 0.1 mA the output is charged after 485.6 ms; with a time-out of 3 ms it is charged after 3.379 ms (simulated on 2026-10-10). Below 2.7 V the converter is outside its datasheet, so the test of phase 1 stays |
 | D-98 | The damper on the input from the controller module, R14 of 0.33 Ω with C5 of 10 µF, is fitted. Supersedes D-84 for the damper (decided by the project owner on 2026-10-10 on the recommendation of the circuit simulations; not drawn yet when recorded) | When the data cable is plugged again while USB-C supplies the rail, input 2 of the power multiplexer reaches 5.941 V with a port at 5.5 V behind a short cable (5.691 V with a port at 5.25 V) and 6.002 V with a limiter that reacts in 15 µs, which is an assumption, against a rating of 6.0 V (datasheet). With the damper it reaches 5.502 V in the runs made, after gaps of 2 ms to 2.6 ms, the worst ones without the damper; the damped input falls far less in those gaps, and the longer gap that matches was not run (simulated on 2026-10-10). The recharge pulse at a change of input was not simulated with the damper fitted; without it that pulse is 4.103 A through the multiplexer, against a pulse rating of 4 A |
+| D-99 | Rule F-18 counts the qualification time of the over-current trip with R3 selected only: time for which the comparator is high before R3 is selected does not count. The test of section 11 reads the comparator in the same way, high for less than 10 µs with R3 selected (decided by the project owner on 2026-10-10, who asked for the text to follow the simulations) | While a large DUT capacitor recharges after a step to 1.0 A the comparator is high for up to 12.83 µs from its first edge, more than the 12 µs of the rule and than the 10 µs of the test, of which 8.174 µs at the most with R3 selected; no run of 40 trips, because the model of the sequencer counts in R3 only (simulated on 2026-10-10) |
+| D-100 | The advice on the capacitor at the VIN terminals is limited to what the simulation shows: 100 µF ends the trips on a step to 1.0 A with supply leads of 50 mΩ per microhenry or more, and with leads of less resistance and 47 µF or more at the DUT the trip can still act. The test of section 11 asks for no trip with the first kind of lead and records the trips with the second (decided by the project owner on 2026-10-10, who asked for the text to follow the simulations) | With leads of 10 mΩ per microhenry and 47 µF or more at the DUT, 100 µF at the terminals leaves the current above the trip level for up to 32.75 µs, not 2.1 µs, and 2 of 8 runs trip; with 50 mΩ per microhenry it is 54.2 ns and no run trips (simulated on 2026-10-10). No simulation gives the capacitor that ends the trips with the heavier leads: an open point of section 16 |
+| D-101 | The range of a logic input D0 to D7 is stated: 0 V to 5.5 V at the port. No voltage beyond that range is specified as withstood (decided by the project owner on 2026-10-10, who asked for the text to follow the simulations) | The text stated no range. +12 V at a line leaves 6.588 V to 8.562 V at the pin of the translator behind 1 kΩ, 7.728 V behind 100 Ω and 11.58 V from a source of 0.1 Ω, against a rating of 6.5 V (simulated on 2026-10-10; datasheet). A withstand voltage would need another clamp or more series resistance: an open point of section 16 |
+| D-102 | License of the simulation area, in the split of D-13: the package, its tests, the benches, the models written for the project and the guide are under MIT; the snapshot of the netlist in `simulation/netlist/` and everything in `simulation/results/`, the decks, the records, the graphs and the pages, are under CERN-OHL-P v2, with a copy of that license in each of the two folders (decided by the project owner on 2026-10-10, who left the split to this record) | The snapshot and the decks hold the parts, the values and the nets of the schematic, whose design files are under CERN-OHL-P v2 (R-16); the records, graphs and pages are documentation of that design generated from them, like the pictures of the hardware folder. The wheel ships the package only, so its license field stays MIT |
+| D-103 | The host protocol becomes version 2 in one step: the sample word marks over-range, under-range and the request of the output switch in three of its reserved bits, and its invalid bit also covers the 5 ms after a change of supply; the fault flags grow from four to fifteen, one for each cause of section 6.4; GET_STATUS and GET_INFO carry the readings, the supply in use with its CC class and its budget as a current, the identity and the state of the calibration; the events "supply changed" and "notice" replace "power budget changed"; the calibration record of section 8 travels as one block with CAL_READ and CAL_STORE, which replace CAL_WRITE; CAL_ZERO returns the four zero offsets | Draft A2 reports more than version 1 holds (the open item of section 16), and a change of the protocol costs least while no instrument and no capture exist (decided by the project owner on 2026-10-12 on the recommendation of the firmware design; the layouts are those of sections 7 and 8) |
+| D-104 | GATE_OUT and the over-current trip are a program of their own in PIO 2, which reads CMP_OC and the range line GATE_R3 as inputs; the range sequencer in PIO 1 keeps the three range gates and the two address lines. No pin changes | A block holds 32 instructions and the sequencer needs about 30 of them by its first sketch; one program alone then writes the range lines, and the trip is armed whenever the output is on (decided by the project owner on 2026-10-12 on the recommendation of the firmware design; the programs are sketches that the assembler of the Pico SDK accepts, and none has run) |
 
 ## 16. Open Checks Before Freezing the Schematic
 
@@ -3647,7 +3872,8 @@ Parts and blocks:
   (868 MHz, 2.4 GHz) on its cable.
 - ADS8860 (U30): convert-start and data timing against the program of
   the acquisition state machine at 100 kSPS and 500 kSPS, with
-  convert-start still high at the end of the conversion so that no busy
+  convert-start still high at the end of the conversion, and the result
+  shifted out after it has fallen (section 4.6), so that no busy
   indicator appears on the data line; input driver and reference drive
   requirements; operation at a 2.5 V reference, the lower limit of its
   range, where the datasheet gives typical figures only; noise with
@@ -3656,7 +3882,10 @@ Parts and blocks:
   its step response, with the position of D-96 empty and with a capacitor
   in it, whose value is chosen there; TP43 never above VREF + 0.25 V in
   overload, at power-up, at power-down and while 3V3_A is between 1 V and
-  2.2 V.
+  2.2 V. The reading window at 15 MHz, the 500 kSPS option: with one
+  reading instant for weak and for strong pads it is 11.43 ns to 13.18 ns
+  with long tracks, against the 13.33 ns of two system clocks (simulated
+  on 2026-10-10 with assumed capacitances).
 - RP2350 PIO: size of the acquisition program and of the range sequencer
   against the 32 instructions of a block; reaction time from the pin of the
   jump comparator to the gate line of range 3, 100 ns or less (20 ns to
@@ -3718,7 +3947,10 @@ Parts and blocks:
   after 40 ms, simulated); both requests high: input of the ampere driver
   below 0.1 V and less than 50 µA at the VIN terminal; −5 V on VIN with
   the ampere request held high by test firmware, from a supply limited to
-  1 A: TP33 above −0.1 V after 35 µs.
+  1 A: TP33 above −0.1 V after 35 µs. In the one run made TP33 is at
+  −2.556 V after 35 µs, with a source that limits at 1 A and has no output
+  capacitor (simulated on 2026-10-10); the criterion is an open question
+  at the end of this section.
 - VIN protection (D-60): detector U21 trips between 5.41 V and 5.51 V
   and releases between 5.30 V and 5.40 V (calculated); TP30 steady
   high with +20 V on VIN and power on, at 0 °C and 40 °C if possible;
@@ -3741,7 +3973,8 @@ Parts and blocks:
   register accepts. Open after D-95: with 10 nF one crossing was
   simulated, at 2 V/s; the crossings at 20 V/s and at 400 V/s, where 1 nF
   gave bursts of edges, and the edges of PWR_GOOD at power-up and at
-  power-off are simulated with 10 nF when the change is drawn.
+  power-off are not simulated with 10 nF yet. The change is drawn since
+  2026-10-10; the benches were not run again.
 - Shift registers (SN74LV165A): timing of the load pulse against the
   convert-start edge, maximum clock at 3.3 V against the 500 kSPS option.
 - Interlock transistors (BSS138: Q3, Q2, and Q1 at the enable
@@ -3825,32 +4058,21 @@ Parts and blocks:
   within 1 V).
 - USB device stack: TinyUSB as the Pico SDK brings it; sustained CDC
   throughput on the RP2350 before phase 1 ends.
-- Protocol (section 7, `protocol/definition.toml`): draft A2 reports more
-  than the definition holds. Missing are a mark for over-range and for
-  under-range samples (F-22, F-35), the invalid mark for the 5 ms after a
-  change of supply (F-35), the fault flags that section 6.4 names
-  beyond the four of section 7.4, the input in use and the CC class in the
-  status record (F-14), the power budget as a current (D-49; the event of
-  section 7.4 carries milliwatts), and the instant from which the host
-  counts the 250 ms of output settling (section 9). They are added to the
-  definition file, with the generated files and the test vectors, before the
-  firmware of phase 1 reports them.
+- Protocol (section 7, `protocol/definition.toml`): version 2 holds what
+  draft A2 reports (D-103): the marks for over-range and under-range
+  samples, the invalid mark after a change of supply, a fault flag for
+  each cause, the supply in use with its CC class and its budget as a
+  current, the count of trips, the notices of the source, the instant
+  from which the host counts the output settling, and the calibration
+  record as a block. The definition, the generated files, the test
+  vectors and both codecs carry it. Open: no firmware fills these fields
+  yet, and the host does not use the marks beyond its statistics.
 - Sections 6 to 8, not decided yet; each point is settled, with a decision,
   before the software of phase 1 builds on it:
-  - how the record of section 8 travels. CAL_WRITE carries one gain and
-    one offset for a range or for the DAC; no command or field carries
-    the chip identifier, the serial number and revision of the carrier,
-    the calibration temperature, the settling window, the closed-switch
-    zero or the nine or more set-points of the DAC (D-58, D-59, D-82);
-  - the content that the table of section 7.4 names for GET_INFO and
-    GET_STATUS beyond the provisional data: range table, calibration,
-    VOUT, VIN, the 5 V rail, temperature and power budget;
-  - the reports that rules name without a place in the protocol: the
-    count of consecutive trips and "start over-current" (F-19), the
-    settled set-point (F-30) and "DUT above the set-point" (F-31);
-  - where the constants are stored that rules take from a board and
-    section 8 does not list: the offset of the VIN channel (F-26), the
-    constants of the input model (F-14) and the thermal limit (F-15);
+  - the constants of the input model that rule F-14 takes from the first
+    board: they have no place in version 1 of the calibration record of
+    section 8, which holds the offset of the VIN channel (F-26) and the
+    thermal limit (F-15);
   - the step in which firmware evaluates F-21 and F-22: both ask for a
     reaction within 2 ms, and section 6.3 evaluates the under-range rule
     once per block of 256 samples, which is 2.56 ms at 100 kSPS;
@@ -3860,20 +4082,19 @@ Parts and blocks:
 
 Before the board is ordered. These items need no carrier board:
 
-- The decisions that follow the circuit simulations, which are not drawn
-  yet: C32 to C34 at 10 nF (D-95); a position for a capacitor from the
-  non-inverting input of U28 to ground (D-96); R14 and C5 fitted, with
-  part numbers (D-98); and the text of the position U9, which still reads
-  "803 type, 3.08 V" in the schematic and on the board (D-97), with the
-  notes of the three sheets that state the earlier design. Then the
-  electrical rules check and the
-  design rules check with schematic parity, the bill of materials and the
-  pictures exported again, the netlist snapshot of the simulations
-  written again and the benches of the blocks that the change touches run
-  again: the rail monitor with the power-up and the power-off, the driver
-  rail, and the input from the module. Until then the drawings, the bill
-  of materials and the results of the simulations describe the earlier
-  state.
+- The decisions that follow the circuit simulations. Drawn on 2026-10-10:
+  C32 to C34 at 10 nF (D-95), R14 and C5 fitted with their part numbers
+  (D-98), and the text of the position U9 (D-97), with the notes of the
+  three sheets. The electrical rules check and the design rules check
+  with schematic parity report nothing, no copper moved, and the bill of
+  materials, the pictures of the three sheets and the netlist snapshot of
+  the simulations follow the drawings. Open: the position for a capacitor
+  from the non-inverting input of U28 to ground (D-96), which needs a
+  footprint and copper; and the benches of the blocks that the changes
+  touch, which were not run again: the rail monitor with the power-up
+  and the power-off, and the input from the module, whose benches still
+  leave R14 and C5 out. Until then the results of the simulations
+  describe the circuit before the changes.
 - The risk prototypes of phase 1 (section 13) that concern the carrier:
   reaction of the sequencer, pre-regulator with its tracking amplifier,
   start of the boost converter from 0.7 A.
@@ -3927,42 +4148,25 @@ Before a DUT is connected to a board:
 Open points of the circuit simulations of 2026-10-10 (D-94). The
 simulations in [`../simulation/`](../simulation/) give the central design
 figures of this document again, block by block. They raised four points
-for a decision before boards are ordered. The project owner decided them
-on 2026-10-10, and they are no longer in this list: the capacitors of the
-rail monitor (D-95), the position for a capacitor at the buffer of the
-driver rail (D-96), the detector position at the boost converter (D-97)
-and the damper on the module input (D-98). What those decisions leave to
-check stands in the lists above.
+for a decision, which are decisions D-95 to D-98, and they differed from
+the text in fourteen places. Twelve of those places are corrected in the
+sections that they concern since 2026-10-10, each with the simulated
+figure and its conditions, marked "simulated on 2026-10-10". Where a
+correction changed a firmware rule, a test criterion or advice to the
+user, it is a decision: D-99 to D-101. What is left stands below: two
+places that wait for a new run of the benches, and the questions that
+the corrections leave. A question is open because its answer needs a
+design value that no simulation gives. Each one has its options and one
+recommendation and waits for the project owner.
+[`../simulation/README.md`](../simulation/README.md) gives every place
+with the bench that shows it and with its assumptions.
 
-In the places below the simulations differ from the text or show
-something that the text does not state. Each one waits for the project
-owner, and until it is decided the passages that it concerns are
-unchanged; decisions D-95 to D-98 changed other passages of some of the
-same sections. The figures are simulated, with models written from
-datasheets, unless an item says otherwise; none is measured, and
-"proposed" is what the simulation round proposes.
-[`../simulation/README.md`](../simulation/README.md) gives each place with
-the bench that shows it and with its assumptions.
+Places that wait for the run of the benches on the drawn decisions D-95
+and D-98, because their figures come from circuits that those decisions
+change. The text of the sections named with them is unchanged until
+then; only rule F-35 already states the simulated load step, which a
+question below takes up:
 
-Places where the simulation and the text differ:
-
-- Over-current qualification (section 4.4, F-18, section 11): the
-  comparator is high for up to 12.83 µs while a large capacitor recharges
-  after a step to 1.0 A, of which 8.174 µs at the most in R3; the text has
-  up to 8.6 µs with 56 µF. The worst capacitor is near 82 µF. Proposed:
-  the rule says that the 12 µs count in R3.
-- Ladder clamp in a short circuit (section 4.3): "above 5 A for at most
-  0.54 µs" holds for the hot plug. In a short circuit from a supply that
-  holds its voltage, a clamp transistor with a low threshold carries more
-  than 5 A for 14.79 µs and up to 19.26 A (rating 21 A), and R3 carries
-  29.52 A, or 32.33 A with a short across the terminals, not "up to 27 A".
-  The spread of the clamp at amperes is an assumption.
-- Capacitor at the VIN terminals (sections 4.4, 4.9 and 11): with 100 µF
-  there the current stays above the trip level for 32.75 µs, not 2.1 µs,
-  when the capacitor at the DUT is as large and the leads have little
-  resistance, and 2 of 8 runs trip, where section 11 asks for none.
-  Proposed: the advice asks for a capacitor several times the one at the
-  DUT, or a lossy one.
 - Power-off and power-up (section 3, F-7): 3V3_C is below 3.0 V after
   45.72 µs, not 0.02 ms; PWR_GOOD is below 2.0 V after 145.1 µs and below
   0.8 V after 604.5 µs, not 0.05 ms to 0.07 ms and 0.3 ms; 3V3_A is below
@@ -3970,46 +4174,6 @@ Places where the simulation and the text differ:
   20.31 ms, not about 14 ms, and stands above 3.6 V with 3V3_A below 1 V
   for 16.73 ms, not about 10 ms; −4 V_A arrives 434.9 µs after 5V_OK, not
   0.3 ms. The times follow from the loads that the bench assumes.
-- Output switch (section 4.2, D-71, F-8, F-24): the gate is below 2 V
-  within 7 µs at 5 V; at 0.8 V it takes 7.274 µs to 7.448 µs, and 8.109 µs
-  in the slow corner. With 100 µF the DUT voltage is at 10 % after
-  6.458 ms at 5 V and after 5.381 ms at 0.8 V, and over the corners its
-  start spans from 3.888 ms (the first 50 mV at 0.8 V) to 10.03 ms (10 %
-  at 5 V into 2200 µF), not 6 ms to 7 ms.
-- Suppressor of VOUT (section 4.9): it carries up to 14.37 A forward at a
-  trip, not "at most 11.6 A", and with 0.15 Ω of forward resistance the
-  terminal goes to −1.807 V, not −0.8 V to −1.7 V; a positive strike
-  beyond +15 V on the open output is limited by the suppressor, not by
-  the avalanche of the output transistor.
-- Mode switches (section 4.9, F-23): the opening kick on VIN is 16.01 V to
-  25.12 V, not 20 V to 24 V; the gate-source voltage is 6.122 V at 5 V and
-  5.739 V at 5.4 V with +12 V_A at 11.4 V, not "at least 6.2 V"; the
-  detector opens the switch after 2.199 µs to 78.34 µs, not 4 µs to 45 µs.
-- Check of this section on TP33 (item "Mode switches" above): with −5 V
-  from a supply limited to 1 A and the request high, TP33 is at −2.556 V
-  after 35 µs, not above −0.1 V, in the one run made, with a source that
-  has no output capacitor.
-- Noise budget (section 4.10): the total stands, the list of its terms
-  does not: the ADC is 1.629 µV RMS at the shunt by its datasheet at a
-  reference of 2.5 V, not about 1.0 µV, and the multiplexer channels
-  (620.2 nV) and the filter with its driver (325.7 nV) are missing.
-- Converter interface (section 4.6): by its datasheet the ADC shifts its
-  result out after convert-start falls, not "while that line is still
-  high" (a reading of the datasheet, not a simulated figure); the
-  estimates of about 1 ns on the clock and 3 ns to 4 ns on the data line
-  leave out the resistance of the pads (2.251 ns to 12.57 ns on the
-  clock, 5.015 ns to 11.5 ns on the data, with assumed capacitances).
-- Slow monitors (section 4.2): the input leakage of the monitor converter,
-  1 µA at the most (datasheet value), is not in the text; at that maximum
-  channel 0 is off by 120 mV, where F-28 allows 100 mV, and channel 1 by
-  430 mV, where F-26 allows 130 mV. Channel 2 is at full scale with the
-  rail at 5.50 V and the resistors at their limits.
-- Source meter (sections 4.2 and 4.9): code 0 gives 30.96 mV, not 0.01 V;
-  an overload into 5 Ω rests at 4.729 V, not 4.48 V; the role of R60 as
-  the limit of the clamp current between SET and OUT is not stated; a
-  charged capacitor of 100 µF plugged into the output takes the IN pin
-  1.013 V to 1.04 V below the output for 22.82 µs to 24.72 µs, not 0.32 V
-  to 0.94 V for 3 µs to 21 µs.
 - Power input (sections 3 and 4.1, F-35, item "Input stage" above): on a
   computer port the in-rush shows a peak of 1.018 A to 1.275 A for
   16.3 µs to 33.04 µs when the boost converter starts, not 0.9 A or less;
@@ -4024,16 +4188,65 @@ Places where the simulation and the text differ:
   cable of 0.15 Ω, close to the 0.3 V of F-35. A short circuit of the 5 V
   rail, with up to 30.5 A through the multiplexer against a pulse rating
   of 4 A, is not in the text.
-- Logic inputs (section 4.8): +12 V at a line leaves 6.588 V to 8.562 V
-  at the translator pin behind 1 kΩ, against a rating of 6.5 V; the text
-  states no range that a line withstands. Proposed: the text gives the
-  range of a line as 0 V to 5.5 V.
 
-The list is not every difference. The result pages show the
-distance from the value stated here beside every figure, and
-[`../simulation/README.md`](../simulation/README.md) names the further
-figures that fail against a rating of a datasheet or against another
-figure of this document.
+Questions that the corrections leave. The figures are simulated on
+2026-10-10 unless an item says otherwise:
+
+- Criterion of the check on TP33 (item "Mode switches" above). With −5 V
+  from a supply limited to 1 A and the request high, TP33 is at −2.556 V
+  after 35 µs, in the one run made, with a source that has no output
+  capacitor; the check asks for more than −0.1 V. Options: keep the
+  criterion and measure it on a board with a real supply; put the
+  criterion on the pair, open within 35 µs, and record TP33 without a
+  limit; drop the check. Recommended: the second.
+- Limits of F-26 and F-28 against the input leakage of the monitor
+  converter (section 4.2). At the datasheet maximum of 1 µA channel 1 is
+  off by 430 mV, where F-26 allows 130 mV, and channel 0 by 120 mV, where
+  F-28 allows 100 mV; the typical leakage is 1 nA. The limits therefore
+  hold up to 0.30 µA and 0.83 µA (calculated from those figures).
+  Options: keep the limits and check the leakage of the part against
+  0.30 µA at 40 °C in its check record; widen the two limits; lower the
+  resistance of the two dividers. Recommended: the first.
+- Channel 2 at the upper limit of F-12 (section 4.2). With the resistors
+  at their limits channel 2 reads 2.527 V at 5.50 V of the rail, above
+  the full scale of 2.5 V: from about 5.44 V (calculated) the code is
+  4095, which F-12 counts as a failure. Options: lower the upper limit of
+  F-12 to 5.4 V; change one resistor of the divider so that 5.50 V stays
+  below full scale with the tolerances; keep both and read code 4095 on
+  channel 2 as a rail above its limit. Recommended: the second, with the
+  next change of the schematic.
+- Threshold of F-35 for a step of the 5 V rail, 0.3 V. A load step of 1 A
+  moves the rail by 282.3 mV behind a cable of 0.15 Ω, which is an
+  assumption, and the 1.34 A that section 4.1 calculates for 5 V at 1 A
+  would move it by about 0.38 V (calculated from the 0.28 V per ampere of
+  that run): ordinary load steps reach the threshold. Options: keep
+  0.3 V, so that a large load step on a resistive cable flags samples for
+  5 ms; raise the threshold; replace the step by a level of the rail.
+  Recommended: keep 0.3 V until the rail is measured in phase 4.
+- Capacitor at the VIN terminals with supply leads of low resistance
+  (D-100). With 10 mΩ per microhenry and 47 µF or more at the DUT, 100 µF
+  at the terminals leaves 2 of 8 runs tripping. Options: keep 100 µF with
+  the stated limit; ask for a capacitor of several times the one at the
+  DUT; ask for a lossy capacitor. Recommended: simulate the last two in
+  the bench of the supply leads before the advice changes again, and keep
+  the first until then.
+- Withstand voltage of a logic line beyond 0 V to 5.5 V (D-101). +12 V
+  passes the 6.5 V rating of the translator pin behind the 1 kΩ of the
+  line. Options: specify none; specify one and add a clamp or series
+  resistance for it. Recommended: none for revision A.
+- Gaps of the test of TP4 in section 11, 1 ms and 3 ms. Without the
+  damper the peak is largest when the contact closes 2 ms to 2.6 ms after
+  it opened, 5.941 V to 6.002 V, and it is 5.851 V at 1 ms and 5.505 V at
+  3 ms; with the damper of D-98 the input falls more slowly, and the gap
+  that matches is longer and was not run. Options: keep the two gaps;
+  sweep the gap. Recommended: sweep it, from 0.5 ms until the limiter of
+  the module input has turned off, with the damper fitted.
+
+The corrected places and these questions are not every difference. The
+result pages show the distance from the value stated here beside every
+figure, and [`../simulation/README.md`](../simulation/README.md) names the
+further figures that fail against a rating of a datasheet or against
+another figure of this document.
 
 ## 17. Master Component Bill of Materials (BOM) Summary
 
@@ -4105,13 +4318,13 @@ its fields in the schematic, and the full list, one line per part number, is
 generated from the schematic ([`../hardware/README.md`](../hardware/README.md)).
 Test points, fiducials, mounting holes and solder jumpers are not in it; the two
 sockets and the cover of the shield can are, although they have no footprint.
-In the schematic of draft A2 three positions carry no part and no part number
-(D-84): U9, R14 and C5. Three decisions change this state and are not drawn
-yet: R14 and C5 are fitted and get their part numbers with the change, on
-pads of size 0805 (D-98); C32 to C34 become 10 nF on their pads of size
-0603 (D-95); and a position for a capacitor at U28 is added, which may stay
-empty (D-96). U9 stays without a part (D-97). The table above and the bill
-of materials file follow when the change is drawn. Three lines had no
+In the schematic one position carries no part and no part number: U9 (D-97).
+R14 and C5, which draft A2 drew without parts (D-84), are fitted since
+2026-10-10 with their part numbers, ERJ-6RQFR33V and CL21A106KAYNNNE, on pads
+of size 0805 (D-98), and C32 to C34 are 10 nF on their pads of size 0603
+(D-95). The bill of materials file holds both changes: 151 lines for 370
+parts. The position for a capacitor at U28, which may stay empty, is not
+drawn (D-96). Three lines had no
 stock at an authorized distributor on 2026-10-09, as read on distributor pages
 that day: the pre-regulator inductor XFL4020-152MEC, whose second source Würth
 74438356015 fits the same pads (datasheet) and was itself short; the 10 µF 25 V
@@ -4192,7 +4405,7 @@ the release commit. A failing gate blocks the merge.
 
 | Gate | Firmware | Host |
 | --- | --- | --- |
-| Build | Firmware build for the controller, warnings as errors (the ESP-IDF build for `esp32s3` until the port of D-39 is done) | Package builds and installs |
+| Build | Firmware build for the Pico 2 with the Pico SDK, warnings as errors | Package builds and installs |
 | Unit tests | All pass, also under the address and undefined-behavior sanitizers | All pass on Windows, Linux and macOS, on the oldest and the newest supported Python |
 | Coverage of pure code | Lines 90 %, branches 80 % | Lines and branches 90 % |
 | Static analysis | clang-tidy and cppcheck clean | mypy in strict mode clean |

@@ -2996,7 +2996,7 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "U10: VOUT = 1.23 V x (1 + R32 / R33) = 13.5 V, 1.6 MHz;\nnot gated by 5V_OK. C25 closes the switching loop at D6;\nC27 is 7 uF at 13.5 V (datasheet curve).\nU9: position for an open-drain voltage detector of the 803 type\n(3.08 V), not fitted. With it the converter stays off while +5V is\nbelow that level. Fit it if U10, which has no soft start, does not\nstart from the current-limited input (bench)."
+	(text "U10: VOUT = 1.23 V x (1 + R32 / R33) = 13.5 V, 1.6 MHz;\nnot gated by 5V_OK. C25 closes the switching loop at D6;\nC27 is 7 uF at 13.5 V (datasheet curve).\nU9: position for an open-drain voltage detector at the enable pin\nof U10, not fitted. U10 has no soft start; as drawn it starts in\none go from the current-limited input (simulated; bench test open).\nThe 803 type, time-out 0.24 s, is no longer the part meant: a\nremedy, if the bench asks for one, has a time-out of milliseconds."
 		(exclude_from_sim no)
 		(at 116.84 60.96 0)
 		(effects
@@ -5501,7 +5501,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "803 type, 3.08 V"
+		(property "Value" "Detector, ms time-out"
 			(at 41.91 71.12 0)
 			(show_name no)
 			(do_not_autoplace no)

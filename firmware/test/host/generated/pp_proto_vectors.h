@@ -31,9 +31,22 @@ typedef struct {
     uint8_t range;
     uint8_t invalid;
     uint8_t fault;
+    uint8_t over_range;
+    uint8_t under_range;
+    uint8_t output;
     uint8_t logic;
     uint32_t word;
 } pp_sample_vector_t;
+
+/* A record: its bytes, its numeric fields in the order of the layout, its text. */
+typedef struct {
+    const char *name;
+    const uint8_t *data;
+    size_t data_len;
+    const int64_t *values;
+    size_t value_count;
+    const char *text;
+} pp_record_vector_t;
 
 static const uint8_t pp_vec_crc_check_string_data[] = {
     0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
@@ -186,15 +199,283 @@ static const pp_frame_vector_t pp_frame_vectors[] = {
 };
 
 static const pp_sample_vector_t pp_sample_vectors[] = {
-    {"typical", 0x1234u, 2u, 0u, 0u, 0xA5u, 0xA5021234u},
-    {"all_zero", 0x0000u, 0u, 0u, 0u, 0x00u, 0x00000000u},
-    {"all_fields_at_maximum", 0xFFFFu, 3u, 1u, 1u, 0xFFu, 0xFF0FFFFFu},
-    {"invalid_during_range_change", 0x8000u, 1u, 1u, 0u, 0x01u, 0x01058000u},
-    {"fault_latched", 0xFFFFu, 3u, 0u, 1u, 0x00u, 0x000BFFFFu},
+    {"typical", 0x1234u, 0x0002u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x00A5u, 0xA5021234u},
+    {"all_zero", 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x00000000u},
+    {"all_fields_at_maximum", 0xFFFFu, 0x0003u, 0x0001u, 0x0001u, 0x0001u, 0x0001u, 0x0001u, 0x00FFu, 0xFF7FFFFFu},
+    {"invalid_during_range_change", 0x8000u, 0x0001u, 0x0001u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0001u, 0x01058000u},
+    {"fault_latched", 0xFFFFu, 0x0003u, 0x0000u, 0x0001u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x000BFFFFu},
+    {"over_range_at_full_scale", 0xFFFFu, 0x0001u, 0x0000u, 0x0000u, 0x0001u, 0x0000u, 0x0001u, 0x0000u, 0x0051FFFFu},
+    {"under_range_with_output_on", 0x0100u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0001u, 0x0001u, 0x0080u, 0x80600100u},
+    {"output_on_only", 0x0521u, 0x0003u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0001u, 0x0000u, 0x00430521u},
+};
+
+static const uint8_t pp_vec_info_info_calibrated_data[] = {
+    0x02, 0x01, 0x00, 0x01, 0x00, 0x00, 0x07, 0xAB, 0x67, 0x45, 0x23, 0xD1,
+    0xA4, 0x61, 0xE6, 0x4F, 0x50, 0x50, 0x2D, 0x41, 0x32, 0x2D, 0x30, 0x30,
+    0x30, 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x21, 0x05, 0x00,
+    0x48, 0x21, 0x05, 0x00, 0x76, 0x20, 0x05, 0x00, 0xC0, 0x20, 0x05, 0x00,
+};
+static const int64_t pp_vec_info_info_calibrated_values[] = {
+    INT64_C(2),
+    INT64_C(1),
+    INT64_C(0),
+    INT64_C(1),
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(7),
+    (int64_t)UINT64_C(16600730919611230123),
+    INT64_C(1),
+    INT64_C(336128),
+    INT64_C(336200),
+    INT64_C(335990),
+    INT64_C(336064),
+};
+static const uint8_t pp_vec_info_info_nominal_without_a_record_data[] = {
+    0x02, 0x01, 0x00, 0x01, 0x00, 0x01, 0x07, 0x01, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+static const int64_t pp_vec_info_info_nominal_without_a_record_values[] = {
+    INT64_C(2),
+    INT64_C(1),
+    INT64_C(0),
+    INT64_C(1),
+    INT64_C(0),
+    INT64_C(1),
+    INT64_C(7),
+    INT64_C(1),
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(0),
+};
+static const uint8_t pp_vec_info_info_serial_of_full_length_data[] = {
+    0x02, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
+    0x39, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+};
+static const int64_t pp_vec_info_info_serial_of_full_length_values[] = {
+    INT64_C(2),
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(2),
+    INT64_C(0),
+    (int64_t)UINT64_C(18446744073709551615),
+    INT64_C(0),
+    INT64_C(-1),
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(-2147483648),
+};
+
+static const pp_record_vector_t pp_info_vectors[] = {
+    {
+        "info_calibrated",
+        pp_vec_info_info_calibrated_data,
+        48u,
+        pp_vec_info_info_calibrated_values,
+        13u,
+        "OPP-A2-0001",
+    },
+    {
+        "info_nominal_without_a_record",
+        pp_vec_info_info_nominal_without_a_record_data,
+        48u,
+        pp_vec_info_info_nominal_without_a_record_values,
+        13u,
+        "",
+    },
+    {
+        "info_serial_of_full_length",
+        pp_vec_info_info_serial_of_full_length_data,
+        48u,
+        pp_vec_info_info_serial_of_full_length_values,
+        13u,
+        "0123456789ABCDEF",
+    },
+};
+
+static const uint8_t pp_vec_status_status_idle_on_the_module_input_data[] = {
+    0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x74, 0x13, 0xFD, 0x00, 0x00, 0x00, 0xC2, 0x01, 0x00,
+    0x00,
+};
+static const int64_t pp_vec_status_status_idle_on_the_module_input_values[] = {
+    INT64_C(2),
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(255),
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(4980),
+    INT64_C(253),
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(450),
+    INT64_C(0),
+    INT64_C(0),
+};
+static const uint8_t pp_vec_status_status_streaming_in_source_mode_data[] = {
+    0x04, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0xFF, 0xE4, 0x0C, 0xE2,
+    0x0C, 0x0C, 0x00, 0x9C, 0x13, 0x3E, 0x01, 0x01, 0x02, 0xA4, 0x06, 0x00,
+    0x01,
+};
+static const int64_t pp_vec_status_status_streaming_in_source_mode_values[] = {
+    INT64_C(4),
+    INT64_C(0),
+    INT64_C(3),
+    INT64_C(1),
+    INT64_C(255),
+    INT64_C(3300),
+    INT64_C(3298),
+    INT64_C(12),
+    INT64_C(5020),
+    INT64_C(318),
+    INT64_C(1),
+    INT64_C(2),
+    INT64_C(1700),
+    INT64_C(0),
+    INT64_C(1),
+};
+static const uint8_t pp_vec_status_status_fault_with_every_field_set_data[] = {
+    0x05, 0xFF, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0x01, 0x03, 0x88, 0x13, 0xFF,
+    0xFF, 0x00, 0x80, 0xFF, 0xFF, 0x38, 0xFF, 0x01, 0x01, 0x78, 0x05, 0xFF,
+    0x03,
+};
+static const int64_t pp_vec_status_status_fault_with_every_field_set_values[] = {
+    INT64_C(5),
+    INT64_C(32767),
+    INT64_C(4294967295),
+    INT64_C(1),
+    INT64_C(3),
+    INT64_C(5000),
+    INT64_C(65535),
+    INT64_C(-32768),
+    INT64_C(65535),
+    INT64_C(-200),
+    INT64_C(1),
+    INT64_C(1),
+    INT64_C(1400),
+    INT64_C(255),
+    INT64_C(3),
+};
+
+static const pp_record_vector_t pp_status_vectors[] = {
+    {
+        "status_idle_on_the_module_input",
+        pp_vec_status_status_idle_on_the_module_input_data,
+        25u,
+        pp_vec_status_status_idle_on_the_module_input_values,
+        15u,
+        NULL,
+    },
+    {
+        "status_streaming_in_source_mode",
+        pp_vec_status_status_streaming_in_source_mode_data,
+        25u,
+        pp_vec_status_status_streaming_in_source_mode_values,
+        15u,
+        NULL,
+    },
+    {
+        "status_fault_with_every_field_set",
+        pp_vec_status_status_fault_with_every_field_set_data,
+        25u,
+        pp_vec_status_status_fault_with_every_field_set_values,
+        15u,
+        NULL,
+    },
+};
+
+static const uint8_t pp_vec_supply_supply_module_default_data[] = {
+    0x00, 0x00, 0xC2, 0x01,
+};
+static const int64_t pp_vec_supply_supply_module_default_values[] = {
+    INT64_C(0),
+    INT64_C(0),
+    INT64_C(450),
+};
+static const uint8_t pp_vec_supply_supply_usb_c_3a_data[] = {
+    0x01, 0x02, 0xA4, 0x06,
+};
+static const int64_t pp_vec_supply_supply_usb_c_3a_values[] = {
+    INT64_C(1),
+    INT64_C(2),
+    INT64_C(1700),
+};
+
+static const pp_record_vector_t pp_supply_vectors[] = {
+    {
+        "supply_module_default",
+        pp_vec_supply_supply_module_default_data,
+        4u,
+        pp_vec_supply_supply_module_default_values,
+        3u,
+        NULL,
+    },
+    {
+        "supply_usb_c_3a",
+        pp_vec_supply_supply_usb_c_3a_data,
+        4u,
+        pp_vec_supply_supply_usb_c_3a_values,
+        3u,
+        NULL,
+    },
+};
+
+static const uint8_t pp_vec_zero_zero_at_the_pedestal_data[] = {
+    0x00, 0x21, 0x05, 0x00, 0x00, 0x21, 0x05, 0x00, 0x00, 0x21, 0x05, 0x00,
+    0x00, 0x21, 0x05, 0x00,
+};
+static const int64_t pp_vec_zero_zero_at_the_pedestal_values[] = {
+    INT64_C(336128),
+    INT64_C(336128),
+    INT64_C(336128),
+    INT64_C(336128),
+};
+static const uint8_t pp_vec_zero_zero_with_negative_values_data[] = {
+    0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
+    0xFF, 0xFF, 0xFF, 0x7F,
+};
+static const int64_t pp_vec_zero_zero_with_negative_values_values[] = {
+    INT64_C(-256),
+    INT64_C(0),
+    INT64_C(1),
+    INT64_C(2147483647),
+};
+
+static const pp_record_vector_t pp_zero_vectors[] = {
+    {
+        "zero_at_the_pedestal",
+        pp_vec_zero_zero_at_the_pedestal_data,
+        16u,
+        pp_vec_zero_zero_at_the_pedestal_values,
+        4u,
+        NULL,
+    },
+    {
+        "zero_with_negative_values",
+        pp_vec_zero_zero_with_negative_values_data,
+        16u,
+        pp_vec_zero_zero_with_negative_values_values,
+        4u,
+        NULL,
+    },
 };
 
 #define PP_CRC_VECTOR_COUNT (sizeof(pp_crc_vectors) / sizeof(pp_crc_vectors[0]))
 #define PP_FRAME_VECTOR_COUNT (sizeof(pp_frame_vectors) / sizeof(pp_frame_vectors[0]))
 #define PP_SAMPLE_VECTOR_COUNT (sizeof(pp_sample_vectors) / sizeof(pp_sample_vectors[0]))
+#define PP_INFO_VECTOR_COUNT (sizeof(pp_info_vectors) / sizeof(pp_info_vectors[0]))
+#define PP_STATUS_VECTOR_COUNT (sizeof(pp_status_vectors) / sizeof(pp_status_vectors[0]))
+#define PP_SUPPLY_VECTOR_COUNT (sizeof(pp_supply_vectors) / sizeof(pp_supply_vectors[0]))
+#define PP_ZERO_VECTOR_COUNT (sizeof(pp_zero_vectors) / sizeof(pp_zero_vectors[0]))
 
 #endif /* PP_PROTO_VECTORS_H */

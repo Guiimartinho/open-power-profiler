@@ -124,7 +124,8 @@ bool pp_command_is_known(uint8_t id)
     case PP_CMD_START:
     case PP_CMD_STOP:
     case PP_CMD_CAL_ZERO:
-    case PP_CMD_CAL_WRITE:
+    case PP_CMD_CAL_READ:
+    case PP_CMD_CAL_STORE:
     case PP_CMD_CLEAR_FAULT:
         return true;
     }
@@ -136,8 +137,9 @@ bool pp_event_is_known(uint8_t id)
     /* No default case: the compiler reports an event missing from the list. */
     switch ((pp_event_id_t)id) {
     case PP_EVENT_FAULT_RAISED:
-    case PP_EVENT_POWER_BUDGET_CHANGED:
     case PP_EVENT_STATE_CHANGED:
+    case PP_EVENT_SUPPLY_CHANGED:
+    case PP_EVENT_NOTICE:
         return true;
     }
     return false;

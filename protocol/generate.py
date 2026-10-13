@@ -43,6 +43,22 @@ ENUMS = [
     ("events", "pp_event_id_t", "PP_EVENT_", "Event", "IntEnum"),
     ("states", "pp_device_state_t", "PP_STATE_", "DeviceState", "IntEnum"),
     ("modes", "pp_mode_t", "PP_MODE_", "Mode", "IntEnum"),
+    ("supplies", "pp_supply_t", "PP_SUPPLY_", "Supply", "IntEnum"),
+    ("cc_classes", "pp_cc_class_t", "PP_CC_", "CcClass", "IntEnum"),
+    ("notices", "pp_notice_t", "PP_NOTICE_", "Notice", "IntEnum"),
+    ("cal_states", "pp_cal_state_t", "PP_CAL_STATE_", "CalState", "IntEnum"),
+]
+
+# (definition table, C prefix, Python class, description, bits of the field)
+FLAGS = [
+    ("faults", "PP_FAULT_", "Fault", "Bits of the 16-bit fault flags.", 16),
+    (
+        "status_notices",
+        "PP_STATUS_NOTICE_",
+        "StatusNotice",
+        "Bits of the notice byte of the status record.",
+        8,
+    ),
 ]
 
 
@@ -80,6 +96,44 @@ def pack_sample(spec: dict[str, Any], sample: dict[str, int]) -> int:
     return word
 
 
+# --- Layouts ---------------------------------------------------------------
+
+
+def layout_format(fields: list[list[str]]) -> str:
+    """Return the struct format of a layout: little-endian, no padding."""
+    return "<" + "".join(code for _name, code in fields)
+
+
+def layout_offsets(fields: list[list[str]]) -> list[tuple[str, int, int]]:
+    """Return the name, the offset and the size of every field of a layout."""
+    offsets = []
+    position = 0
+    for name, code in fields:
+        size = struct.calcsize("<" + code)
+        offsets.append((name, position, size))
+        position += size
+    return offsets
+
+
+def layout_size(fields: list[list[str]]) -> int:
+    """Return the number of bytes of a layout."""
+    return struct.calcsize(layout_format(fields))
+
+
+def pack_record(fields: list[list[str]], values: dict[str, Any]) -> bytes:
+    """Pack the values of a record; a field that is not given is zero."""
+    packed: list[Any] = []
+    for (name, code), (_name, _offset, size) in zip(fields, layout_offsets(fields), strict=True):
+        if code.endswith("s"):
+            raw = str(values.get(name, "")).encode("ascii")
+            if len(raw) > size:
+                raise ValueError(f"text of {name} is longer than {size} bytes")
+            packed.append(raw)
+        else:
+            packed.append(int(values.get(name, 0)))
+    return struct.pack(layout_format(fields), *packed)
+
+
 # --- Validation ------------------------------------------------------------
 
 
@@ -108,6 +162,21 @@ def validate(spec: dict[str, Any]) -> None:
         position += width
     if position != 32:
         raise ValueError("sample_word fields must add up to 32 bits")
+    for table, _prefix, _py_class, _text, width in FLAGS:
+        positions = list(spec[table].values())
+        if len(positions) != len(set(positions)):
+            raise ValueError(f"duplicate bit in [{table}]")
+        if any(not 0 <= bit < width for bit in positions):
+            raise ValueError(f"[{table}] has a bit outside its {width} bits")
+    for name, fields in spec["layouts"].items():
+        names = [field for field, _code in fields]
+        if len(names) != len(set(names)):
+            raise ValueError(f"duplicate field in layout {name}")
+        # A response carries the command code and a status in front of its data.
+        if layout_size(fields) > proto["max_payload"] - 2:
+            raise ValueError(f"layout {name} does not fit in a response")
+    if spec["constants"]["CAL_RECORD_MAX"] > proto["max_command_payload"] - 1:
+        raise ValueError("a calibration record does not fit in a command")
     stream_payload = 8 + 4 * proto["block_samples"]
     if stream_payload > proto["max_payload"]:
         raise ValueError("a full stream frame does not fit in max_payload")
@@ -144,7 +213,18 @@ def build_vectors(spec: dict[str, Any], source: dict[str, Any]) -> dict[str, Any
     for item in source.get("sample", []):
         fields = {name: item.get(name, 0) for name in spec["sample_word"]}
         samples.append({"name": item["name"], **fields, "word": pack_sample(spec, fields)})
-    names = [v["name"] for group in (crcs, frames, samples) for v in group]
+    records: dict[str, list[dict[str, Any]]] = {}
+    for layout, fields in spec["layouts"].items():
+        records[layout] = []
+        for item in source.get(layout, []):
+            values = {
+                name: item.get(name, "" if code.endswith("s") else 0) for name, code in fields
+            }
+            records[layout].append(
+                {"name": item["name"], **values, "data": pack_record(fields, values).hex()}
+            )
+    groups = [crcs, frames, samples, *records.values()]
+    names = [v["name"] for group in groups for v in group]
     if len(names) != len(set(names)):
         raise ValueError("vector names must be unique")
     return {
@@ -152,6 +232,7 @@ def build_vectors(spec: dict[str, Any], source: dict[str, Any]) -> dict[str, Any
         "crc": crcs,
         "frames": frames,
         "samples": samples,
+        "records": records,
     }
 
 
@@ -195,15 +276,25 @@ def render_c_defs(spec: dict[str, Any]) -> str:
         )
         out.append(f"}} {c_type};")
         out.append("")
-    out.append("/* Bits of the 16-bit fault flags. */")
-    out.extend(f"#define PP_FAULT_{name} (1u << {bit})" for name, bit in spec["faults"].items())
-    out.append("")
+    for table, prefix, _py_class, description, _width in FLAGS:
+        out.append(f"/* {description} */")
+        out.extend(f"#define {prefix}{name} (1u << {bit})" for name, bit in spec[table].items())
+        out.append("")
     out.append("/* Sample word fields: shift, then mask of the shifted-down value. */")
     for name, (lsb, width) in spec["sample_word"].items():
         upper = name.upper()
         out.append(f"#define PP_SAMPLE_{upper}_SHIFT {lsb}u")
         out.append(f"#define PP_SAMPLE_{upper}_MASK {hex_literal((1 << width) - 1)}u")
     out.append("")
+    for name, fields in spec["layouts"].items():
+        upper = name.upper()
+        out.append(f"/* Layout of the {name} record: its size, then the offset of each field. */")
+        out.append(f"#define PP_{upper}_SIZE {layout_size(fields)}u")
+        out.extend(
+            f"#define PP_{upper}_OFFSET_{field.upper()} {offset}u"
+            for field, offset, _size in layout_offsets(fields)
+        )
+        out.append("")
     out.extend(
         f"#define PP_{name} {hex_literal(value)}u" for name, value in spec["constants"].items()
     )
@@ -242,14 +333,26 @@ def render_py_defs(spec: dict[str, Any]) -> str:
         out.extend(["", f"class {py_class}(enum.{py_base}):"])
         out.extend(f"    {name} = {hex_literal(value)}" for name, value in spec[table].items())
         out.append("")
-    out.extend(["", "class Fault(enum.IntFlag):", '    """Bits of the 16-bit fault flags."""', ""])
-    out.extend(f"    {name} = 1 << {bit}" for name, bit in spec["faults"].items())
+    for table, _prefix, py_class, description, _width in FLAGS:
+        out.extend(["", f"class {py_class}(enum.IntFlag):", f'    """{description}"""', ""])
+        out.extend(f"    {name} = 1 << {bit}" for name, bit in spec[table].items())
+        out.append("")
+    out.pop()
     out.extend(["", "", "# Sample word fields: shift, then mask of the shifted-down value."])
     for name, (lsb, width) in spec["sample_word"].items():
         upper = name.upper()
         out.append(f"SAMPLE_{upper}_SHIFT = {lsb}")
         out.append(f"SAMPLE_{upper}_MASK = {hex_literal((1 << width) - 1)}")
     out.append("")
+    for name, fields in spec["layouts"].items():
+        upper = name.upper()
+        out.append(f"# Layout of the {name} record, for the struct module.")
+        out.append(f'{upper}_FORMAT = "{layout_format(fields)}"')
+        out.append(f"{upper}_FIELDS = (")
+        out.extend(f'    "{field}",' for field, _code in fields)
+        out.append(")")
+        out.append(f"{upper}_SIZE = {layout_size(fields)}")
+        out.append("")
     out.extend(f"{name} = {hex_literal(value)}" for name, value in spec["constants"].items())
     out.append("")
     return "\n".join(out)
@@ -265,8 +368,23 @@ def c_bytes(data: bytes) -> str:
     return "\n".join(lines)
 
 
-def render_c_vectors(vectors: dict[str, Any]) -> str:
+def c_int64(value: int) -> str:
+    """Return a C expression of type int64_t; a value above its range keeps its bits."""
+    if value > 0x7FFFFFFFFFFFFFFF:
+        return f"(int64_t)UINT64_C({value})"
+    return f"INT64_C({value})"
+
+
+def c_field_type(width: int) -> str:
+    """Return the C type that holds a sample field of a width in bits."""
+    return "uint8_t" if width <= 8 else "uint16_t"
+
+
+def render_c_vectors(spec: dict[str, Any], vectors: dict[str, Any]) -> str:
     """Render the C header with the encoded test vectors."""
+    sample_fields = [
+        (name, width) for name, (_lsb, width) in spec["sample_word"].items() if name != "reserved"
+    ]
     out = [
         "/*",
         " * Shared protocol test vectors.",
@@ -297,13 +415,19 @@ def render_c_vectors(vectors: dict[str, Any]) -> str:
         "",
         "typedef struct {",
         "    const char *name;",
-        "    uint16_t adc;",
-        "    uint8_t range;",
-        "    uint8_t invalid;",
-        "    uint8_t fault;",
-        "    uint8_t logic;",
+        *[f"    {c_field_type(width)} {name};" for name, width in sample_fields],
         "    uint32_t word;",
         "} pp_sample_vector_t;",
+        "",
+        "/* A record: its bytes, its numeric fields in the order of the layout, its text. */",
+        "typedef struct {",
+        "    const char *name;",
+        "    const uint8_t *data;",
+        "    size_t data_len;",
+        "    const int64_t *values;",
+        "    size_t value_count;",
+        "    const char *text;",
+        "} pp_record_vector_t;",
         "",
     ]
     for item in vectors["crc"]:
@@ -336,14 +460,35 @@ def render_c_vectors(vectors: dict[str, Any]) -> str:
         out.append(f"        {len(bytes.fromhex(item['frame']))}u,")
         out.append("    },")
     out.extend(["};", "", "static const pp_sample_vector_t pp_sample_vectors[] = {"])
-    out.extend(
-        f'    {{"{item["name"]}", {hex_literal(item["adc"], 4)}u, {item["range"]}u, '
-        f"{item['invalid']}u, {item['fault']}u, {hex_literal(item['logic'])}u, "
-        f"{hex_literal(item['word'], 8)}u}},"
-        for item in vectors["samples"]
-    )
+    for item in vectors["samples"]:
+        fields = ", ".join(f"{hex_literal(item[name], 4)}u" for name, _width in sample_fields)
+        out.append(f'    {{"{item["name"]}", {fields}, {hex_literal(item["word"], 8)}u}},')
     out.extend(["};", ""])
-    for kind in ("crc", "frame", "sample"):
+    for layout, fields in spec["layouts"].items():
+        numeric = [name for name, code in fields if not code.endswith("s")]
+        text = [name for name, code in fields if code.endswith("s")]
+        for item in vectors["records"][layout]:
+            stem = f"pp_vec_{layout}_{item['name']}"
+            out.append(f"static const uint8_t {stem}_data[] = {{")
+            out.append(c_bytes(bytes.fromhex(item["data"])))
+            out.append("};")
+            out.append(f"static const int64_t {stem}_values[] = {{")
+            out.extend(f"    {c_int64(item[name])}," for name in numeric)
+            out.append("};")
+        out.extend(["", f"static const pp_record_vector_t pp_{layout}_vectors[] = {{"])
+        for item in vectors["records"][layout]:
+            stem = f"pp_vec_{layout}_{item['name']}"
+            label = f'"{item[text[0]]}"' if text else "NULL"
+            out.append("    {")
+            out.append(f'        "{item["name"]}",')
+            out.append(f"        {stem}_data,")
+            out.append(f"        {len(bytes.fromhex(item['data']))}u,")
+            out.append(f"        {stem}_values,")
+            out.append(f"        {len(numeric)}u,")
+            out.append(f"        {label},")
+            out.append("    },")
+        out.extend(["};", ""])
+    for kind in ("crc", "frame", "sample", *spec["layouts"]):
         array = f"pp_{kind}_vectors"
         out.append(f"#define PP_{kind.upper()}_VECTOR_COUNT (sizeof({array}) / sizeof({array}[0]))")
     out.extend(["", "#endif /* PP_PROTO_VECTORS_H */", ""])
@@ -369,7 +514,7 @@ def generate() -> dict[Path, str]:
     return {
         C_DEFS: render_c_defs(spec),
         PY_DEFS: render_py_defs(spec),
-        C_VECTORS: render_c_vectors(vectors),
+        C_VECTORS: render_c_vectors(spec, vectors),
         JSON_VECTORS: render_json_vectors(vectors),
     }
 

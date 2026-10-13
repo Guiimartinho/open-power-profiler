@@ -99,6 +99,9 @@ adc = 0xFFFF
 range = 3
 invalid = 1
 fault = 1
+over_range = 1
+under_range = 1
+output = 1
 logic = 0xFF
 
 [[sample]]
@@ -116,3 +119,137 @@ range = 3
 invalid = 0
 fault = 1
 logic = 0x00
+
+[[sample]]
+name = "over_range_at_full_scale"
+adc = 0xFFFF
+range = 1
+over_range = 1
+output = 1
+logic = 0x00
+
+[[sample]]
+name = "under_range_with_output_on"
+adc = 0x0100
+range = 0
+under_range = 1
+output = 1
+logic = 0x80
+
+[[sample]]
+name = "output_on_only"
+adc = 0x0521
+range = 3
+output = 1
+logic = 0x00
+
+# --- Records -------------------------------------------------------------
+#
+# One table for each layout of the definition. A field that is not given is
+# zero, and a text is empty.
+
+[[info]]
+name = "info_calibrated"
+protocol_version = 2
+hardware_revision = 1
+firmware_major = 0
+firmware_minor = 1
+firmware_patch = 0
+cal_state = 0
+settle_samples = 7
+chip_id = 0xE661A4D1234567AB
+carrier_serial = "OPP-A2-0001"
+carrier_revision = 1
+zero_r0 = 336128
+zero_r1 = 336200
+zero_r2 = 335990
+zero_r3 = 336064
+
+[[info]]
+name = "info_nominal_without_a_record"
+protocol_version = 2
+hardware_revision = 1
+firmware_minor = 1
+cal_state = 1
+settle_samples = 7
+chip_id = 0x0000000000000001
+
+[[info]]
+name = "info_serial_of_full_length"
+protocol_version = 2
+cal_state = 2
+chip_id = 0xFFFFFFFFFFFFFFFF
+carrier_serial = "0123456789ABCDEF"
+zero_r0 = -1
+zero_r3 = -2147483648
+
+[[status]]
+name = "status_idle_on_the_module_input"
+state = 2
+mode = 0
+range_lock = 0xFF
+rail5_mv = 4980
+temperature_dc = 253
+supply = 0
+cc_class = 0
+budget_ma = 450
+
+[[status]]
+name = "status_streaming_in_source_mode"
+state = 4
+dropped_blocks = 3
+mode = 1
+range_lock = 0xFF
+setpoint_mv = 3300
+vout_mv = 3298
+vin_mv = 12
+rail5_mv = 5020
+temperature_dc = 318
+supply = 1
+cc_class = 2
+budget_ma = 1700
+notices = 1
+
+[[status]]
+name = "status_fault_with_every_field_set"
+state = 5
+faults = 0x7FFF
+dropped_blocks = 0xFFFFFFFF
+mode = 1
+range_lock = 3
+setpoint_mv = 5000
+vout_mv = 65535
+vin_mv = -32768
+rail5_mv = 65535
+temperature_dc = -200
+supply = 1
+cc_class = 1
+budget_ma = 1400
+trip_count = 255
+notices = 3
+
+[[supply]]
+name = "supply_module_default"
+supply = 0
+cc_class = 0
+budget_ma = 450
+
+[[supply]]
+name = "supply_usb_c_3a"
+supply = 1
+cc_class = 2
+budget_ma = 1700
+
+[[zero]]
+name = "zero_at_the_pedestal"
+zero_r0 = 336128
+zero_r1 = 336128
+zero_r2 = 336128
+zero_r3 = 336128
+
+[[zero]]
+name = "zero_with_negative_values"
+zero_r0 = -256
+zero_r1 = 0
+zero_r2 = 1
+zero_r3 = 2147483647

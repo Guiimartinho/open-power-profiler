@@ -6,7 +6,7 @@
 # the protocol in prose.
 
 [protocol]
-version = 1
+version = 2             # version 1 had four fault flags and CAL_WRITE (D-103)
 magic = 0xA55A          # sent little-endian: 0x5A, then 0xA5
 header_size = 8         # magic, type, flags, length, sequence
 crc_size = 2
@@ -37,7 +37,9 @@ SET_DOWN_N = 0x14
 START = 0x20
 STOP = 0x21
 CAL_ZERO = 0x30
-CAL_WRITE = 0x31
+# 0x31 was CAL_WRITE in version 1. The code is not used again.
+CAL_READ = 0x32
+CAL_STORE = 0x33
 CLEAR_FAULT = 0x40
 
 [status]
@@ -50,8 +52,10 @@ UNKNOWN_COMMAND = 5
 
 [events]
 FAULT_RAISED = 0x01
-POWER_BUDGET_CHANGED = 0x02
+# 0x02 was POWER_BUDGET_CHANGED in version 1. The code is not used again.
 STATE_CHANGED = 0x03
+SUPPLY_CHANGED = 0x04
+NOTICE = 0x05
 
 [states]
 BOOT = 0
@@ -65,12 +69,51 @@ FAULT = 5
 AMPERE_METER = 0
 SOURCE_METER = 1
 
-# Bit positions in the 16-bit fault flags.
+# Which input supplies the 5 V rail of the carrier.
+[supplies]
+MODULE = 0              # the USB connector of the controller module
+USB_C = 1               # the USB-C connector of the carrier
+
+# What the source at the USB-C connector advertises on its CC pins.
+[cc_classes]
+DEFAULT = 0             # default USB current, or no USB-C source
+CURRENT_1A5 = 1         # 1.5 A
+CURRENT_3A0 = 2         # 3.0 A
+
+# Codes of the NOTICE event.
+[notices]
+SETPOINT_SETTLED = 1
+DUT_ABOVE_SETPOINT = 2
+ZERO_TAKEN = 3
+
+# State of the calibration, reported by GET_INFO.
+[cal_states]
+CALIBRATED = 0          # a valid record of this chip
+NOMINAL = 1             # no record, or a corrupt one: nominal values in use
+FOREIGN = 2             # the record of another chip: nominal values in use
+
+# Bit positions in the 16-bit fault flags: one for each cause of section 6.4.
 [faults]
 OVERCURRENT = 0
 POWER_LIMIT = 1
 THERMAL = 2
 SELFTEST = 3
+SEQUENCER = 4
+REVERSE_CURRENT = 5
+CARRIER_SUPPLY = 6
+ANALOG_RAILS = 7
+VIN_OVERVOLTAGE = 8
+VIN_RANGE = 9
+SOURCE_OVERLOAD = 10
+EXTERNAL_VOLTAGE = 11
+START_CHECK = 12
+START_OVERCURRENT = 13
+WATCHDOG = 14
+
+# Bit positions in the notice byte of the status record.
+[status_notices]
+SETPOINT_SETTLED = 0
+DUT_ABOVE_SETPOINT = 1
 
 # Fields of the 32-bit sample word: [least significant bit, width in bits].
 [sample_word]
@@ -78,10 +121,66 @@ adc = [0, 16]
 range = [16, 2]
 invalid = [18, 1]
 fault = [19, 1]
-reserved = [20, 4]
+over_range = [20, 1]
+under_range = [21, 1]
+output = [22, 1]
+reserved = [23, 1]
 logic = [24, 8]
+
+# Fixed layouts, little-endian, as [field, format] pairs in the order of the
+# bytes. The formats are those of the Python struct module: B and b are one
+# byte, H and h two, I and i four, Q eight, unsigned in capitals; "16s" is 16
+# bytes of text. The generator derives the sizes and the test vectors from
+# these lists. A receiver ignores bytes after the fields it knows.
+[layouts]
+info = [
+    ["protocol_version", "B"],
+    ["hardware_revision", "B"],
+    ["firmware_major", "B"],
+    ["firmware_minor", "B"],
+    ["firmware_patch", "B"],
+    ["cal_state", "B"],
+    ["settle_samples", "B"],
+    ["chip_id", "Q"],
+    ["carrier_serial", "16s"],
+    ["carrier_revision", "B"],
+    ["zero_r0", "i"],           # zero offsets in 1/256 of a code
+    ["zero_r1", "i"],
+    ["zero_r2", "i"],
+    ["zero_r3", "i"],
+]
+status = [
+    ["state", "B"],
+    ["faults", "H"],
+    ["dropped_blocks", "I"],
+    ["mode", "B"],
+    ["range_lock", "B"],        # 0 to 3, or RANGE_AUTO
+    ["setpoint_mv", "H"],
+    ["vout_mv", "H"],
+    ["vin_mv", "h"],
+    ["rail5_mv", "H"],
+    ["temperature_dc", "h"],    # tenths of a degree Celsius
+    ["supply", "B"],
+    ["cc_class", "B"],
+    ["budget_ma", "H"],
+    ["trip_count", "B"],
+    ["notices", "B"],
+]
+supply = [
+    ["supply", "B"],
+    ["cc_class", "B"],
+    ["budget_ma", "H"],
+]
+zero = [
+    ["zero_r0", "i"],
+    ["zero_r1", "i"],
+    ["zero_r2", "i"],
+    ["zero_r3", "i"],
+]
 
 [constants]
 RANGE_COUNT = 4
 RANGE_AUTO = 0xFF       # SET_RANGE argument for automatic ranging
-CAL_TARGET_DAC = 0x10   # CAL_WRITE target for the DAC; ranges use 0 to 3
+SERIAL_SIZE = 16        # bytes of the carrier serial number
+ZERO_SCALE = 256        # a zero offset is this many units per code
+CAL_RECORD_MAX = 250    # largest calibration record CAL_STORE carries

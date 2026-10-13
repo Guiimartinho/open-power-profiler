@@ -47,7 +47,7 @@ Pico 2 on its sockets. It is not a photograph: no board has been built.
 
 ## Project Status
 
-As of 2026-10-10. Draft A2 of the carrier board is the present state of
+As of 2026-10-12. Draft A2 of the carrier board is the present state of
 the hardware: the whole schematic, a specification written for it, and a
 board with every part placed and every one of its 984 connections drawn.
 The board was first routed by an autorouter, which left 28 connections
@@ -70,60 +70,85 @@ circuits of the board and 41 put the models into the test circuits of
 their datasheets. The central design figures of the specification come
 out again. The simulations raised four points for a decision before
 boards are ordered, and the project owner decided them the same day: they
-are decisions D-95 to D-98 of the specification. Three of them change the
-schematic and are not drawn yet, so the schematic, the board, the bill of
-materials and the results of the simulations still show the earlier
-state. In fourteen places the simulations differ from a figure or a rule
-of the specification or show something that it does not state. Those are
-not decided, and no requirement, figure or rule of the specification was
-changed on their account. A simulation is not a measurement: every active
-part in it is a model written from a datasheet, a typical part at room
-temperature. [Circuit Simulations](#circuit-simulations) shows the state.
+are decisions D-95 to D-98 of the specification. Three of them are drawn
+since that day, as changes of values, part numbers and texts that move no
+copper: 10 nF at three capacitors of the rail monitor (D-95), the two
+parts of the damper on the module input fitted (D-98), and the text of
+the detector position at the boost converter, which stays without a part
+(D-97). The schematic, the board, the bill of materials and the netlist
+snapshot of the simulations hold them, and on 2026-10-12 the electrical
+rules check and the design rules check report nothing on these files.
+The fourth is not drawn: a position for a capacitor at the buffer of the
+driver rail (D-96), which needs a footprint and copper. The simulations
+were not run again, so their results are still those of the circuit
+before the three changes.
 
-The software was written ahead of the hardware and is tested without it.
+In fourteen places the simulations differed from a figure or a rule of
+the specification or showed something that it did not state. The owner
+asked for the text to follow the simulations: twelve places are corrected
+in the specification, three of them by decisions D-99 to D-101, two wait
+for the run of the benches on the drawn decisions, and seven questions
+that the corrections leave are open, each with one recommendation. A
+simulation is not a measurement: every active part in it is a model
+written from a datasheet, a typical part at room temperature.
+[Circuit Simulations](#circuit-simulations) shows the state.
+
+The software is written ahead of the hardware and is tested without it.
+Its state is that of 2026-10-12. On that day the firmware got a design of
+its own, one level below the specification; the host protocol went to
+version 2, which holds what draft A2 reports (D-103); and the firmware
+directory became a project of the Pico SDK that builds an image for the
+Pico 2. That image starts a console and the device state machine and
+nothing more, and it has not been loaded onto a board: nothing has run on
+a controller.
 
 | Area | What exists | What is open |
 | --- | --- | --- |
-| [Specification](docs/specification.md) | The baseline of draft A2: requirements R-01 to R-17, analog and firmware design, pin map, host protocol, 98 recorded decisions and 36 firmware rules that guard hardware. The last four, D-95 to D-98, are the decisions of the project owner on the four points that the simulations raised | Every figure is a datasheet value, a calculation, a simulation or an estimate; the tests of its section 11 have to confirm them. Three of the four new decisions are stated here and not drawn yet. Where the simulations of 2026-10-10 differ from its text in fourteen other places, the text stands unchanged and its section 16 lists the place |
-| [Schematic](hardware/doc/README.md) | 428 parts on 15 pages. It passes the electrical rules check, and its netlist was checked independently against the datasheets. Its circuits are simulated from that netlist | The [component checks](docs/checks/README.md): none is closed, so every part is a candidate. Three decisions that follow the simulations are not drawn yet: 10 nF in place of 1 nF at three capacitors of the rail monitor (D-95), a position for a capacitor at the buffer of the driver rail (D-96), and the two parts of the damper on the module input fitted (D-98) |
-| [Board](hardware/README.md#board) | 150 mm × 100 mm, four layers, 425 footprints, 984 of 984 connections drawn, no violation in the design rules check. The layout was reviewed with scripts and checked by independent calculation. Calculated from the drawn copper: the 1 A path is 19.5 squares in source meter mode and 23.3 squares in ampere meter mode against a limit of 30, and the surface leakage into the measured node is 5.1 nA against a budget of 10 nA. The seven points where the layout departs from the first wording of section 10 of the specification are recorded as decisions D-87 to D-93 | No person has reviewed the board in the KiCad editor; open items need parts moved, the capacitor loops of the converters among them; names on the silkscreen and probe grounds at the test points are missing; the temperature rise of the linear regulator is an open check, read on the first board (D-93). The position for a capacitor of D-96 is not on the board yet: it adds one footprint |
-| [Bill of materials](hardware/doc/bom.csv) | 151 lines, each with a part number and a maker, exported from the schematic | Three lines had no stock on 2026-10-09. The file still shows the state before the decisions of 2026-10-10, with three positions without parts: the two parts of the damper on the module input are fitted by D-98 and get their part numbers when the schematic is changed, the three capacitors of D-95 change their value, and the detector position at the boost converter stays empty (D-97) |
-| [Circuit simulations](simulation/README.md) | The circuits of draft A2 simulated in ngspice from the netlist of the final schematic, in a package of their own (D-94): 134 benches, 93 on the circuits of the board in ten blocks and 41 that put the models written for the project into the test circuits of their datasheets. Of 3162 figures 1834 pass, 122 fail and 1206 carry no limit. The central design figures of the specification come out again block by block: shunt ladder, signal chain, range logic with requirement R-07, source meter, output stage, path switches, rails, power input and digital lines. The package has 777 tests; lines and branches are covered in full, the one module that loads the simulator excepted | The four points that the simulations raised are decided (D-95 to D-98): the capacitors of the rail monitor, the buffer of the driver rail, the detector position at the boost converter and the damper on the module input. The results are still those of the circuit before these decisions; the benches run again when the change is drawn. In fourteen places the simulation and the text of the specification differ; the text stands unchanged until the owner decides. What stays for the bench: leakage at the nanoampere level, the multiplexer at +12 V and −4 V, the programs of the controller, coupling through the board, temperature. Every active part is a model written from its datasheet, and nothing is measured. The simulations ran on one machine; the `Simulation` workflow has not been started yet |
-| [Firmware](firmware/README.md) | Core in C that needs no hardware, with unit tests on the PC: wire protocol, block queue, settling window, step-down rule, device state machine. The build project is still the one of the first plan, for the ESP32-S3 | No build for the Pico 2, no PIO program, no adapter for any hardware, no command handler, none of the firmware rules of the specification |
-| [Host software](host/README.md) | Python package with protocol, transports, device client, capture helpers and a device simulator, tested against that simulator | Its nominal calibration and its handling of flagged samples do not follow draft A2 yet; no command that captures from an instrument, no viewer and no export |
-| [Protocol](protocol/README.md) | One definition; the constants of firmware and host and the shared test vectors are generated from it | What draft A2 reports beyond it, listed in section 16 of the specification |
+| [Specification](docs/specification.md) | The baseline of draft A2: requirements R-01 to R-17, analog and firmware design, pin map, host protocol, 104 recorded decisions and 36 firmware rules that guard hardware. D-95 to D-98 are the decisions of the project owner on the four points that the simulations raised, D-99 to D-101 are the three corrections of the text that change a rule, a test or advice to the user, and D-102 settles the license of the simulation folder. D-103 and D-104 are the decisions of 2026-10-12 on the software: version 2 of the host protocol, and the over-current trip as a program of its own in PIO 2 | Every figure is a datasheet value, a calculation, a simulation or an estimate; the tests of its section 11 have to confirm them. Of the four decisions D-95 to D-98, three are drawn since 2026-10-10; the fourth, a position for a capacitor at the buffer of the driver rail (D-96), is stated here and not drawn. Of the fourteen other places where the simulations of 2026-10-10 differed from its text, twelve are corrected; two wait for the new run of the benches, and seven questions that the corrections leave are open in its section 16 |
+| [Schematic](hardware/doc/README.md) | 428 parts on 15 pages. Three decisions that follow the simulations are drawn in it since 2026-10-10: 10 nF in place of 1 nF at three capacitors of the rail monitor (D-95), the two parts of the damper on the module input fitted (D-98), and the text of the detector position at the boost converter, which stays without a part (D-97). It passes the electrical rules check, run again on 2026-10-12. Before these three changes the netlist of the draft was checked independently against the datasheets, and its circuits were simulated from it | The [component checks](docs/checks/README.md): none is closed, so every part is a candidate. One decision that follows the simulations is not drawn: a position for a capacitor at the buffer of the driver rail (D-96). The circuits that the three drawn changes touch have not been simulated again |
+| [Board](hardware/README.md#board) | 150 mm × 100 mm, four layers, 425 footprints, 984 of 984 connections drawn, no violation in the design rules check, run again on 2026-10-12. The three decisions drawn on 2026-10-10 changed fields of six footprints (values, part numbers, fitted flags and one text) and no copper. The layout was reviewed with scripts and checked by independent calculation. Calculated from the drawn copper: the 1 A path is 19.5 squares in source meter mode and 23.3 squares in ampere meter mode against a limit of 30, and the surface leakage into the measured node is 5.1 nA against a budget of 10 nA. The seven points where the layout departs from the first wording of section 10 of the specification are recorded as decisions D-87 to D-93 | No person has reviewed the board in the KiCad editor; open items need parts moved, the capacitor loops of the converters among them; names on the silkscreen and probe grounds at the test points are missing; the temperature rise of the linear regulator is an open check, read on the first board (D-93). The position for a capacitor of D-96 is not on the board yet: it adds one footprint |
+| [Bill of materials](hardware/doc/bom.csv) | 151 lines for 370 parts, each line with a part number and a maker, exported from the schematic on 2026-10-10 with the drawn decisions: the three capacitors of the rail monitor at 10 nF (D-95) and the two parts of the damper on the module input (D-98) | Three lines had no stock on 2026-10-09, among them the capacitor that the damper uses. One position stays without a part and is not in the file: the detector position at the boost converter (D-97) |
+| [Circuit simulations](simulation/README.md) | The circuits of draft A2 simulated in ngspice on 2026-10-10 from the netlist of the schematic as it stood that day, before the three decisions were drawn, in a package of their own (D-94): 134 benches, 93 on the circuits of the board in ten blocks and 41 that put the models written for the project into the test circuits of their datasheets. Of 3162 figures 1834 pass, 122 fail and 1206 carry no limit. The central design figures of the specification come out again block by block: shunt ladder, signal chain, range logic with requirement R-07, source meter, output stage, path switches, rails, power input and digital lines. The package has 777 tests; lines and branches are covered in full, the one module that loads the simulator excepted; its gates passed again on 2026-10-12 | The four points that the simulations raised are decided (D-95 to D-98): the capacitors of the rail monitor, the buffer of the driver rail, the detector position at the boost converter and the damper on the module input. Three of them are drawn since 2026-10-10 and are in the netlist snapshot of the package (D-95, D-97, D-98). The results are still those of the run of 2026-10-10, on the circuit before these changes: the benches were not run again, and those of the power input still leave the two parts of the damper out. Open work: the benches brought in line with the snapshot, and the blocks that the changes touch run again, the rail monitor with the power-up and the power-off and the input from the module. In fourteen places the simulation and the text of the specification differed: twelve are corrected in the specification, two wait for the new run, and seven questions are open. The limits of the benches are still those of the earlier text. What stays for the bench: leakage at the nanoampere level, the multiplexer at +12 V and −4 V, the programs of the controller, coupling through the board, temperature. Every active part is a model written from its datasheet, and nothing is measured. The simulations ran on one machine; the `Simulation` workflow has not been started yet |
+| [Firmware](firmware/README.md) | A [design](docs/firmware/README.md) of the whole firmware: architecture, state machines, the three PIO programs as sketches, the USB link, the place and the test of every firmware rule. A project of the Pico SDK that builds an image for the Pico 2 with warnings as errors: 33 kB that start the console and the device state machine and drive no other pin. A core in C that needs no hardware, with 22 unit tests on the PC and every line and branch covered: wire protocol at version 2, block queue, raw capture word, settling window, step-down and under-range rules, device state machine, fault causes, the sequences of DUT power on and off, pin table, DAC frame, monitor scales and rails test | The image has not been loaded onto a board: nothing has run on a controller. No PIO program assembled or run, no adapter for any hardware, no USB link, no command handler, no storage of the calibration record. Of the 36 firmware rules none is implemented end to end: the tables, scales and sequence orders behind F-4 to F-6, F-11, F-12, F-23 to F-26 and F-28 to F-31, the under-range rule of F-22 and two of the three marks of F-35 have tests, and nothing calls them; the other rules have nothing. Six points of the design wait for the project owner. The build job of the `Firmware` workflow, rewritten for the Pico SDK, has not been started yet |
+| [Host software](host/README.md) | Python package with the protocol at version 2, transports, a device client, capture helpers and a device simulator, tested against that simulator: 500 tests, every line and branch covered. The client reads the status and the identity that version 2 carries, takes the four zero offsets from a zero calibration, and reads and stores the calibration record as a block | Its nominal calibration does not follow draft A2 yet, and flagged samples are left out of the statistics where the specification asks to fill them in. No code builds or reads the content of the calibration record; no command that captures from an instrument, no viewer and no export |
+| [Protocol](protocol/README.md) | One definition, at version 2 since 2026-10-12 (D-103). It holds what draft A2 reports: marks for over-range and under-range samples and for the output switch, a fault flag for each of the fifteen causes, wider records of status and identity, the supply in use with its budget as a current, notices, and the calibration record as one block. The constants of firmware and host, the layouts of the records and the shared test vectors are generated from it, and both codecs reproduce the vectors | No firmware fills these fields yet, and no frame has passed between a controller and a PC. The layouts stay provisional until the protocol is frozen in phase 6. Three points of sections 6 to 8 of the specification are not decided; its section 16 lists them |
 | [Tools](tools/README.md) | [`tools/board/`](tools/board/README.md): a Python package that calculates the layout figures from a dump of the board file: copper resistance in squares and milliohms, lengths of the Kelvin pairs, surface leakage into the measured node. 260 tests on synthetic boards, lines and branches fully covered | Calibration and production test: two empty folders. The `Tools` workflow has not been started yet. The scripts that drew the layout are not in the repository |
 | Measurements | None: no board has been built | The phases of the [roadmap](#roadmap) |
 
 Next steps, in this order:
 
-1. **Draw the decisions that follow the simulations.** The project owner
-   decided the four points on 2026-10-10: decisions D-95 to D-98 of the
-   specification. Three of them change the schematic and are not drawn
-   yet: 10 nF in place of 1 nF at three capacitors of the rail monitor,
-   the comparators that tell the controller that the analog supplies
-   stand (D-95); a position for a capacitor at the buffer of the driver
-   rail, the supply of the amplifier that drives the converter, which
-   needs a footprint and so a change of the board (D-96); and the two
-   parts of a damper, a resistor with a capacitor, on the module input,
-   the supply that comes through the USB connector of the Pico 2, on pads
-   that the board already has (D-98). The fourth leaves the position for
-   a voltage detector at the boost converter, which makes the supply of
-   the analog rails, without a part and changes only the text of that
-   position (D-97). After the change come the
-   electrical rules check and the design rules check, the bill of
-   materials and the pictures exported again, the netlist snapshot of the
-   simulations written again and the benches of the changed blocks run
-   again. Until then the schematic, the board, the bill of materials and
-   the results of the simulations show the earlier state.
-2. **Decisions that are still open.** They are the project owner's. The
-   fourteen places where the text of the specification and the simulation
-   differ: each one that changes the text becomes an entry in its
-   decision log. And whether proof-of-concept boards are ordered on this
-   state. The
-   [simulation guide](simulation/README.md#what-the-simulations-say) gives
-   every place with the bench that shows it, and section 16 of the
-   specification lists them as open.
+1. **Finish the decisions that follow the simulations.** The project
+   owner decided the four points on 2026-10-10: decisions D-95 to D-98 of
+   the specification. Three are drawn since that day, as changes of
+   values, part numbers and texts on parts and pads that the board
+   already had: 10 nF in place of 1 nF at three capacitors of the rail
+   monitor, the comparators that tell the controller that the analog
+   supplies stand (D-95); the two parts of a damper, a resistor with a
+   capacitor, fitted on the module input, the supply that comes through
+   the USB connector of the Pico 2 (D-98); and the text of the position
+   for a voltage detector at the boost converter, which makes the supply
+   of the analog rails: that position stays without a part (D-97). The
+   electrical rules check and the design rules check report nothing on
+   the changed files, and the bill of materials, the pictures and the
+   netlist snapshot of the simulations were made again from them. Two
+   things are open. The fourth decision is not drawn: a position for a
+   capacitor at the buffer of the driver rail, the supply of the
+   amplifier that drives the converter, which needs a footprint and so a
+   change of the board (D-96). And the benches were not run again: those
+   of the blocks that the changes touch, the rail monitor with the
+   power-up and the power-off and the input from the module, have to be
+   brought in line with the new snapshot and run. Until then the results
+   of the simulations describe the circuit before the three changes.
+2. **Decisions that are still open.** They are the project owner's.
+   Seven questions that the corrections of the specification leave,
+   because their answer needs a design value that no simulation gives:
+   the criterion of one check, two limits of firmware rules against the
+   leakage of the monitor converter, the upper limit of the 5 V rail, the
+   threshold for a step of that rail, the capacitor at the VIN terminals
+   with heavy leads, a withstand voltage of the logic inputs and the gaps
+   of one test. Section 16 of the specification gives each with its
+   options and one recommendation. And whether proof-of-concept boards
+   are ordered on this state.
 3. **Board.** Four things stand between the reviewed layout and
    fabrication. First, a person opens the board in the KiCad editor and
    reviews it; so far it was drawn and checked with scripts only. Second,
@@ -136,11 +161,21 @@ Next steps, in this order:
    The [hardware guide](hardware/README.md#still-to-do) lists the open
    items one by one. The simulations judge the circuits, not the copper:
    of their decisions only the position of D-96 touches it.
-4. **Software.** Bring the host package and the firmware to what the
-   specification of draft A2 asks: the nominal calibration, the fault
-   causes and the protocol items of its section 16. Then port the firmware
-   to the Pico SDK. The [firmware guide](firmware/README.md) and the
-   [host guide](host/README.md) list the differences.
+4. **Software.** The project owner took this step up on 2026-10-12,
+   ahead of the three above, and three parts of it are done. What draft
+   A2 reports is in version 2 of the protocol, in the definition and in
+   the codecs of both sides (D-103). The fault causes are in the firmware
+   core. And the firmware builds for the Pico 2 with the Pico SDK. What
+   follows, in the order of the
+   [firmware design](docs/firmware/README.md): the six points of that
+   design that wait for the owner; the rest of the firmware core on the
+   PC, from the command handlers to the calibration record; the three
+   PIO programs in an emulator; the adapters for the hardware; and the
+   firmware core tested against the host package. In the host package
+   the nominal calibration of draft A2 and the statistics that section 9
+   of the specification asks for are still to do. The
+   [firmware guide](firmware/README.md) and the
+   [host guide](host/README.md) list what exists and what is missing.
 
 Until 2026-10-10 this list had a step to file the simulations. It is
 done in another form. The files of the earlier simulations, from which
@@ -247,8 +282,10 @@ VIN (ampere mode) ──► protection ──►├── mode switch
   same state machine reads the range and the logic inputs with every
   conversion result.
 - **Self-describing samples.** Every sample is a 32-bit word that carries the
-  ADC code, the active range, a validity flag, the fault flag and the eight
-  logic inputs.
+  ADC code, the active range, the eight logic inputs and five marks: the
+  sample lies in a settling window, the over-current trip is latched, the
+  reading is over-range, it is under-range, the output switch is requested
+  on.
 - **Two cores, two jobs.** One core acquires data in DMA blocks. The other
   frames the blocks and streams them over USB.
 - **Programmable supply.** In source meter mode a DAC sets a low-noise linear
@@ -288,18 +325,21 @@ test, in the pin order of the Nordic PPK2:
 ## Hardware Draft
 
 The carrier board is drawn in KiCad 10 as draft A2. Its layout was reviewed
-on 2026-10-10.
+on 2026-10-10. On the same day three decisions that follow the circuit
+simulations were drawn into it as changes of values, part numbers and
+texts (D-95, D-97 and D-98); no copper changed and no part moved. The two
+rule checks were run again on these files on 2026-10-12.
 
-| | Draft A2 after the layout review |
+| | Draft A2 after the layout review and the three drawn decisions |
 | --- | --- |
-| Schematic | 428 parts on 15 A4 pages: the root page and 14 sheets; unchanged by the layout review |
+| Schematic | 428 parts on 15 A4 pages: the root page and 14 sheets; unchanged by the layout review. Drawn on 2026-10-10: 10 nF at three capacitors of the rail monitor (D-95), the two parts of the damper on the module input fitted (D-98), and the text of the detector position at the boost converter, which stays without a part (D-97). Not drawn: the position for a capacitor at the buffer of the driver rail (D-96) |
 | Electrical rules check | 0 errors, 0 warnings |
 | Board | 150 mm × 100 mm, four layers, 425 footprints, all on the top side |
 | Routing | 984 of the 984 connections: 8.38 m of track on three layers (top 3.76 m, second inner layer 2.84 m, bottom 1.79 m), 694 vias and 42 copper zones. The first inner layer is the ground plane, in one piece and with no track on it |
 | Open connections | None. The autorouted board had 28, and 25 of them broke a function |
 | Design rules check | 0 violations, 0 unconnected pads, 0 footprint errors, 0 differences between board and schematic. The rule file is stricter than the one the autorouter ran with: the exemption of the larger spacings near pins now holds on the top layer only. Decision D-87 records its spacings |
-| Bill of materials | 151 lines, each with a part number and a maker: [`hardware/doc/bom.csv`](hardware/doc/bom.csv); unchanged by the layout review |
-| Circuit simulations | The circuits of the schematic simulated from its netlist on 2026-10-10 in 93 benches: 1356 figures pass, 105 fail and 1136 carry no limit. The four points that they raised are decided (D-95 to D-98), and three of them are not drawn yet ([Circuit Simulations](#circuit-simulations)) |
+| Bill of materials | 151 lines for 370 parts, each line with a part number and a maker: [`hardware/doc/bom.csv`](hardware/doc/bom.csv); unchanged by the layout review, and exported again on 2026-10-10 with the three capacitors at 10 nF and the two parts of the damper |
+| Circuit simulations | The circuits of the schematic simulated from its netlist on 2026-10-10 in 93 benches: 1356 figures pass, 105 fail and 1136 carry no limit. The four points that they raised are decided (D-95 to D-98). Three of them are drawn since, and the benches were not run again: the results are those of the circuit before these changes ([Circuit Simulations](#circuit-simulations)) |
 
 The schematic was checked independently against the datasheets of its
 parts. That closes none of the
@@ -394,10 +434,11 @@ and why.
 ### What the Layout Review Left Open
 
 Four things stand before fabrication, and the component checks beside
-them. A fifth came after the review: the three decisions that follow the
-circuit simulations and are not drawn yet, of which the position for a
-capacitor at the buffer of the driver rail adds a footprint to this board
-(D-96; [Project Status](#project-status)).
+them. A fifth came after the review: the decisions that follow the circuit
+simulations. Three of them are drawn since 2026-10-10 and changed no
+copper. The fourth is not drawn: the position for a capacitor at the
+buffer of the driver rail, which adds a footprint to this board (D-96;
+[Project Status](#project-status)).
 
 No person has reviewed the board in the KiCad editor: it was drawn and
 checked with scripts only.
@@ -410,9 +451,9 @@ of the pre-regulator stands 4.5 mm from its switch pins where the limit is
 
 The legends of the silkscreen and the test points are as the autorouted
 board had them; only the title text changed, to the name of the project.
-32 of the 40
-signal test points have no probe ground within 5 mm, and the net names of
-the test points and the functions of the two jumpers are not printed.
+32 of the 40 signal test points have no probe ground within 5 mm, and the
+net names of the test points and the functions of the two jumpers are not
+printed.
 
 The temperature rise of the linear regulator at full dissipation is an
 open check, to be read on the first board (D-93).
@@ -424,6 +465,9 @@ their figures and with what would close each.
 ### Pictures
 
 All pictures are renderings and plots of the board file, not photographs.
+The two renderings were exported again on 2026-10-10, after the three
+decisions were drawn. The plots of the copper are those of the layout
+review: no copper has changed since.
 
 The top side, rendered from the board file. The gold line around the front
 end is the guard under open solder mask:
@@ -488,10 +532,24 @@ copied into the repository; where a copy is present they give a second
 value.
 
 Everything in this section is simulated. Nothing is built and nothing is
-measured: a figure that passes says that the circuit as drawn keeps its
+measured: a figure that passes says that the simulated circuit keeps its
 limit with these models, not that a board will. Elsewhere on this page a
 figure marked "simulated" is one of the specification, taken from the
 earlier simulations of the draft.
+
+The results are those of the run of 2026-10-10, on the circuit as it was
+drawn that day. Three decisions were drawn afterwards (D-95, D-97 and
+D-98), and the netlist snapshot of the package holds them since: 10 nF at
+the three capacitors of the rail monitor, the damper on the module input
+fitted, the new text of the detector position. The benches were not run
+again. Every figure below therefore comes from the circuit before these
+changes, with 1 nF at those capacitors and without the damper. Two cases
+that a bench set on purpose are the exception: one crossing of a rail
+with 10 nF, and the data cable plugged again with the damper. The benches
+of the power input still leave the two parts of the damper out. Bringing
+the benches in line with the snapshot and running the blocks that the
+changes touch, the rail monitor with the power-up and the power-off and
+the input from the module, is open work.
 
 | Block | Benches | Pass | Fail | No limit |
 | --- | --- | --- | --- | --- |
@@ -517,9 +575,10 @@ sets and names. For a model the limit is the figure of its datasheet with
 the tolerance that this project asks of a model. 1206 figures carry no
 limit: they are values that nothing limits. A figure that fails is kept
 as it is. Most of the 122 are of five kinds: a point that is decided
-since and not drawn yet, a figure of the specification that the circuit
-does not give, a rating that a fault case passes, an option that is not
-in use, and a model that misses its datasheet. The guide
+since, whose figures are still those of the circuit before the decision,
+a figure of the specification that the circuit does not give, a rating
+that a fault case passes, an option that is not in use, and a model that
+misses its datasheet. The guide
 [sorts them by block](simulation/README.md#reading-the-failures).
 
 How close the simulated values lie: for 595 figures of the board blocks
@@ -563,23 +622,26 @@ models, not a confirmation by measurement. Among them:
 
 **Four points, decided.** The simulations raised them for a decision
 before boards are ordered, and the project owner decided them on
-2026-10-10. Three are not drawn yet, so the results above are still those
-of the circuit before them:
+2026-10-10. Three are drawn since that day and one is not. The benches
+were not run again, so the results above are still those of the circuit
+before them:
 
-1. The capacitors of the rail monitor become 10 nF (D-95). With 1 nF as
-   drawn and a comparator at its least hysteresis, an edge of PWR_GOOD
-   moves its own threshold and gives a burst of edges on a slow rail.
-   With 10 nF the threshold moves by 525 µV, below that hysteresis, where
-   1 nF gives 3.149 mV to 3.606 mV; the one run made with 10 nF, at a
-   slower slope, shows one edge. The capacitance between the pins that
-   couples the edge is an assumption.
+1. The capacitors of the rail monitor are 10 nF (D-95), drawn since
+   2026-10-10. With 1 nF, the value of the simulated circuit, and a
+   comparator at its least hysteresis, an edge of PWR_GOOD moves its own
+   threshold and gives a burst of edges on a slow rail. With 10 nF the
+   threshold moves by 525 µV, below that hysteresis, where 1 nF gives
+   3.149 mV to 3.606 mV; the one run made with 10 nF, at a slower slope,
+   shows one edge. The capacitance between the pins that couples the
+   edge is an assumption. The edges of PWR_GOOD at power-up and at
+   power-off have not been simulated with 10 nF.
 2. The buffer of the driver rail of the converter gets a position for a
    capacitor at its input, whose value is chosen on the bench (D-96). Its
    loop has 41.92° of phase margin as drawn, not the 54° that the
    specification stated, and it is stable. The model of the manufacturer
    gives 68.99°, with input capacitances that are not those of its
-   datasheet. No run with the capacitor exists, and the position needs a
-   footprint.
+   datasheet. No run with the capacitor exists, and the position is not
+   drawn: it needs a footprint.
 3. The position for a voltage detector at the boost converter stays
    without a part (D-97). As drawn the converter starts in one go from an
    input limited to 0.67 A to 0.85 A. A detector with a time-out of
@@ -587,20 +649,22 @@ of the circuit before them:
    repeat it four times in the 1.1 s of the run without completing it.
    The result rests on a model of the converter below 2.7 V, where its
    datasheet says nothing, on a source with a flat current limit and on
-   the 1 mA, so the start on a prototype stays a test of phase 1.
-4. The damper on the module input is fitted (D-98). When the data cable
-   is plugged again on a port at 5.5 V behind a short cable while USB-C
-   supplies the instrument, the input of the power multiplexer reaches
-   5.941 V with a limiter of typical reaction, and 6.002 V with one
-   assumed to react in 15 µs, against a rating of 6.0 V. With the damper
-   fitted the peak is 5.502 V in the runs made; the case that is worst
-   with the damper, a longer gap of the contact, was not run, and neither
-   was the recharge pulse at a change of input.
+   the 1 mA, so the start on a prototype stays a test of phase 1. Since
+   2026-10-10 the drawing no longer names the 0.24 s part at that
+   position.
+4. The damper on the module input is fitted (D-98), drawn since
+   2026-10-10. When the data cable is plugged again on a port at 5.5 V
+   behind a short cable while USB-C supplies the instrument, the input
+   of the power multiplexer reaches 5.941 V with a limiter of typical
+   reaction, and 6.002 V with one assumed to react in 15 µs, against a
+   rating of 6.0 V. With the damper fitted the peak is 5.502 V in the
+   runs made; the case that is worst with the damper, a longer gap of
+   the contact, was not run, and neither was the recharge pulse at a
+   change of input.
 
-**Fourteen places where the simulation and the text differ.** The round
-proposes no change of hardware for them; that is the owner's decision
-too. They are figures and rules of the specification, and things on which
-it is silent: how long the over-current comparator stays high while a
+**Fourteen places where the simulation and the text differed.** They
+were figures and rules of the specification, and things on which it was
+silent: how long the over-current comparator stays high while a
 large capacitor recharges, the ladder clamp in a short circuit, the advice
 on a capacitor at the VIN terminals, the times at power-off, the opening
 time of the output switch at 0.8 V, the current in the output suppressor
@@ -608,10 +672,17 @@ at a trip, three figures of the mode switches, a check of section 16 that
 the simulation does not meet, the list of terms of the noise budget, the
 timing estimates of the converter lines, the leakage of the monitor
 converter, figures of the source meter, the in-rush on a computer port
-and the range that a logic input withstands. The text of the
-specification stands until the owner decides. The fourteen are not every
-difference: the guide names the further figures that fail against a
-rating of a datasheet.
+and the range that a logic input withstands. Twelve are corrected in the
+specification since 2026-10-10, each with the simulated figure. Three of
+the corrections are decisions: the over-current trip counts its time in
+the 1 A range only (D-99), the advice on a capacitor at the VIN
+terminals is limited to what was simulated (D-100), and the range of a
+logic input is stated as 0 V to 5.5 V (D-101). The times at power-off
+and the figures of the power input wait for the run of the benches on
+the drawn decisions. Seven questions stay open, each with one
+recommendation in section 16 of the specification. The fourteen are not
+every difference: the guide names the further figures that fail against
+a rating of a datasheet.
 
 **What stays for the bench.** The simulations cannot settle the linear
 range of the amplifier near the negative rail, the loop of the
@@ -659,13 +730,13 @@ no noise in this run, and the converter is arithmetic.
 
 | Path | Content | License |
 | --- | --- | --- |
-| [`firmware/`](firmware/) | Firmware of the controller: hardware-independent core with its unit tests; target build not ported to the Pico 2 yet | MIT |
+| [`firmware/`](firmware/) | Firmware of the controller: a project of the Pico SDK for the Pico 2, with a hardware-independent core and its unit tests; no adapter for the hardware and no PIO program yet | MIT; the helper `cmake/pico_sdk_import.cmake` is a copy from the Pico SDK and keeps the license in its header |
 | [`hardware/`](hardware/) | KiCad project of the carrier board and its pictures; the folder for fabrication outputs is empty | CERN-OHL-P v2 |
-| [`simulation/`](simulation/) | Circuit simulations of the carrier board: the package `circuit-sim` with its tests, a snapshot of the netlist of the schematic, the models written for the project, the benches and their results | MIT |
+| [`simulation/`](simulation/) | Circuit simulations of the carrier board: the package `circuit-sim` with its tests, a snapshot of the netlist of the schematic, the models written for the project, the benches and their results | MIT; the netlist snapshot in `netlist/` and the results in `results/`: CERN-OHL-P v2 |
 | [`host/`](host/) | Python package: protocol, transports, device client, capture helpers, simulator | MIT |
 | [`protocol/`](protocol/) | Protocol definition, generator and shared test vectors | MIT |
 | [`tools/`](tools/) | [`tools/board/`](tools/board/): the package that calculates the layout figures from the board file, with its tests. The folders for the calibration and production-test scripts are empty | MIT |
-| [`docs/`](docs/) | Specification, component checks (all open), test reports (none yet) | MIT |
+| [`docs/`](docs/) | Specification, firmware design, component checks (all open), test reports (none yet) | MIT |
 
 ## Roadmap
 
@@ -675,11 +746,11 @@ recorded measurements. The exit criteria are in section 13 of the
 
 | Phase | Goal | Status |
 | --- | --- | --- |
-| 1 | Risk prototypes. On a Pico 2 with an ADC evaluation module: firmware on the Pico SDK, hardware-timed ADC capture, reaction time of the range sequencer, USB throughput. On evaluation modules: the pre-regulator with its tracking amplifier, and the start of the boost converter from a supply limited to 0.7 A | Not started; the software foundations exist, written ahead of it and tested without hardware; the firmware port to the Pico SDK and the bench work are not started |
+| 1 | Risk prototypes. On a Pico 2 with an ADC evaluation module: firmware on the Pico SDK, hardware-timed ADC capture, reaction time of the range sequencer, USB throughput. On evaluation modules: the pre-regulator with its tracking amplifier, and the start of the boost converter from a supply limited to 0.7 A | Not started: nothing has run on a Pico 2. Written ahead of it and tested without hardware: the firmware core, the protocol at version 2 and the host package. The firmware builds for the Pico 2 with the Pico SDK since 2026-10-12; the image has not been loaded onto a board, and what the phase measures is not written: the capture, the PIO programs and the USB link. The bench work is not started |
 | 2 | Analog front end with one fixed range on a test board | Not started |
 | 3 | Shunt ladder and range logic | Not started |
 | 4 | Source mode and power | Not started |
-| 5 | Carrier board, revision A, with the Pico 2 plugged in. Entry: the open checks that precede fabrication are closed and the layout is reviewed | Not started; draft A2 of the schematic and a board with every connection drawn exist, drawn ahead of the phases. The layout was reviewed with scripts and by calculation, and its seven deviations from section 10 are recorded decisions (D-87 to D-93); three decisions that follow the simulations are still to be drawn (D-95, D-96 and D-98), and the review by a person in KiCad and the open items remain |
+| 5 | Carrier board, revision A, with the Pico 2 plugged in. Entry: the open checks that precede fabrication are closed and the layout is reviewed | Not started; draft A2 of the schematic and a board with every connection drawn exist, drawn ahead of the phases. The layout was reviewed with scripts and by calculation, and its seven deviations from section 10 are recorded decisions (D-87 to D-93). Of the four decisions that follow the simulations, three are drawn since 2026-10-10 (D-95, D-97 and D-98). Still to do: the fourth drawn (D-96), the benches that the drawn decisions touch run again, the review by a person in KiCad, and the open items |
 | 6 | Calibration, protocol freeze and host software | Not started |
 | 7 | Revision B and release | Not started |
 
@@ -702,7 +773,7 @@ repository documents its own setup and commands:
 
 | Part | Needs | Guide |
 | --- | --- | --- |
-| Firmware | CMake, Ninja and gcc for the unit tests | [`firmware/README.md`](firmware/README.md) |
+| Firmware | CMake, Ninja and gcc for the unit tests; for the image of the Pico 2 also the Pico SDK 2.3.1 and the Arm GNU Toolchain | [`firmware/README.md`](firmware/README.md) |
 | Host software | Python 3.10 or later | [`host/README.md`](host/README.md) |
 | Protocol | Python 3.11 or later | [`protocol/README.md`](protocol/README.md) |
 | Hardware | KiCad 10 | [`hardware/README.md`](hardware/README.md) |
@@ -711,9 +782,10 @@ repository documents its own setup and commands:
 | Documentation | Node.js, for `npx --yes markdownlint-cli2@0.23.3` | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 
 No instrument is needed to work on the software: the firmware logic runs in
-unit tests on the PC, the host package talks to a simulator, the board
-figures package is tested on small synthetic boards, and the circuit
-simulations need only the ngspice library that KiCad installs.
+unit tests on the PC and its image builds without a board, the host
+package talks to a simulator, the board figures package is tested on small
+synthetic boards, and the circuit simulations need only the ngspice
+library that KiCad installs.
 
 ## Engineering Practices
 
@@ -725,9 +797,19 @@ simulations need only the ngspice library that KiCad installs.
   `Host`, `Protocol`, `Tools`, `Simulation`, `Hardware`, `Docs`), build
   the firmware, run the tests with coverage floors, run the formatters and
   static analyzers and check the hardware project. The firmware build is
-  still the one of the first plan, for the ESP32-S3, until the port to the
-  Pico SDK. For now the workflows are started by hand, not on every push
-  (D-22); the same checks run locally before a change is recorded.
+  the one for the Pico 2 since 2026-10-12: its job in the `Firmware`
+  workflow was rewritten for the Pico SDK and has not been started yet.
+  For now the workflows are started by hand, not on every push (D-22);
+  the same checks run locally before a change is recorded.
+- The gates of the firmware and of the host package ran locally on
+  Windows on 2026-10-12. Firmware: 22 unit tests, every line and branch
+  of the core covered against floors of 90 % and 80 %, clang-format,
+  clang-tidy and cppcheck without a finding, and the image for the Pico 2
+  built with warnings as errors. Host: 500 tests, every line and branch
+  covered against a floor of 90 %, ruff without a finding, mypy in strict
+  mode clean. The generated protocol files are up to date. The sanitizer
+  builds of the firmware and the host tests on Linux and macOS cannot run
+  on that machine and did not run.
 - The board figures package in `tools/board/` has the gates of the host
   software: tests with a coverage floor of 90 % of lines and branches,
   ruff, mypy in strict mode, and the wheel built and installed. They ran
@@ -738,10 +820,10 @@ simulations need only the ngspice library that KiCad installs.
   mode over the package, its tests and the benches. Lines and branches
   are covered in full against a floor of 90 %; the one module that loads
   the simulator runs in a child process and is outside that measurement.
-  The gates ran locally on Windows with Python 3.11; the `Simulation`
-  workflow has not been started yet. They cover the package, not the
-  board: a figure that fails in a simulation breaks no gate. It is a
-  finding, and it is kept.
+  The gates ran locally on Windows with Python 3.11, last on 2026-10-12;
+  the `Simulation` workflow has not been started yet. They cover the
+  package, not the board: a figure that fails in a simulation breaks no
+  gate. It is a finding, and it is kept.
 - Timing, throughput and analog behavior are not claimed from tests. They
   are measured on the bench and recorded in a report. A simulation is
   filed as a simulation: it closes no check and no phase.
@@ -757,9 +839,15 @@ and in the [contributing guide](CONTRIBUTING.md).
 - [Hardware guide](hardware/README.md) and
   [the draft in pictures](hardware/doc/README.md): the carrier board, sheet
   by sheet.
+- [Firmware design](docs/firmware/README.md): the firmware one level below
+  the specification, with its architecture, its state machines, the three
+  PIO programs, the USB link, the place and the test of every firmware
+  rule, the decisions that are taken and the points that are open. It is
+  a design: of what it describes, a first part of the core and the build
+  exist.
 - [Firmware guide](firmware/README.md), [host guide](host/README.md) and
   [protocol guide](protocol/README.md): architecture, commands and tests of
-  each part.
+  each part, with what exists and what is missing.
 - [Simulation guide](simulation/README.md) and
   [simulation results](simulation/results/README.md): what the circuit
   simulations reproduce, the four points that are decided, where they
@@ -793,8 +881,13 @@ and how changes to the specification are recorded.
 
 - Hardware design files under [`hardware/`](hardware/):
   [CERN-OHL-P v2](hardware/LICENSE).
-- Everything else, including firmware, host software, tools and
-  documentation: [MIT](LICENSE).
+- What derives from those files in [`simulation/`](simulation/README.md#license):
+  the snapshot of the netlist in `simulation/netlist/` and the decks,
+  records, graphs and pages in `simulation/results/`, under the same
+  CERN-OHL-P v2, with a copy of the license in each of the two folders.
+- Everything else, including firmware, host software, tools, the
+  simulation package with its benches and models, and documentation:
+  [MIT](LICENSE).
 
 ## Acknowledgments
 

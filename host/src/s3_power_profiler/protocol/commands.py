@@ -19,23 +19,37 @@ so that a newer instrument can append fields.
 
 from __future__ import annotations
 
+import enum
 import struct
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypeVar
 
 from s3_power_profiler.errors import PayloadError
 from s3_power_profiler.protocol._defs import (
-    CAL_TARGET_DAC,
+    CAL_RECORD_MAX,
     COMMAND_MAX_PAYLOAD,
     FRAME_MAX_PAYLOAD,
+    INFO_FORMAT,
+    PROTOCOL_VERSION,
     RANGE_AUTO,
     RANGE_COUNT,
+    SERIAL_SIZE,
+    STATUS_FORMAT,
+    SUPPLY_FORMAT,
+    ZERO_FORMAT,
+    ZERO_SCALE,
+    CalState,
+    CcClass,
     Command,
     DeviceState,
     Event,
     Fault,
     Mode,
+    Notice,
     Status,
+    StatusNotice,
+    Supply,
 )
 
 _ID = struct.Struct("<B")
@@ -220,9 +234,19 @@ def describe_status(status_code: int) -> str:
 
 _U8 = struct.Struct("<B")
 _U16 = struct.Struct("<H")
-_INFO = struct.Struct("<BBBBB")
-_STATUS = struct.Struct("<BHI")
-_CAL_WRITE = struct.Struct("<Bff")
+_INFO = struct.Struct(INFO_FORMAT)
+_STATUS = struct.Struct(STATUS_FORMAT)
+_SUPPLY = struct.Struct(SUPPLY_FORMAT)
+_ZERO = struct.Struct(ZERO_FORMAT)
+
+ZeroOffsets = tuple[float, float, float, float]
+"""Zero offset of each range, in ADC codes."""
+
+NO_ZERO: ZeroOffsets = (0.0, 0.0, 0.0, 0.0)
+
+NO_NOTICES = StatusNotice(0)
+
+_E = TypeVar("_E", bound=enum.Enum)
 
 
 def _pack(layout: struct.Struct, what: str, *values: object) -> bytes:
@@ -248,6 +272,27 @@ def _unpack_prefix(layout: struct.Struct, data: bytes, what: str) -> tuple[Any, 
     return layout.unpack_from(data)
 
 
+def _known(enum_type: type[_E], value: int, source: str, what: str) -> _E:
+    """Return the member of an enumeration, or report an unknown value."""
+    try:
+        return enum_type(value)
+    except ValueError as error:
+        raise PayloadError(f"{source} reports unknown {what} {value}") from error
+
+
+def _zero_to_wire(offsets: Sequence[float]) -> tuple[int, ...]:
+    """Convert zero offsets in codes to the integers of the wire."""
+    if len(offsets) != RANGE_COUNT:
+        raise ValueError(f"expected {RANGE_COUNT} zero offsets, got {len(offsets)}")
+    return tuple(round(value * ZERO_SCALE) for value in offsets)
+
+
+def _zero_from_wire(values: Sequence[int]) -> ZeroOffsets:
+    """Convert the integers of the wire to zero offsets in codes."""
+    first, second, third, fourth = (int(value) / ZERO_SCALE for value in values)
+    return (first, second, third, fourth)
+
+
 @dataclass(frozen=True, slots=True)
 class DeviceInfo:
     """Identity of an instrument, returned by GET_INFO.
@@ -256,11 +301,24 @@ class DeviceInfo:
         protocol_version: Version of the wire protocol the instrument speaks.
         hardware_revision: Revision of the board, 0 for the first one.
         firmware_version: Firmware version as major, minor and patch numbers.
+        cal_state: Whether a calibration record of this instrument is in use.
+        settle_samples: Samples flagged after a range change.
+        chip_id: The 64-bit identifier of the controller.
+        carrier_serial: Serial number of the carrier that the record holds.
+        carrier_revision: Revision of the carrier that the record holds.
+        zero_offsets: Zero offset of each range from the last zero
+            calibration, in codes.
     """
 
     protocol_version: int
     hardware_revision: int
     firmware_version: tuple[int, int, int]
+    cal_state: CalState = CalState.NOMINAL
+    settle_samples: int = 0
+    chip_id: int = 0
+    carrier_serial: str = ""
+    carrier_revision: int = 0
+    zero_offsets: ZeroOffsets = NO_ZERO
 
 
 @dataclass(frozen=True, slots=True)
@@ -271,26 +329,64 @@ class DeviceStatus:
         state: State of the device state machine.
         faults: Faults that are latched.
         dropped_blocks: Blocks dropped by the instrument since it started.
+        mode: Operating mode.
+        range_lock: Locked range, or None while ranging is automatic.
+        setpoint_mv: Set-point of the source, in millivolts.
+        vout_mv: Voltage at the ladder output, in millivolts.
+        vin_mv: Voltage at the VIN terminal, in millivolts.
+        rail5_mv: The 5 V rail of the carrier, in millivolts.
+        temperature: Board temperature, in degrees Celsius.
+        supply: Which input supplies the carrier.
+        cc_class: What the USB-C source advertises.
+        budget_ma: Input current the instrument allows itself, in milliamperes.
+        trip_count: Consecutive over-current trips.
+        notices: Conditions of the source that are no faults.
     """
 
     state: DeviceState
     faults: Fault
     dropped_blocks: int
+    mode: Mode = Mode.AMPERE_METER
+    range_lock: int | None = None
+    setpoint_mv: int = 0
+    vout_mv: int = 0
+    vin_mv: int = 0
+    rail5_mv: int = 0
+    temperature: float = 0.0
+    supply: Supply = Supply.MODULE
+    cc_class: CcClass = CcClass.DEFAULT
+    budget_ma: int = 0
+    trip_count: int = 0
+    notices: StatusNotice = NO_NOTICES
 
 
 @dataclass(frozen=True, slots=True)
-class CalibrationWrite:
-    """Arguments of CAL_WRITE.
+class SupplyReport:
+    """Data of a SUPPLY_CHANGED event.
 
     Attributes:
-        target: Range index, or ``CAL_TARGET_DAC`` for the DAC.
-        gain: Gain to store.
-        offset: Offset to store.
+        supply: Which input supplies the carrier.
+        cc_class: What the USB-C source advertises.
+        budget_ma: Input current the instrument allows itself, in milliamperes.
     """
 
-    target: int
-    gain: float
-    offset: float
+    supply: Supply
+    cc_class: CcClass
+    budget_ma: int
+
+
+@dataclass(frozen=True, slots=True)
+class NoticeMessage:
+    """Data of a NOTICE event.
+
+    Attributes:
+        notice: What happened.
+        zero_offsets: The new zero offsets in codes, for ``Notice.ZERO_TAKEN``
+            only.
+    """
+
+    notice: Notice
+    zero_offsets: ZeroOffsets | None = None
 
 
 def parse_no_arguments(arguments: bytes, what: str) -> None:
@@ -312,10 +408,26 @@ def encode_device_info(info: DeviceInfo) -> bytes:
     """Serialize the data of a GET_INFO response.
 
     Raises:
-        ValueError: If a field does not fit in 8 bits.
+        ValueError: If a field does not fit in its bytes.
     """
+    try:
+        serial = info.carrier_serial.encode("ascii")
+    except UnicodeEncodeError as error:
+        raise ValueError(f"carrier serial is not ASCII: {error}") from error
+    if len(serial) > SERIAL_SIZE:
+        raise ValueError(f"carrier serial is longer than {SERIAL_SIZE} characters")
     return _pack(
-        _INFO, "device info", info.protocol_version, info.hardware_revision, *info.firmware_version
+        _INFO,
+        "device info",
+        info.protocol_version,
+        info.hardware_revision,
+        *info.firmware_version,
+        int(info.cal_state),
+        info.settle_samples,
+        info.chip_id,
+        serial,
+        info.carrier_revision,
+        *_zero_to_wire(info.zero_offsets),
     )
 
 
@@ -323,15 +435,46 @@ def decode_device_info(data: bytes) -> DeviceInfo:
     """Parse the data of a GET_INFO response.
 
     Raises:
-        PayloadError: If the data is too short.
+        PayloadError: If the data is too short, which is also how an
+            instrument with an older protocol shows, or holds an unknown
+            value.
     """
-    protocol_version, hardware_revision, major, minor, patch = _unpack_prefix(
-        _INFO, data, "GET_INFO"
-    )
+    if not data:
+        raise PayloadError("GET_INFO returned no data")
+    if len(data) < _INFO.size:
+        raise PayloadError(
+            f"GET_INFO returned {len(data)} data bytes and names protocol version {data[0]}; "
+            f"version {PROTOCOL_VERSION} has {_INFO.size}"
+        )
+    (
+        protocol_version,
+        hardware_revision,
+        major,
+        minor,
+        patch,
+        cal_state,
+        settle_samples,
+        chip_id,
+        serial,
+        carrier_revision,
+        *zero,
+    ) = _INFO.unpack_from(data)
+    try:
+        carrier_serial = bytes(serial).rstrip(b"\x00").decode("ascii")
+    except UnicodeDecodeError as error:
+        raise PayloadError(
+            f"GET_INFO reports a carrier serial that is not ASCII: {error}"
+        ) from error
     return DeviceInfo(
         protocol_version=int(protocol_version),
         hardware_revision=int(hardware_revision),
         firmware_version=(int(major), int(minor), int(patch)),
+        cal_state=_known(CalState, int(cal_state), "GET_INFO", "calibration state"),
+        settle_samples=int(settle_samples),
+        chip_id=int(chip_id),
+        carrier_serial=carrier_serial,
+        carrier_revision=int(carrier_revision),
+        zero_offsets=_zero_from_wire(zero),
     )
 
 
@@ -347,7 +490,23 @@ def encode_device_status(status: DeviceStatus) -> bytes:
         ValueError: If a field does not fit in its bytes.
     """
     return _pack(
-        _STATUS, "device status", int(status.state), int(status.faults), status.dropped_blocks
+        _STATUS,
+        "device status",
+        int(status.state),
+        int(status.faults),
+        status.dropped_blocks,
+        int(status.mode),
+        RANGE_AUTO if status.range_lock is None else status.range_lock,
+        status.setpoint_mv,
+        status.vout_mv,
+        status.vin_mv,
+        status.rail5_mv,
+        round(status.temperature * 10),
+        int(status.supply),
+        int(status.cc_class),
+        status.budget_ma,
+        status.trip_count,
+        int(status.notices),
     )
 
 
@@ -355,15 +514,43 @@ def decode_device_status(data: bytes) -> DeviceStatus:
     """Parse the data of a GET_STATUS response.
 
     Raises:
-        PayloadError: If the data is too short or names an unknown state.
+        PayloadError: If the data is too short or holds an unknown value.
     """
-    state, faults, dropped_blocks = _unpack_prefix(_STATUS, data, "GET_STATUS")
-    try:
-        known_state = DeviceState(state)
-    except ValueError as error:
-        raise PayloadError(f"GET_STATUS reports unknown state {state}") from error
+    (
+        state,
+        faults,
+        dropped_blocks,
+        mode,
+        range_lock,
+        setpoint_mv,
+        vout_mv,
+        vin_mv,
+        rail5_mv,
+        temperature,
+        supply,
+        cc_class,
+        budget_ma,
+        trip_count,
+        notices,
+    ) = _unpack_prefix(_STATUS, data, "GET_STATUS")
+    if range_lock != RANGE_AUTO and not 0 <= range_lock < RANGE_COUNT:
+        raise PayloadError(f"GET_STATUS reports unknown range {range_lock}")
     return DeviceStatus(
-        state=known_state, faults=Fault(int(faults)), dropped_blocks=int(dropped_blocks)
+        state=_known(DeviceState, int(state), "GET_STATUS", "state"),
+        faults=Fault(int(faults)),
+        dropped_blocks=int(dropped_blocks),
+        mode=_known(Mode, int(mode), "GET_STATUS", "mode"),
+        range_lock=None if range_lock == RANGE_AUTO else int(range_lock),
+        setpoint_mv=int(setpoint_mv),
+        vout_mv=int(vout_mv),
+        vin_mv=int(vin_mv),
+        rail5_mv=int(rail5_mv),
+        temperature=int(temperature) / 10,
+        supply=_known(Supply, int(supply), "GET_STATUS", "supply"),
+        cc_class=_known(CcClass, int(cc_class), "GET_STATUS", "CC class"),
+        budget_ma=int(budget_ma),
+        trip_count=int(trip_count),
+        notices=StatusNotice(int(notices)),
     )
 
 
@@ -492,38 +679,54 @@ def build_cal_zero() -> CommandMessage:
     return CommandMessage(Command.CAL_ZERO)
 
 
-def _is_calibration_target(target: int) -> bool:
-    return 0 <= target < RANGE_COUNT or target == CAL_TARGET_DAC
-
-
-def build_cal_write(target: int, gain: float, offset: float) -> CommandMessage:
-    """Create a CAL_WRITE command.
-
-    Args:
-        target: Range index, or ``CAL_TARGET_DAC`` for the DAC.
-        gain: Gain to store, sent as a 32-bit float.
-        offset: Offset to store, sent as a 32-bit float.
+def encode_zero_offsets(offsets: Sequence[float]) -> bytes:
+    """Serialize the zero offsets that a CAL_ZERO response carries, in codes.
 
     Raises:
-        ValueError: If the target does not exist or a value cannot be sent.
+        ValueError: If there are not four offsets or one cannot be sent.
     """
-    if not _is_calibration_target(target):
-        raise ValueError(f"calibration target {target} does not exist")
-    return CommandMessage(
-        Command.CAL_WRITE, _pack(_CAL_WRITE, "calibration values", target, gain, offset)
-    )
+    return _pack(_ZERO, "zero offsets", *_zero_to_wire(offsets))
 
 
-def parse_cal_write(arguments: bytes) -> CalibrationWrite:
-    """Read the arguments of CAL_WRITE.
+def decode_zero_offsets(data: bytes) -> ZeroOffsets:
+    """Parse the data of a CAL_ZERO response: the zero offsets, in codes.
 
     Raises:
-        PayloadError: If the length is wrong or the target does not exist.
+        PayloadError: If the data is too short.
     """
-    target, gain, offset = _unpack_exact(_CAL_WRITE, arguments, "CAL_WRITE")
-    if not _is_calibration_target(target):
-        raise PayloadError(f"CAL_WRITE got unknown target {target}")
-    return CalibrationWrite(target=int(target), gain=float(gain), offset=float(offset))
+    return _zero_from_wire(_unpack_prefix(_ZERO, data, "CAL_ZERO"))
+
+
+def build_cal_read() -> CommandMessage:
+    """Create a CAL_READ command, which asks for the calibration record."""
+    return CommandMessage(Command.CAL_READ)
+
+
+def build_cal_store(record: bytes) -> CommandMessage:
+    """Create a CAL_STORE command carrying a calibration record.
+
+    The record is a block that this layer does not look into; section 8 of
+    the specification defines it.
+
+    Raises:
+        ValueError: If the record is empty or longer than ``CAL_RECORD_MAX``.
+    """
+    if not 0 < len(record) <= CAL_RECORD_MAX:
+        raise ValueError(f"a calibration record has 1 to {CAL_RECORD_MAX} bytes, got {len(record)}")
+    return CommandMessage(Command.CAL_STORE, bytes(record))
+
+
+def parse_cal_store(arguments: bytes) -> bytes:
+    """Read the arguments of CAL_STORE: the calibration record.
+
+    Raises:
+        PayloadError: If the record is empty or too long.
+    """
+    if not 0 < len(arguments) <= CAL_RECORD_MAX:
+        raise PayloadError(
+            f"CAL_STORE takes 1 to {CAL_RECORD_MAX} argument bytes, got {len(arguments)}"
+        )
+    return bytes(arguments)
 
 
 def build_clear_fault() -> CommandMessage:
@@ -546,23 +749,64 @@ def parse_fault_raised(data: bytes) -> Fault:
     return Fault(int(faults))
 
 
-def build_power_budget_changed(milliwatts: int) -> EventMessage:
-    """Create a POWER_BUDGET_CHANGED event with the new budget in milliwatts.
+def build_supply_changed(report: SupplyReport) -> EventMessage:
+    """Create a SUPPLY_CHANGED event.
 
     Raises:
         ValueError: If the budget does not fit in 16 bits.
     """
-    return EventMessage(Event.POWER_BUDGET_CHANGED, _pack(_U16, "power budget in mW", milliwatts))
+    data = _pack(
+        _SUPPLY, "supply report", int(report.supply), int(report.cc_class), report.budget_ma
+    )
+    return EventMessage(Event.SUPPLY_CHANGED, data)
 
 
-def parse_power_budget_changed(data: bytes) -> int:
-    """Read the data of a POWER_BUDGET_CHANGED event, in milliwatts.
+def parse_supply_changed(data: bytes) -> SupplyReport:
+    """Read the data of a SUPPLY_CHANGED event.
 
     Raises:
-        PayloadError: If the data is too short.
+        PayloadError: If the data is too short or holds an unknown value.
     """
-    (milliwatts,) = _unpack_prefix(_U16, data, "POWER_BUDGET_CHANGED")
-    return int(milliwatts)
+    supply, cc_class, budget_ma = _unpack_prefix(_SUPPLY, data, "SUPPLY_CHANGED")
+    return SupplyReport(
+        supply=_known(Supply, int(supply), "SUPPLY_CHANGED", "supply"),
+        cc_class=_known(CcClass, int(cc_class), "SUPPLY_CHANGED", "CC class"),
+        budget_ma=int(budget_ma),
+    )
+
+
+def build_notice(notice: Notice, zero_offsets: Sequence[float] | None = None) -> EventMessage:
+    """Create a NOTICE event.
+
+    Args:
+        notice: What happened.
+        zero_offsets: The new zero offsets in codes; required for
+            ``Notice.ZERO_TAKEN`` and not allowed otherwise.
+
+    Raises:
+        ValueError: If the offsets are missing, not wanted or cannot be sent.
+    """
+    code = _U8.pack(Notice(notice))
+    if notice is Notice.ZERO_TAKEN:
+        if zero_offsets is None:
+            raise ValueError("the notice ZERO_TAKEN carries the zero offsets")
+        return EventMessage(Event.NOTICE, code + encode_zero_offsets(zero_offsets))
+    if zero_offsets is not None:
+        raise ValueError(f"the notice {notice.name} carries no zero offsets")
+    return EventMessage(Event.NOTICE, code)
+
+
+def parse_notice(data: bytes) -> NoticeMessage:
+    """Read the data of a NOTICE event.
+
+    Raises:
+        PayloadError: If the data is too short or names an unknown notice.
+    """
+    (code,) = _unpack_prefix(_U8, data, "NOTICE")
+    notice = _known(Notice, int(code), "NOTICE", "code")
+    if notice is Notice.ZERO_TAKEN:
+        return NoticeMessage(notice, _zero_from_wire(_unpack_prefix(_ZERO, data[1:], "NOTICE")))
+    return NoticeMessage(notice)
 
 
 def build_state_changed(state: DeviceState) -> EventMessage:
@@ -577,7 +821,4 @@ def parse_state_changed(data: bytes) -> DeviceState:
         PayloadError: If the data is too short or names an unknown state.
     """
     (state,) = _unpack_prefix(_U8, data, "STATE_CHANGED")
-    try:
-        return DeviceState(state)
-    except ValueError as error:
-        raise PayloadError(f"STATE_CHANGED reports unknown state {state}") from error
+    return _known(DeviceState, int(state), "STATE_CHANGED", "state")

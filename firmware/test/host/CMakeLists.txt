@@ -1,6 +1,6 @@
 # Host unit tests of the hardware-independent firmware code.
 #
-# The components are compiled from the same source lists the ESP-IDF build
+# The components are compiled from the same source lists the target build
 # uses (components/<name>/sources.cmake), with a native compiler, and tested
 # with Unity. See firmware/README.md for the commands.
 cmake_minimum_required(VERSION 3.20)
@@ -66,34 +66,10 @@ target_link_libraries(unity PRIVATE pp_build_flags)
 
 # --- Firmware components ---------------------------------------------------
 
-# Build components/<name> as the library pp_<name> from its manifest.
-function(pp_add_component name)
-    string(TOUPPER ${name} upper)
-    set(dir ${PP_FIRMWARE_DIR}/components/${name})
-    include(${dir}/sources.cmake)
-
-    set(sources ${PP_${upper}_SOURCES})
-    list(TRANSFORM sources PREPEND ${dir}/)
-    set(requires ${PP_${upper}_REQUIRES})
-    list(TRANSFORM requires PREPEND pp_)
-
-    if(sources)
-        add_library(pp_${name} STATIC ${sources})
-        target_include_directories(pp_${name} PUBLIC ${dir}/include)
-        target_link_libraries(pp_${name} PUBLIC ${requires} PRIVATE pp_build_flags)
-        pp_target_strict_warnings(pp_${name})
-    else()
-        add_library(pp_${name} INTERFACE)
-        target_include_directories(pp_${name} INTERFACE ${dir}/include)
-        target_link_libraries(pp_${name} INTERFACE ${requires})
-    endif()
-endfunction()
-
-pp_add_component(base)
-pp_add_component(proto)
-pp_add_component(acq)
-pp_add_component(afe)
-pp_add_component(app)
+# The list of components and the function that builds one are shared with
+# the target build.
+include(${PP_FIRMWARE_DIR}/cmake/pp_components.cmake)
+pp_add_components()
 
 # --- Test doubles ----------------------------------------------------------
 
@@ -118,14 +94,23 @@ endfunction()
 pp_add_test(status pp_base)
 pp_add_test(bytes pp_base)
 pp_add_test(blockq pp_base)
+pp_add_test(pins pp_base)
 pp_add_test(crc16 pp_proto)
 pp_add_test(frame pp_proto)
 pp_add_test(sample pp_proto)
 pp_add_test(stream pp_proto)
 pp_add_test(command pp_proto)
+pp_add_test(report pp_proto)
+pp_add_test(raw pp_acq)
 pp_add_test(range_tracker pp_acq)
 pp_add_test(downrange pp_acq)
+pp_add_test(underrange pp_acq)
+pp_add_test(dac pp_smu)
+pp_add_test(monitor pp_monitor m)
+pp_add_test(fault pp_app)
 pp_add_test(fsm pp_app)
+pp_add_test(sequence pp_app)
+pp_add_test(power_seq pp_app)
 pp_add_test(afe_port pp_acq pp_test_support)
 
 # The queue is exercised by two real threads when the platform has them.
@@ -210,6 +195,8 @@ if(CPPCHECK)
             -I components/proto/include
             -I components/acq/include
             -I components/afe/include
+            -I components/smu/include
+            -I components/monitor/include
             -I components/app/include
             -I test/host/support
             components

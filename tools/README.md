@@ -16,16 +16,20 @@ specification): the board figures judge the copper of the board, the
 simulations the circuits of the schematic.
 
 The calibration tool and the production test are not started. Their two
-directories are empty, and nothing they would drive exists yet: no
-board is built, the firmware is not ported to the Raspberry Pi Pico 2, and
-the calibration commands of the protocol are provisional. Calibration is
-the work of phase 6, and a production test needs the carrier board of
-phase 5 (section 13 of the [specification](../docs/specification.md)).
+directories are empty, and little of what they would drive exists: no
+board is built, and the firmware, which builds for the Raspberry Pi Pico 2
+since 2026-10-12, has no command handler and stores no calibration. What
+exists since that day is the way a calibration travels: version 2 of the
+host protocol carries the calibration record as one block, and section 8
+of the [specification](../docs/specification.md) gives the record a
+layout (D-103). That layout is a design, and no code builds or parses a
+record. Calibration is the work of phase 6, and a production test needs
+the carrier board of phase 5 (section 13 of the specification).
 
 | Path | State | What the tool does, or will have to do |
 | --- | --- | --- |
 | `board/` | Exists, tested without hardware | Calculate the layout figures that the documents quote from the board file of the carrier: the 1 A path in squares, a path on one layer, the lengths of the Kelvin pairs, the surface leakage into the measured node. See the [board figures guide](board/README.md) |
-| `calibration/` | Empty | Run the calibration of section 8 of the specification on one instrument against reference equipment, and write the record into the flash of its Pico 2 |
+| `calibration/` | Empty | Run the calibration of section 8 of the specification on one instrument against reference equipment, build the calibration record and store it in the flash of its Pico 2 with the command CAL_STORE |
 | `production-test/` | Empty | Check every assembled carrier board before it is calibrated and before a DUT is connected. The specification has no section for this test yet; the checks it already asks of every board are listed below |
 
 What comes next here: the figures are calculated again after every change
@@ -36,7 +40,10 @@ step and for a board, as their sections below say.
 The form of the calibration and production-test scripts is not decided.
 The host package already holds the link to the instrument (see the
 [host guide](../host/README.md)); a tool built on it keeps the wire
-protocol in one place.
+protocol in one place. Its client reads and stores a calibration record
+as a block of bytes and returns the four zero offsets of a zero
+calibration. The code that builds a record from measured values is not
+written, there or here.
 
 ## Board Figures
 
@@ -94,39 +101,48 @@ asks of a tool:
   by a reference multimeter.
 - DAC: nine set-points or more at room temperature, each measured with the
   reference multimeter (D-58, F-30).
-- Write the record: gain and offset of each range, the DAC values, the
-  length of the settling window, the calibration temperature, a version
-  field, a CRC, the 64-bit chip identifier of the RP2350, and the serial
-  number and revision of the carrier.
+- Build the record in the layout of section 8 and store it with the
+  command CAL_STORE, which the instrument accepts in IDLE only: gain and
+  offset of each range, the closed-switch zero, the points of the DAC, the
+  length of the settling window, the calibration temperature, the offset
+  of the VIN channel (F-26), the thermal limit (F-15) and the serial
+  number and revision of the carrier, between the mark, the version and
+  the length at its head and the CRC at its end. The chip identifier of
+  the RP2350 is left at zero or set to the one that GET_INFO reports: the
+  device writes its own, and it refuses a record that carries another.
 - Repeat the gain of range 2 on request: the specification asks for it
   after a reported sequencer fault (F-21).
 
 Section 8 does not ask for a read-back in so many words. It follows from
 what the section says of GET_INFO, which flags a missing, corrupt or
 foreign record as not calibrated: a tool that ends by reading the state
-back shows that the record it wrote is the one in use.
+back shows that the record it wrote is the one in use. The protocol has
+both ways since version 2: CAL_READ returns the stored record, and
+GET_INFO the state of the calibration.
 
 The open-switch zero is not a job of the tool: firmware runs it at every
-start and on the command CAL_ZERO.
+start and on the command CAL_ZERO, which returns the four offsets.
 
-Three values are found on a board and stored, and section 8 does not list
-them in the record. Where they are kept is not decided (an open point of
-section 16), so the tool cannot be written around them yet:
+Three values are found on a board and stored, by the firmware rules of
+section 6.6. Two of them have a field in the record since 2026-10-12, so
+the tool writes them: the offset of the monitor channel that reads VIN,
+"stored at calibration" (F-26), and the thermal limit, "a constant taken
+from the first board" (F-15). The third has none: the constants of the
+input model behind the power budget, "calibrated on the first board"
+(F-14), are not in version 1 of the record and enter with a new version of
+it. Section 16 lists that as an open point, so the tool cannot be written
+around them yet.
 
-- the offset of the monitor channel that reads VIN, "stored at
-  calibration" (F-26);
-- the constants of the input model behind the power budget, "calibrated on
-  the first board" (F-14);
-- the thermal limit, "a constant taken from the first board" (F-15).
-
-What stands between today and a first version of the tool, in order: the
-way the record travels in the protocol (CAL_WRITE carries a target, a gain
-and an offset, nothing else; an open point of section 16), the `cal`
-component of the firmware (it has no code), the firmware port to the Pico
-SDK, and a board to try the procedure on. The first three are part of the
-software step in the next steps of the
-[README](../README.md#project-status) of the repository; the board is
-revision A of phase 5.
+One thing that stood between this page and a first version of the tool is
+done: the way the record travels is decided and is in the protocol since
+2026-10-12 (D-103), and the firmware builds for the Pico 2 since the same
+day. What still stands, in order: the code that builds and parses a
+record, which neither side has; the `cal` component of the firmware, which
+has no code, with the handlers of the three calibration commands; a
+firmware that runs on a Pico 2 and answers over USB; and a board to try
+the procedure on. The first three are part of the software step in the
+next steps of the [README](../README.md#project-status) of the repository;
+the board is revision A of phase 5.
 
 ## Production Test
 
@@ -139,8 +155,10 @@ have to cover, is spread over several sections:
   brought up one by one with the level expected at each test point
   (calculated or simulated levels). The simulations of the analog rails
   in [`../simulation/`](../simulation/results/analog_rails/README.md) give
-  the order and the times of that power-up from the final netlist; they
-  are simulated too, and the test replaces them.
+  the order and the times of that power-up from the netlist of the
+  schematic as it stood on 2026-10-10, with 1 nF at the inputs of the
+  rail monitor; the 10 nF of decision D-95 are drawn since and not
+  simulated yet. They are simulated too, and the test replaces them.
 - The items of section 16 that come before a DUT is connected to a board:
   every gate at or below 0.3 V in the states listed there, the output open
   within 100 ms of a halted supervision task (F-8), the gate lines low

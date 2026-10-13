@@ -73,7 +73,7 @@
    "value": "3.3n 50V X7R"
   },
   {
-   "mpn": "",
+   "mpn": "CL21A106KAYNNNE",
    "pins": [
     {
      "function": "",
@@ -88,7 +88,7 @@
    ],
    "ref": "C5",
    "sheet": "/Power Input/",
-   "value": "10u 25V"
+   "value": "10u 25V X5R"
   },
   {
    "mpn": "C0603C105K3RACTU",
@@ -559,7 +559,7 @@
    "value": "10u 25V X7R"
   },
   {
-   "mpn": "C0603C102J5GACTU",
+   "mpn": "GRM1885C1H103JA01D",
    "pins": [
     {
      "function": "",
@@ -574,10 +574,10 @@
    ],
    "ref": "C32",
    "sheet": "/Rail Monitor/",
-   "value": "1n 50V C0G"
+   "value": "10n 50V C0G"
   },
   {
-   "mpn": "C0603C102J5GACTU",
+   "mpn": "GRM1885C1H103JA01D",
    "pins": [
     {
      "function": "",
@@ -592,10 +592,10 @@
    ],
    "ref": "C33",
    "sheet": "/Rail Monitor/",
-   "value": "1n 50V C0G"
+   "value": "10n 50V C0G"
   },
   {
-   "mpn": "C0603C102J5GACTU",
+   "mpn": "GRM1885C1H103JA01D",
    "pins": [
     {
      "function": "",
@@ -610,7 +610,7 @@
    ],
    "ref": "C34",
    "sheet": "/Rail Monitor/",
-   "value": "1n 50V C0G"
+   "value": "10n 50V C0G"
   },
   {
    "mpn": "C0603C104K5RACTU",
@@ -3581,7 +3581,7 @@
    "value": "1.21k 1%"
   },
   {
-   "mpn": "",
+   "mpn": "ERJ-6RQFR33V",
    "pins": [
     {
      "function": "",
@@ -3596,7 +3596,7 @@
    ],
    "ref": "R14",
    "sheet": "/Power Input/",
-   "value": "0.33R"
+   "value": "0.33R 1%"
   },
   {
    "mpn": "CRCW0603453RFKEA",
@@ -7828,7 +7828,7 @@
    ],
    "ref": "U9",
    "sheet": "/Analog Rails/",
-   "value": "803 type, 3.08 V"
+   "value": "Detector, ms time-out"
   },
   {
    "mpn": "LMR62014XMF/NOPB",

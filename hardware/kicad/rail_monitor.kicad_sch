@@ -1705,7 +1705,7 @@
 		)
 		(uuid "57f9c301-3e01-5a05-8b2d-ebceb6013109")
 	)
-	(text "C32, C33 and C34 keep an edge of PWR_GOOD from moving the thresholds through\nthe pin capacitance of the package: each output pin of U14 is the neighbor of\nan inverting input (time constants 9 us, 25 us and 36 us, calculated)."
+	(text "C32, C33 and C34, 10 nF each, keep an edge of PWR_GOOD from moving the thresholds\nthrough the pin capacitance of the package: each output pin of U14 is the neighbor\nof an inverting input (time constants about 0.09 ms, 0.25 ms and 0.36 ms, calculated)."
 		(exclude_from_sim no)
 		(at 20.32 163.83 0)
 		(effects
@@ -2820,7 +2820,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1n 50V C0G"
+		(property "Value" "10n 50V C0G"
 			(at 155.192 102.65 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2864,7 +2864,7 @@
 				)
 			)
 		)
-		(property "MPN" "C0603C102J5GACTU"
+		(property "MPN" "GRM1885C1H103JA01D"
 			(at 152.4 101.6 0)
 			(hide yes)
 			(show_name no)
@@ -2875,7 +2875,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "KEMET"
+		(property "Manufacturer" "Murata"
 			(at 152.4 101.6 0)
 			(hide yes)
 			(show_name no)
@@ -2923,7 +2923,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1n 50V C0G"
+		(property "Value" "10n 50V C0G"
 			(at 48.512 126.78 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2967,7 +2967,7 @@
 				)
 			)
 		)
-		(property "MPN" "C0603C102J5GACTU"
+		(property "MPN" "GRM1885C1H103JA01D"
 			(at 45.72 125.73 0)
 			(hide yes)
 			(show_name no)
@@ -2978,7 +2978,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "KEMET"
+		(property "Manufacturer" "Murata"
 			(at 45.72 125.73 0)
 			(hide yes)
 			(show_name no)
@@ -4864,7 +4864,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1n 50V C0G"
+		(property "Value" "10n 50V C0G"
 			(at 86.612 126.78 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4908,7 +4908,7 @@
 				)
 			)
 		)
-		(property "MPN" "C0603C102J5GACTU"
+		(property "MPN" "GRM1885C1H103JA01D"
 			(at 83.82 125.73 0)
 			(hide yes)
 			(show_name no)
@@ -4919,7 +4919,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "KEMET"
+		(property "Manufacturer" "Murata"
 			(at 83.82 125.73 0)
 			(hide yes)
 			(show_name no)

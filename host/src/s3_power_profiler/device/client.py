@@ -32,6 +32,7 @@ from s3_power_profiler.protocol import (
     Mode,
     ResponseMessage,
     StreamPayload,
+    ZeroOffsets,
     commands,
     decode_event,
     decode_response,
@@ -236,13 +237,17 @@ class DeviceClient:
         """Stop the sample stream."""
         self.request(commands.build_stop())
 
-    def calibrate_zero(self) -> None:
-        """Run the zero calibration."""
-        self.request(commands.build_cal_zero())
+    def calibrate_zero(self) -> ZeroOffsets:
+        """Run the zero calibration and return the zero offset of each range, in codes."""
+        return commands.decode_zero_offsets(self.request(commands.build_cal_zero()).data)
 
-    def write_calibration(self, target: int, gain: float, offset: float) -> None:
-        """Store the gain and the offset of a range or of the DAC."""
-        self.request(commands.build_cal_write(target, gain, offset))
+    def read_calibration(self) -> bytes:
+        """Return the calibration record of the instrument, empty when it has none."""
+        return self.request(commands.build_cal_read()).data
+
+    def store_calibration(self, record: bytes) -> None:
+        """Store a calibration record. The instrument accepts it in IDLE only."""
+        self.request(commands.build_cal_store(record))
 
     def clear_fault(self) -> None:
         """Reset the fault latch."""
