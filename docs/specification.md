@@ -299,9 +299,9 @@ Input stage:
 - The 5 V rail carries about 74 µF, of which 47 µF is an electrolytic
   capacitor (C11); about 62 µF remain at 5 V (estimate from the bias
   curves of the ceramic parts).
-- The damper at input 2 in the drawing above is decision D-98. It is not
-  drawn yet: the schematic of draft A2 has its two positions without
-  parts (section 4.1).
+- The damper at input 2 in the drawing above is decision D-98. It is
+  fitted in the schematic since 2026-10-10; draft A2 had drawn its two
+  positions without parts (section 4.1).
 
 Supervisor (D-48). A voltage supervisor on the 5 V rail (candidate:
 TPS3808G01, U6) drives the open-drain signal 5V_OK:
@@ -371,12 +371,12 @@ of 3V3_C (R41, R43, R44). A 10 nF capacitor from each threshold node and
 from the sense node of −4 V_A to ground (C32 to C34, D-95) keeps an edge
 of the line from moving its own threshold: in the package every output
 pin is the neighbor of an inverting input. The value was 1 nF until D-95,
-and the drawings of draft A2 still show 1 nF. With 10 nF the three nodes
+and the drawings hold 10 nF since 2026-10-10. With 10 nF the three nodes
 follow their dividers with time constants of about 0.09 ms, 0.25 ms and
 0.36 ms (calculated from the resistor values, each node alone; a tenth of
 that with 1 nF). The figures of this document for the edges of PWR_GOOD
-at power-up and at power-off were simulated with 1 nF; they are simulated
-again when the change is drawn (section 16). PWR_GOOD is low when any of
+at power-up and at power-off were simulated with 1 nF; the run with
+10 nF is open (section 16). PWR_GOOD is low when any of
 these holds (calculated from the resistor values; the bands include the
 tolerances and the drift of the parts):
 
@@ -442,7 +442,7 @@ Input stage (D-47):
   the multiplexer; the resistor defines that node when the jumper is open.
 - Damper of the module input (D-98): 10 µF behind 0.33 Ω (C5, R14) at
   the output of that limiter. D-84 had left the two positions without
-  parts, and the drawings of draft A2 still show them so.
+  parts; they are fitted in the schematic since 2026-10-10.
 - A Schottky diode lies across each limiter, anode on its output (D4,
   D3). When a cable is pulled it returns the charge behind the limiter, so
   that the output stays within 0.3 V of the input, which is the rating of the
@@ -3688,7 +3688,7 @@ items of that section that need parts moved are closed or accepted.
 | A dip of the 5 V rail below 3.9 V, or the USB-C cable pulled while the data cable stays | Carrier restarts; the DUT loses its supply for 0.3 s to 0.7 s | Accepted and documented; the controller and the USB link stay up and report the loss of the carrier supply (F-7) |
 | A weak USB-C source (about 3 V to 4.1 V) keeps the carrier off although the computer port is good; firmware cannot read the cause | Instrument does not start, no hint | User documentation; PWR_GOOD low is reported |
 | Boost converter starts on an input limited to 0.67 A to 0.85 A without under-voltage lock-out or soft start | Start hangs or repeats on the data cable alone | Measured in phase 1; as drawn the converter starts in one go (simulated on 2026-10-10; below 2.7 V it is outside its datasheet). The position at its enable pin (U9) stays without a part, and a remedy, if one is needed, is a detector with a time-out of milliseconds, not the 803 type with 0.24 s (D-97) |
-| Inputs of the input multiplexer come within 25 mV to 85 mV of their 6 V absolute maximum when the data cable is plugged again (simulated) | Multiplexer stressed at every plug | Damper on that input, 0.33 Ω with 10 µF (R14, C5), fitted by D-98 and not drawn yet: 5.502 V at input 2 with it in the runs made (simulated on 2026-10-10); measured with a short cable (section 16) |
+| Inputs of the input multiplexer come within 25 mV to 85 mV of their 6 V absolute maximum when the data cable is plugged again (simulated) | Multiplexer stressed at every plug | Damper on that input, 0.33 Ω with 10 µF (R14, C5), fitted by D-98 and drawn since 2026-10-10: 5.502 V at input 2 with it in the runs made (simulated on 2026-10-10); measured with a short cable (section 16) |
 | In-rush of the carrier on the USB port of the computer | The port shuts down at plug-in | 10 µF or less directly at each connector; ramps of 0.3 A to 0.9 A and a hardware limit of 0.85 A on the computer port (D-47); the 50 µC of the USB in-rush test is not met (the carrier adds 0.3 mC to 0.8 mC to the 0.12 mC of the module, simulated); check of section 16; the jumper can be cut and the USB-C input used |
 | PWR_GOOD does not watch the 3V3_C rail | A weak logic rail shows as data errors, not as a supply fault | Stated in section 4.11; the self-test does not claim to cover that rail |
 | Candidate part unsuitable or unavailable | Redesign | Section 16 checks first; second sources named for passives, diodes, the reference and the regulator grades; stock read on 2026-10-09; parts with long lead times bought with the first order |
@@ -3973,7 +3973,8 @@ Parts and blocks:
   register accepts. Open after D-95: with 10 nF one crossing was
   simulated, at 2 V/s; the crossings at 20 V/s and at 400 V/s, where 1 nF
   gave bursts of edges, and the edges of PWR_GOOD at power-up and at
-  power-off are simulated with 10 nF when the change is drawn.
+  power-off are not simulated with 10 nF yet. The change is drawn since
+  2026-10-10; the benches were not run again.
 - Shift registers (SN74LV165A): timing of the load pulse against the
   convert-start edge, maximum clock at 3.3 V against the 500 kSPS option.
 - Interlock transistors (BSS138: Q3, Q2, and Q1 at the enable
