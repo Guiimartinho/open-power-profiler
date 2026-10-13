@@ -10,7 +10,8 @@ body:
 
         The project is in early development. The carrier board exists as
         draft A2, a review draft that has not been built, and the firmware
-        is not ported to the Raspberry Pi Pico 2 yet. A report today is
+        builds for the Raspberry Pi Pico 2 but drives no hardware yet. A
+        report today is
         most likely about the design files (schematic, board), the
         specification, the circuit simulations with their models and
         benches, the firmware core and its unit tests, the protocol

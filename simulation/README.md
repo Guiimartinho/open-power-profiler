@@ -6,22 +6,43 @@ waveforms are compared with the figures of
 [the specification](../docs/specification.md).
 
 Everything here is simulation. Nothing is measured on hardware, and a figure
-that passes says only that the circuit as drawn, with the models named beside
-the result, keeps its limit. The results are in [`results/`](results/README.md).
+that passes says only that the simulated circuit, with the models named
+beside the result, keeps its limit. The results are in
+[`results/`](results/README.md).
 
 ## Status
 
-As of 2026-10-10. The circuits of draft A2 are simulated block by block from
-the netlist of the final schematic: 134 benches, of which 93 run circuits of
-the board in ten blocks and 41 put the models written for the project into
-the test circuits of their datasheets. Every bench ran. A bench is one
-circuit with its stimulus; it takes figures from the waveforms and judges
-each one against its limit. The limit is a figure of the specification
-where it states one; else a rating or a figure of a datasheet, a value
-that the bench calculates, or a limit that the bench sets and names. In
-the block `models` it is the figure of the datasheet with the tolerance
-that this project asks of a model. Of the 3162 figures 1834 pass, 122
-fail and 1206 carry no limit: they are values that nothing limits.
+As of 2026-10-12. The circuits of draft A2 were simulated on 2026-10-10,
+block by block, from the netlist of the schematic as it stood that day:
+134 benches, of which 93 run circuits of the board in ten blocks and 41 put
+the models written for the project into the test circuits of their
+datasheets. Every bench ran. A bench is one circuit with its stimulus; it
+takes figures from the waveforms and judges each one against its limit.
+The limit is a figure of the specification where it states one; else a
+rating or a figure of a datasheet, a value that the bench calculates, or a
+limit that the bench sets and names. In the block `models` it is the
+figure of the datasheet with the tolerance that this project asks of a
+model. Of the 3162 figures 1834 pass, 122 fail and 1206 carry no limit:
+they are values that nothing limits.
+
+The snapshot of the netlist is ahead of the results. After that run three
+decisions of the specification were drawn into the schematic, D-95, D-97
+and D-98, and `netlist/carrier.json` was written again from it. The
+snapshot holds them: C32 to C34 at 10 nF, R14 and C5 fitted with their
+part numbers, and the new text of the position U9. On 2026-10-12
+`circuit-sim netlist --check` says that it matches the netlist of the
+schematic. The benches were not run again. Every record, graph, deck and
+page in `results/`, and every simulated figure and every count of figures
+in this guide, is of the run of 2026-10-10, on the circuit before these
+changes: 1 nF at C32 to C34, and R14 and C5 as positions without parts.
+The benches are not in line with the new snapshot either: those of the
+power input still leave R14 and C5 out, and the bench of the rail monitor
+names its cases by the value that was drawn before. A run today would
+take 10 nF for C32 to C34 from the snapshot, where the results on file
+took 1 nF: the pages of the rail monitor, the power-up and the power-off
+describe a circuit that the repository no longer builds.
+[When the Schematic Changes](#when-the-schematic-changes) has the work
+that is open.
 
 | Block | Circuits | Benches | Pass | Fail | No limit |
 | --- | --- | --- | --- | --- | --- |
@@ -42,24 +63,29 @@ fail and 1206 carry no limit: they are values that nothing limits.
 What the counts rest on, and what they do not say:
 
 - **Simulated, not measured.** No board exists. A figure that passes says
-  that the circuit as drawn keeps its limit with the models named beside
+  that the simulated circuit keeps its limit with the models named beside
   it. It does not say that a built board will.
-- **The parts are the drawn ones.** A bench of the ten board blocks takes
-  the parts that it simulates from `netlist/carrier.json`, a snapshot of
-  the netlist of the schematic with its 428 parts, and types none of
-  them. What stands around those parts is typed by the bench and named in
-  its notes: sources, loads, cables, the device under test, and in some
-  benches a stand-in for a neighboring block of the board, such as the
-  boost converter as a load in `power_input` or the closed ampere path as
-  one resistance in `range_logic`. Some runs change a part on purpose,
-  with another value or with a position fitted, and say so. The benches
-  of the block `models` use the test circuits of the datasheets, which
-  are typed. On 2026-10-10 the snapshot matched the schematic in
-  [`../hardware/kicad/`](../hardware/kicad/), checked with
-  `circuit-sim netlist --check`. Schematic and snapshot hold the state
-  before decisions D-95, D-96 and D-98 of the specification: 1 nF at
-  C32 to C34, no position for a capacitor at U28, R14 and C5 without
-  parts. Every result here is a result of that state.
+- **The parts come from the netlist.** A bench of the ten board blocks
+  takes the parts that it simulates from `netlist/carrier.json`, a
+  snapshot of the netlist of the schematic with its 428 parts, and types
+  none of them. What stands around those parts is typed by the bench and
+  named in its notes: sources, loads, cables, the device under test, and
+  in some benches a stand-in for a neighboring block of the board, such
+  as the boost converter as a load in `power_input` or the closed ampere
+  path as one resistance in `range_logic`. Some runs change a part on
+  purpose, with another value or with a position fitted, and say so. The
+  benches of the block `models` use the test circuits of the datasheets,
+  which are typed.
+- **The results are of the snapshot of 2026-10-10.** That snapshot
+  matched the schematic in [`../hardware/kicad/`](../hardware/kicad/) as
+  it stood then, checked with `circuit-sim netlist --check`: 1 nF at C32
+  to C34, R14 and C5 without parts, no position for a capacitor at U28.
+  Every result here is a result of that state. The snapshot in the
+  folder now is a later one, written after decisions D-95, D-97 and D-98
+  of the specification were drawn. It holds 10 nF at C32 to C34, R14 and
+  C5 with their part numbers and the new text of U9, and it matches the
+  schematic by the same check on 2026-10-12. D-96 is not drawn, so
+  neither the schematic nor the snapshot has the position at U28.
 - **The models are written here.** Every active part is a model written
   for this project from its datasheet, a typical part at room
   temperature. The 41 benches of the block `models` put these models
@@ -78,10 +104,11 @@ What the counts rest on, and what they do not say:
   is up earlier than stated is far from its value and inside its limit.
 - **A figure that fails is kept as it is.**
   [Reading the Failures](#reading-the-failures) says what the 122 are.
-  Most are of five kinds: a point that is decided since and not drawn
-  yet, a figure of the specification that the circuit does not give, a
-  rating that a fault case passes, an option that is not in use, or a
-  model that misses its datasheet.
+  Most are of five kinds: a point that is decided since, whose figures
+  are still those of the circuit before the decision, a figure that the
+  specification stated before its corrections of 2026-10-10, a rating
+  that a fault case passes, an option that is not in use, or a model
+  that misses its datasheet.
 - **One machine.** The benches ran with the ngspice 45.2 library that
   KiCad 10 ships, on Windows with Python 3.11. The whole suite takes
   29 minutes there. The results folder holds 251 graphs, 289 decks (a
@@ -97,14 +124,19 @@ What the counts rest on, and what they do not say:
 What comes next. The four points that the simulations raised are decided:
 they are decisions D-95 to D-98 of the specification, taken by the
 project owner on 2026-10-10 ([Four Points, Decided](#four-points-decided)).
-The next step is to draw D-95, D-96 and D-98 in the schematic and on the
-board, to write the snapshot again and to run the benches of the changed
-blocks again ([When the Schematic Changes](#when-the-schematic-changes)).
-The fourteen places of
-[Where the Simulation and the Text Differ](#where-the-simulation-and-the-text-differ)
-wait for the project owner, and none of them is decided. The license of
-the netlist snapshot in this folder is open as well
-([License](#license)).
+Three of them are drawn and in the snapshot since that day, D-95, D-97
+and D-98; D-96 is not drawn. The next step in this folder is to bring the
+benches in line with the snapshot and to run the blocks that the changes
+touch, the rail monitor with the power-up and the power-off and the input
+from the module
+([When the Schematic Changes](#when-the-schematic-changes)). When D-96 is
+drawn, the snapshot is written again and the blocks that hold the Signal
+Chain sheet follow. Of the fourteen places of
+[Where the Simulation and the Text Differed](#where-the-simulation-and-the-text-differed),
+twelve are corrected in the specification since 2026-10-10, three of them
+by decisions D-99 to D-101. Two wait for the new run, and seven questions
+that the corrections leave wait for the project owner. The license of
+this folder is decided (D-102, [License](#license)).
 
 ## What the Simulations Say
 
@@ -113,9 +145,10 @@ the simulation and the text of the specification differ, and what only a
 bench can settle. Each statement names the bench that shows it, and a
 value in parentheses is the one that the specification states. The four
 points are decisions D-95 to D-98 since 2026-10-10. The differences are
-proposals to the project owner: none is decided, no requirement, figure
-or rule of the specification was changed on their account, and its
-section 16 lists them as open.
+corrected in the specification where a simulated figure answers them,
+and its section 16 lists what is still open. Every figure in the four
+lists is of the run of 2026-10-10, on the circuit before decisions D-95,
+D-97 and D-98 were drawn ([Status](#status)).
 
 ### What the Simulations Reproduce
 
@@ -267,34 +300,39 @@ that raises it, the node reaches 11.54 V in a short circuit, against the
 The simulations raised four points for a decision before boards are
 ordered. The project owner decided them on 2026-10-10, on the
 recommendation of this round: they are decisions D-95 to D-98 of the
-specification. Three of them change the circuit and are not drawn yet;
-the fourth changes only the text of a position, which is not drawn
-either. The schematic, the board, the bill of materials and the netlist
-snapshot
-of this folder still hold the earlier state: 1 nF at C32 to C34, no
-position at U28, R14 and C5 without parts. The results on file are those
-of that state, so the failing figures of these benches stay as they are
-until the change is drawn, the snapshot is written again and the benches
-run again ([When the Schematic Changes](#when-the-schematic-changes)).
+specification. Three of them are drawn since that day. D-95 and D-98
+change the circuit, a value on three capacitors and two parts fitted,
+and D-97 changes only the text of a position. The schematic, the board,
+the bill of materials and the netlist snapshot of this folder hold the
+three. D-96 is not drawn: it needs a footprint and copper. The results on
+file are those of the circuit before the changes, with 1 nF at C32 to C34
+and R14 and C5 without parts. The benches were not run again, so the
+failing figures of these benches stay as they are until the benches are
+brought in line with the snapshot and run
+([When the Schematic Changes](#when-the-schematic-changes)).
 
 1. **Rail monitor capacitors C32 to C34: 10 nF, not 1 nF (D-95, which
    changes the value of D-54).**
-   [`analog_rails/monitor`][analog_rails/monitor]. With 1 nF as drawn and a
-   comparator at its least hysteresis, 1 mV, an edge of PWR_GOOD moves its
-   own threshold, by 3.149 mV to 3.606 mV with 1 pF between an output pin
-   and the input beside it, and a rail that crosses slowly gives a burst:
-   2771 edges in 241.6 µs at 20 V/s and 423 edges in 36.36 µs at 400 V/s.
-   With the typical hysteresis of 3.5 mV and 0.5 pF the threshold moves
-   by 2.564 mV and one edge remains at 2 V/s. With 10 nF, 1 mV and 1 pF
-   the threshold moves by 525 µV and one edge remains at 2 V/s; no run
-   with 10 nF was made at the two slopes of the bursts. The capacitance
+   [`analog_rails/monitor`][analog_rails/monitor]. With 1 nF, the value
+   that was drawn when the bench ran, and a comparator at its least
+   hysteresis, 1 mV, an edge of PWR_GOOD moves its own threshold, by
+   3.149 mV to 3.606 mV with 1 pF between an output pin and the input
+   beside it, and a rail that crosses slowly gives a burst: 2771 edges in
+   241.6 µs at 20 V/s and 423 edges in 36.36 µs at 400 V/s. With the
+   typical hysteresis of 3.5 mV and 0.5 pF the threshold moves by
+   2.564 mV and one edge remains at 2 V/s. With 10 nF, 1 mV and 1 pF the
+   threshold moves by 525 µV and one edge remains at 2 V/s; no run with
+   10 nF was made at the two slopes of the bursts. The capacitance
    between the pins, 0.5 pF to 1 pF, is an assumption: the datasheet
-   names the hazard and gives no figure. Still to do: the value on the
-   three capacitors of the schematic. The bench takes the capacitors as
-   drawn, so its runs at 20 V/s and at 400 V/s are made with 10 nF once
-   the snapshot holds that value, and the benches of the power-up and of
-   the power-off then show the edges of PWR_GOOD with nodes that are ten
-   times slower. The test of PWR_GOOD on a board stays.
+   names the hazard and gives no figure. Drawn since 2026-10-10: the
+   three capacitors are 10 nF in the schematic, on the board and in the
+   snapshot. Still to do: the new run. The bench takes the capacitors
+   from the snapshot, so its runs at 20 V/s and at 400 V/s will be made
+   with 10 nF, and the benches of the power-up and of the power-off will
+   show the edges of PWR_GOOD with nodes that are ten times slower.
+   Before that the bench has to be brought in line: its case "capacitors
+   of 10 nF" is the drawn value times ten, which is 100 nF with the new
+   snapshot. The test of PWR_GOOD on a board stays.
 2. **Buffer of the driver rail, U28: a position for a capacitor at its
    non-inverting input (D-96).**
    [`signal_chain/driver-rail`][signal_chain/driver-rail]. The loop has
@@ -309,10 +347,10 @@ run again ([When the Schematic Changes](#when-the-schematic-changes)).
    against the lower figure, and neither figure is a measurement.
    Decided: a position for a capacitor from the non-inverting input to
    ground is added to the board; its value is chosen on the bench, and
-   the position may stay empty. No run with the capacitor was made. Still
-   to do: the position in the schematic and its footprint on the board,
-   which is the one change of copper among the four, and then a run with
-   a capacitor in it.
+   the position may stay empty. No run with the capacitor was made. This
+   decision is not drawn. Still to do: the position in the schematic and
+   its footprint on the board, which is the one change of copper among
+   the four, and then a run with a capacitor in it.
 3. **Detector position U9: it stays without a part, and the 803 type is
    no longer the part meant for it (D-97, which changes D-84).**
    [`analog_rails/boost-start`][analog_rails/boost-start] and
@@ -320,12 +358,12 @@ run again ([When the Schematic Changes](#when-the-schematic-changes)).
    the boost converter starts in one go on an input limited to 0.67 A to
    0.85 A: the +13.5 V rail is above 12.2 V after 980 µs to 1.294 ms.
    Fitted with the detector of 0.24 s (typical; 140 ms to 280 ms by its
-   datasheet), the position would stop a start
-   that works without it: the 5 V rail falls to 2.928 V to 3.03 V and the
-   detector stops the converter 177.5 µs to 249 µs after the enable. Only
-   in the corner that is kindest to the source, a converter at its least
-   current limit with a gentle error amplifier, does the rail stay above
-   the detector, at 3.62 V, and the start complete with the part fitted.
+   datasheet), the position would stop a start that works without it:
+   the 5 V rail falls to 2.928 V to 3.03 V and the detector stops the
+   converter 177.5 µs to 249 µs after the enable. Only in the corner that
+   is kindest to the source, a converter at its least current limit with
+   a gentle error amplifier, does the rail stay above the detector, at
+   3.62 V, and the start complete with the part fitted.
    With 1 mA drawn from the +13.5 V rail while the detector waits, the start
    repeats four times in 1.1 s and the rail is not charged at the end of
    the run; with 0.1 mA the second attempt completes it, after 485.6 ms.
@@ -336,11 +374,12 @@ run again ([When the Schematic Changes](#when-the-schematic-changes)).
    where a real limiter may fold back; and the 1 mA. Decided: the
    position stays without a part, and a remedy, if the prototype of
    phase 1 that starts from a supply limited to 0.7 A asks for one, is a
-   detector with a time-out of milliseconds. No copper changes; the
-   schematic and the footprint on the board still name the position
-   "803 type, 3.08 V". The
-   seven failing figures of `boost-detector` are those of the part that
-   is no longer meant for the position.
+   detector with a time-out of milliseconds. No copper changed. Drawn
+   since 2026-10-10: the schematic, the footprint on the board and the
+   snapshot name the position "Detector, ms time-out", where they named
+   it "803 type, 3.08 V". The seven failing figures of `boost-detector`
+   are those of the part that is no longer meant for the position, and
+   the notes of that bench still quote the earlier text.
 4. **Damper R14 (0.33 Ω) with C5 (10 µF) on the module input: fitted
    (D-98, which changes D-84).**
    [`power_input/replug-module`][power_input/replug-module]. When the data
@@ -361,20 +400,31 @@ run again ([When the Schematic Changes](#when-the-schematic-changes)).
    is 4.103 A through the multiplexer, against its pulse rating of 4 A
    ([`power_input/unplug`][power_input/unplug]), and the capacitor of the
    damper hangs on the input of the multiplexer, behind the limiter.
-   Still to do: the two
-   parts with their part numbers in the schematic and in the bill of
-   materials, on pads that the board has. The other benches of the power
-   input leave R14 and C5 out, by a list of positions without parts in
-   `benches/power_input/common.py`; the two leave that list when the
-   change is drawn.
+   Drawn since 2026-10-10: the two parts carry their part numbers in the
+   schematic, on the board, in the bill of materials and in the
+   snapshot. Still to do: the benches. The other benches of the power
+   input still leave R14 and C5 out, by the list `NOT_FITTED` of
+   positions without parts in `benches/power_input/common.py`. The two
+   have to leave that list and the block has to run again; until then
+   its results are those of an input without the damper.
 
-### Where the Simulation and the Text Differ
+### Where the Simulation and the Text Differed
 
-Fourteen places. In each the specification states a figure or a rule
-that the simulation does not give, or it is silent on something that the
-simulation shows. The round proposes no change of hardware for them: in
-each the proposal is to bring the text to what the circuit does. That is
-the owner's decision, and until it is taken the text stands as it is.
+Fourteen places. In each the specification stated a figure or a rule
+that the simulation does not give, or was silent on something that the
+simulation shows. On 2026-10-10 the project owner asked for the text to
+follow the simulations. Twelve places are corrected in the specification,
+each with the simulated figure marked "simulated on 2026-10-10"; three of
+the corrections changed a rule, a test or advice to the user and are
+decisions D-99 to D-101. Two places wait for the run of the benches on
+the drawn decisions D-95 and D-98, because their figures come from
+circuits that those decisions change. Seven questions stay open in
+section 16 of the specification: their answer needs a design value that
+no simulation gives, and each has one recommendation there. Every item
+below describes the difference as it was found and ends with its state.
+The limits of the benches are still those of the earlier text, so a
+figure that failed against a corrected passage stays a failure on the
+pages until its bench takes the new limit and runs again.
 
 - **Over-current qualification (section 4.4, F-18, section 11).**
   [`range_logic/trip`][range_logic/trip]. While a large capacitor
@@ -384,6 +434,8 @@ the owner's decision, and until it is taken the text stands as it is.
   Proposed: the rule says that the 12 µs count in range 3, and the
   criterion of section 11 is read there. The worst capacitor is near
   82 µF.
+  State: decision D-99. Rule F-18 and the test of section 11 count with
+  range 3 selected.
 - **Ladder clamp in a short circuit (section 4.3).**
   [`range_logic/hot-plug`][range_logic/hot-plug] and
   [`output_stage/short-circuit`][output_stage/short-circuit]. "Above 5 A
@@ -395,6 +447,7 @@ the owner's decision, and until it is taken the text stands as it is.
   the terminals. The spread of the clamp at amperes is an assumption, and
   for the source meter, whose regulator limits its current, the figures
   up to the trip are an upper bound.
+  State: corrected in section 4.3.
 - **Capacitor at the VIN terminals (sections 4.4, 4.9 and 11).**
   [`range_logic/supply-leads`][range_logic/supply-leads]. 100 µF there
   does not stop the ringing when the load capacitor is as large and the
@@ -402,6 +455,9 @@ the owner's decision, and until it is taken the text stands as it is.
   32.75 µs (specification: 2.1 µs), and 2 of 8 runs trip, where section
   11 asks for none. Proposed: the advice asks for a capacitor several
   times the load capacitor, or a lossy one.
+  State: decision D-100 limits the advice and the test to what was
+  simulated. Which capacitor ends the trips with heavy leads is an open
+  question.
 - **Power-off and power-up (section 3, F-7).**
   [`analog_rails/power-down`][analog_rails/power-down] and
   [`analog_rails/power-up`][analog_rails/power-up]. 3V3_C is below 3.0 V
@@ -413,6 +469,8 @@ the owner's decision, and until it is taken the text stands as it is.
   and 3V3_A below 1 V is 16.73 ms, not about 10 ms. These times follow
   from the loads that the bench assumes. At power-up −4 V_A arrives
   after 434.9 µs, not 0.3 ms; the order of the rails is unchanged.
+  State: waits for the run with the 10 nF of D-95, which is drawn since
+  2026-10-10 and not run yet; the text is unchanged.
 - **Output switch (section 4.2, D-71, F-8, F-24).**
   [`output_stage/turn-off`][output_stage/turn-off] and
   [`output_stage/turn-on`][output_stage/turn-on]. "Gate below 2 V within
@@ -423,6 +481,8 @@ the owner's decision, and until it is taken the text stands as it is.
   after 5.381 ms at 0.8 V. Over the corners the start spans from
   3.888 ms, the first 50 mV at 0.8 V in the fast corner, to 10.03 ms,
   10 % at 5 V into 2200 µF in the slow corner.
+  State: corrected in sections 4.2 and 4.7 and in the reasons of F-8 and
+  F-24.
 - **Suppressor of VOUT (section 4.9).**
   [`output_stage/short-circuit`][output_stage/short-circuit] and
   [`output_stage/terminal`][output_stage/terminal]. At a trip it carries
@@ -432,6 +492,7 @@ the owner's decision, and until it is taken the text stands as it is.
   sides. A positive strike beyond 15 V on the open output is limited by
   the suppressor, not by the avalanche of the output transistor: 24 V
   behind 1 Ω leave 19.4 V at the terminal and 17.38 V across Q16.
+  State: corrected in section 4.9.
 - **Mode switches (section 4.9, F-23).**
   [`path_switching/open`][path_switching/open],
   [`path_switching/drop`][path_switching/drop],
@@ -441,17 +502,22 @@ the owner's decision, and until it is taken the text stands as it is.
   6.122 V at 5 V and 5.739 V at 5.4 V when +12 V_A stands at 11.4 V, not
   "at least 6.2 V". The detector opens the switch after 2.199 µs to
   78.34 µs, not "4 µs to 45 µs", for which the text states no condition.
+  State: corrected in section 4.9, in the reason of F-23 and in the risk
+  register.
 - **Check of section 16 on TP33.**
   [`path_switching/reversal`][path_switching/reversal]. "TP33 above
   −0.1 V after 35 µs" with a reversed supply limited to 1 A is not met in
   the simulation: the node is at −2.556 V then. It is one run, with a
   source that limits at 1 A and has no output capacitor.
+  State: the check states the simulated figure; its criterion is an open
+  question.
 - **Noise budget (section 4.10).**
   [`signal_chain/noise`][signal_chain/noise]. The total stands; the list
   of its terms does not. The converter is 1.629 µV at the shunt by its
   datasheet at a reference of 2.5 V, not 1.0 µV, and the multiplexer
   channels (620.2 nV) and the filter with its driver (325.7 nV) are
   missing.
+  State: corrected in section 4.10.
 - **Converter interface (section 4.6).**
   [`digital/converter-lines`][digital/converter-lines]. By its datasheet
   the converter shifts its result out after convert-start falls, not
@@ -462,6 +528,8 @@ the owner's decision, and until it is taken the text stands as it is.
   command, and the data come 5.015 ns to 11.5 ns later than the converter
   alone gives them. The capacitances of tracks, pins and pads in these
   runs are assumptions; no datasheet gives them.
+  State: corrected in section 4.6; the reading window at 15 MHz is an
+  open check.
 - **Slow monitors (section 4.2).**
   [`digital/monitor-channels`][digital/monitor-channels]. The leakage of
   the converter inputs, 1 µA at the most, is not in the text: at that
@@ -470,6 +538,9 @@ the owner's decision, and until it is taken the text stands as it is.
   Channel 2 is at full scale with the rail at 5.50 V and the resistors at
   their limits (2.527 V against 2.5 V): it saturates from about 5.44 V of
   the rail (calculated from that figure).
+  State: the leakage and the bands with tolerances are in section 4.2.
+  The limits of F-26 and F-28 and the upper limit of F-12 are open
+  questions.
 - **Source meter (sections 4.2 and 4.9).**
   [`source_meter/setpoint`][source_meter/setpoint],
   [`source_meter/tracking`][source_meter/tracking] and
@@ -481,6 +552,7 @@ the owner's decision, and until it is taken the text stands as it is.
   output takes the IN pin 1.013 V to 1.04 V below the output for 22.82 µs
   to 24.72 µs, not 0.32 V to 0.94 V for 3 µs to 21 µs; the specification
   says of this case that no part covers it.
+  State: corrected in sections 4.2 and 4.9.
 - **Power input (sections 3, 4.1 and 16, F-35).**
   [`power_input/plug-module`][power_input/plug-module],
   [`power_input/switch-over`][power_input/switch-over],
@@ -507,12 +579,17 @@ the owner's decision, and until it is taken the text stands as it is.
   stands up to 1.539 V above the collapsed rail, against a rating of
   0.3 V. The peak is an upper bound, and its length of about a
   microsecond rests on an assumed reset level of the model.
+  State: waits for the run with the damper of D-98, which is drawn since
+  2026-10-10 and not run yet; the text is unchanged, and the threshold
+  of F-35 is an open question.
 - **Logic inputs (section 4.8).**
   [`digital/logic-abuse`][digital/logic-abuse]. +12 V at a line leaves
   6.588 V to 8.562 V at the translator pin behind 1 kΩ, 7.728 V behind
   100 Ω and 11.58 V from a source of 0.1 Ω, against a rating of 6.5 V.
   The text states no range that a line withstands. Proposed: it gives
   the range of a line as 0 V to 5.5 V.
+  State: decision D-101 states the range of a line. A withstand voltage
+  is an open question.
 
 The fourteen are not every difference. Thirteen more failing figures of
 the board blocks are judged against a rating or a condition of a
@@ -656,17 +733,21 @@ meet.
 ## Reading the Failures
 
 A figure that fails stays failed. The table says, block by block, what the
-122 failing figures are. The blocks `ladder` and `system` have none.
+122 failing figures are. The blocks `ladder` and `system` have none. Where
+the table says "the text", it is the text of the specification as the
+benches hold it, from before the corrections of 2026-10-10. The figures
+are those of the run of 2026-10-10: where a row names a decision that is
+drawn since, its bench was not run again on the drawn circuit.
 
 | Block | Fail | What fails |
 | --- | --- | --- |
-| `analog_rails` | 25 | `power-down` 12 and `power-up` 1: the times at which the rails fall, and at which −4 V_A arrives, are not those of section 3; ten are later and two earlier (3V3_A below 1.0 V after 3.584 ms, against 4 ms to 6 ms). `boost-detector` 7: the detector position U9 with the part of 0.24 s, which the board does not carry and which D-97 no longer means for it. `monitor` 2: edges of PWR_GOOD at the least hysteresis with 1 nF as drawn (D-95, not drawn yet). `clamps` 2: the rail clamps at −40 °C with the largest forward voltage, 394.2 mV and −391.4 mV against pin ratings of 0.3 V. `boost-start` 1: the source gives more than 1 A for 383.8 µs, where section 16 expects 0.15 ms to 0.2 ms |
+| `analog_rails` | 25 | `power-down` 12 and `power-up` 1: the times at which the rails fall, and at which −4 V_A arrives, are not those of section 3; ten are later and two earlier (3V3_A below 1.0 V after 3.584 ms, against 4 ms to 6 ms). `boost-detector` 7: the detector position U9 with the part of 0.24 s, which the board does not carry and which D-97 no longer means for it. `monitor` 2: edges of PWR_GOOD at the least hysteresis with 1 nF, the value that was drawn when the bench ran (D-95 makes it 10 nF, drawn since and not run again). `clamps` 2: the rail clamps at −40 °C with the largest forward voltage, 394.2 mV and −391.4 mV against pin ratings of 0.3 V. `boost-start` 1: the source gives more than 1 A for 383.8 µs, where section 16 expects 0.15 ms to 0.2 ms |
 | `digital` | 11 | `logic-abuse` 5: +12 V at a logic line against the 6.5 V rating of the translator pin. `monitor-channels` 3: the input leakage of the monitor converter at its datasheet maximum, and channel 2 at full scale. `converter-lines` 2: one reading instant for weak and strong pads at 15 MHz, the 500 kSPS option. `module-supply` 1: 506.8 mV against a calculated 0.5 V |
 | `output_stage` | 6 | `turn-off` 3: the gate below 2 V after 7.274 µs to 8.109 µs at 0.8 V, against 7 µs. `short-circuit` 2: 32.33 A in the 0.1 Ω shunt with a short across the terminals, and −1.807 V at the terminal with a suppressor of 0.15 Ω. `turn-on` 1: the output starts to rise after 5.381 ms at 0.8 V, against 6 ms to 7 ms |
 | `path_switching` | 19 | `short` 4: with parts at their corners the supply node reaches 11.52 V to 11.54 V against 11.5 V, and stays 458.5 mV below +12 V_A against 0.5 V. `reversal` 4 and `overvoltage` 3: a transistor of the pair has to block 34.44 V to 65.74 V against its 30 V when the supply leaves its range; the pair opens outside 4 µs to 45 µs; the check of section 16 on TP33. `open` 3: the opening kick outside the estimate of F-23. `drop` 3: gate drive below 6.2 V with +12 V_A at 11.4 V. `detector` 2: reaction outside 4 µs to 45 µs |
-| `power_input` | 27 | `plug-module` 13: the in-rush on a computer port after the spike of the module (peak current, port voltage and charge). `current-limit` 4: a short circuit of the 5 V rail, which the text does not cover. `overvoltage` 3: 12.5 V at the receptacle and a reversed source of 3 A against ratings of parts; the specification says that such a source destroys the suppressor. `plug-usbc` 2, `logic-rails` 2 and `unplug` 1: the USB in-rush test, which the specification states is not met; a source limited to 0.9 A; the 3.3 V rails 637.3 mV and 649.7 mV above a 5 V rail that is taken to 0 V at 20 V/ms; 4.103 A through the multiplexer in the recharge. `replug-module` 2: input 2 at 6.002 V without the damper (D-98, not drawn yet) |
+| `power_input` | 27 | `plug-module` 13: the in-rush on a computer port after the spike of the module (peak current, port voltage and charge). `current-limit` 4: a short circuit of the 5 V rail, which the text does not cover. `overvoltage` 3: 12.5 V at the receptacle and a reversed source of 3 A against ratings of parts; the specification says that such a source destroys the suppressor. `plug-usbc` 2, `logic-rails` 2 and `unplug` 1: the USB in-rush test, which the specification states is not met; a source limited to 0.9 A; the 3.3 V rails 637.3 mV and 649.7 mV above a 5 V rail that is taken to 0 V at 20 V/ms; 4.103 A through the multiplexer in the recharge. `replug-module` 2: input 2 at 6.002 V without the damper (D-98 fits it, drawn since and not run again) |
 | `range_logic` | 6 | `trip` 2 and `supply-leads` 2: the over-current comparator high for longer than the text states. `hot-plug` 1: a clamp transistor above 5 A for 14.79 µs in a short circuit. `landing` 1: the model of the sequencer takes its next step after 2.968 µs, not 3 µs, which is a property of the model |
-| `signal_chain` | 8 | `driver-rail` 3: phase margin of the buffer U28 as drawn (D-96 adds a position for a capacitor). `head-room` 2: the reading of the amplifier datasheet that ends the linear range at 130 mV. `sampling-kick` 2: the 500 kSPS option. `pedestal` 1: 1.363 Ω at the reference pin of the amplifier at 40 kHz, where its datasheet asks for less than 1 Ω |
+| `signal_chain` | 8 | `driver-rail` 3: phase margin of the buffer U28 as drawn (D-96 adds a position for a capacitor, which is not drawn). `head-room` 2: the reading of the amplifier datasheet that ends the linear range at 130 mV. `sampling-kick` 2: the 500 kSPS option. `pedestal` 1: 1.363 Ω at the reference pin of the amplifier at 40 kHz, where its datasheet asks for less than 1 Ω |
 | `source_meter` | 3 | `external` 2: a charged capacitor plugged into the output takes the IN pin 1.013 V and 1.04 V below the output, a case that the specification names as covered by no part. `sequence` 1: a released output falls at 699.5 V/s against a calculated 700 V/s to 800 V/s |
 | `models` | 17 | Six of the 41 models miss a figure of their datasheet, and the page says which: `output-stage-buffer` 7, `source-meter-lt3080` 3, `analog-rails-lmr62014` 2, `signal-chain-ad8421` 2, `source-meter-tps63020` 2, `power-input-capacitors` 1 |
 
@@ -761,11 +842,11 @@ each model in `models/*.lib` and the notes of each bench give the detail.
 
 | Path | Content |
 | --- | --- |
-| `netlist/carrier.json` | Snapshot of the netlist of the schematic: 428 parts with values and nets |
+| `netlist/carrier.json` | Snapshot of the netlist of the schematic: 428 parts with values and nets. Written again on 2026-10-10, after decisions D-95, D-97 and D-98 were drawn |
 | `models/` | SPICE models written here, and the model map that gives every part its model |
 | `models/vendor/` | Model files of the manufacturers, where present; not versioned |
 | `benches/` | The benches, one Python package per block of the instrument |
-| `results/` | Result files, graphs, decks and the pages written from them |
+| `results/` | Result files, graphs, decks and the pages written from them: all of the run of 2026-10-10, made from the snapshot before those decisions |
 | `src/circuit_sim/` | The package: netlist, circuit builder, engine, measurements, graphs, report |
 | `tests/` | Unit tests of the package |
 | `.work/` | Scratch folder of the runs, with the raw vectors of every deck; not versioned |
@@ -775,11 +856,13 @@ reference designators, and the package writes one SPICE element for each,
 with the value and the nets of the schematic. What the bench adds is what
 the schematic does not hold: sources, loads, cables and the analysis. A
 value changed in the schematic therefore changes the simulation with the
-next snapshot, and a part enters a bench only as it is drawn. Two things
-go beyond that, and the notes of a bench name each: a bench can change
-single parts on purpose (`overrides`, `scales`), for a tolerance run or
-for a variant such as a position fitted, and it can type a stand-in for a
-neighboring block of the board that it does not simulate.
+next snapshot, and a part enters a bench only as it is drawn. That is the
+state now: the snapshot is newer than the results, and the next run of a
+bench that holds C32 to C34 takes their new value ([Status](#status)).
+Two things go beyond that, and the notes of a bench name each: a bench can
+change single parts on purpose (`overrides`, `scales`), for a tolerance
+run or for a variant such as a position fitted, and it can type a
+stand-in for a neighboring block of the board that it does not simulate.
 
 Every deck runs in a process of its own that loads the ngspice library,
 and the package judges the log of the run: the simulator goes on after
@@ -1034,8 +1117,8 @@ found.
 
 ## When the Schematic Changes
 
-The results describe the netlist of the snapshot. After a change of the
-schematic:
+The results describe the netlist of the snapshot from which they were run.
+After a change of the schematic:
 
 1. Export the netlist and write the snapshot:
    `circuit-sim netlist carrier.xml`.
@@ -1048,14 +1131,38 @@ schematic:
 The workflow does not make this comparison: it has no KiCad and runs no
 bench.
 
-The next change is known: decisions D-95, D-96 and D-98 of the
-specification. What it touches here:
+Where this stands on 2026-10-12. The schematic changed on 2026-10-10,
+with decisions D-95, D-97 and D-98 of the specification, and step 1 is
+done: the snapshot holds the six changed parts, C5, C32 to C34, R14 and
+U9, and `circuit-sim netlist --check` says that it matches the schematic.
+Steps 2 and 3 are not done. The results in `results/` are those of the
+snapshot before, and the benches are not in line with the new one. What
+each change touches here:
 
-- C32 to C34 at 10 nF: the circuits of `analog_rails/monitor`,
-  `analog_rails/power-up` and `analog_rails/power-down` hold the three
-  capacitors. The bench of the monitor has a case that it labels
-  "capacitors of 10 nF", which is the drawn value times ten: with the new
-  snapshot that case has to be defined again.
+- C32 to C34 at 10 nF (D-95, drawn): the circuits of
+  `analog_rails/monitor`, `analog_rails/power-up` and
+  `analog_rails/power-down` hold the three capacitors and take 10 nF from
+  the snapshot in their next run. The bench of the monitor names its
+  cases by the value that was drawn before: "capacitors as drawn" stood
+  for 1 nF, and the case that it labels "capacitors of 10 nF" is the
+  drawn value times ten, which is 100 nF with the new snapshot. Its
+  cases, labels and notes have to be defined again before it runs.
+- R14 and C5 fitted (D-98, drawn): only `power_input/replug-module` holds
+  them, in its runs with the damper. Its runs without the damper now
+  stand for a circuit that is no longer the drawn one, and the bench has
+  to say so; its text still calls the two a position that the schematic
+  leaves without parts and without a part number. The other benches of
+  the power input leave the two parts out through the list `NOT_FITTED`
+  in `benches/power_input/common.py`, which the two have to leave; U9
+  stays in it (D-97). Until that is done, a run of the block gives the
+  input without the damper again.
+- The text of U9 (D-97, drawn): no circuit changes, because the position
+  carries no part. The notes of `analog_rails/boost-detector` quote the
+  earlier text of the position, "803 type, 3.08 V", and follow with the
+  next change of that bench.
+
+One change is still to come. Decision D-96 is not drawn:
+
 - The position for a capacitor at the non-inverting input of U28: the
   circuits of the blocks `signal_chain`, `range_logic` and `system` take
   every part of the Signal Chain sheet (`chain_refs` in
@@ -1063,12 +1170,6 @@ specification. What it touches here:
   position carries no part. While the position is empty it has to be
   left out by name, as the power input does with its list; otherwise the
   three blocks are simulated with a capacitor that nobody chose.
-- R14 and C5 fitted: only `power_input/replug-module` holds them, in its
-  runs with the damper; its runs without the damper then stand for a
-  circuit that is no longer the drawn one, and the bench has to say so.
-  The other benches of the power input leave the two parts out through
-  the list `NOT_FITTED` in `benches/power_input/common.py`, which they
-  have to leave; U9 stays in it (D-97).
 
 The whole suite takes 29 minutes, so the simplest is to run all of it
 again and to compare.
@@ -1085,8 +1186,9 @@ again and to compare.
 Tests that run a deck are marked `needs_ngspice` and are skipped where the
 library is not found.
 
-Results on 2026-10-10, on Windows with Python 3.11 and the ngspice 45.2
-library of KiCad 10:
+Results on 2026-10-12, on Windows with Python 3.11 and the ngspice 45.2
+library of KiCad 10, with the snapshot that holds decisions D-95, D-97
+and D-98. They are the results of 2026-10-10 again:
 
 | Check | Result |
 | --- | --- |
@@ -1106,18 +1208,34 @@ versions of Python and other versions of ngspice have not run this
 package.
 
 The gates cover the package. They say that it builds the circuit it is
-asked for and measures what it says; they say nothing about the board.
+asked for and measures what it says; they say nothing about the board. No
+test runs a bench of the board. The gates passed before the snapshot was
+written again and pass after it, and they do not show that the results on
+file are older than the snapshot ([Status](#status)).
 
 ## License
 
-Open, for the project owner to decide. The package is MIT in its
-`pyproject.toml`, like the other software of the repository. The snapshot
-`netlist/carrier.json` is derived from the schematic in
-[`../hardware/`](../hardware/README.md#license), whose design files are
-under CERN-OHL-P v2, and the decks and result files made from it carry
-its parts, values and nets. Whether the snapshot and what is made from it
-stay under the license of the hardware or go under MIT with the package
-is not decided.
+Copyright (c) 2026 Luiz Guilherme Ito.
+
+This folder follows the two licenses of the repository (decision D-102 of
+the specification):
+
+- The package in `src/`, its tests, the benches, the models written for
+  the project in `models/` and this guide are software and its
+  documentation: [MIT](../LICENSE), like everything of the repository
+  outside `hardware/`. The wheel ships the package only, so
+  `pyproject.toml` names MIT.
+- The snapshot of the netlist in [`netlist/`](netlist/) and everything in
+  [`results/`](results/README.md), the decks, the records, the graphs and
+  the pages, derive from the design files of the carrier board: they are
+  licensed under the CERN Open Hardware Licence Version 2 - Permissive
+  (CERN-OHL-P v2), like [`../hardware/`](../hardware/README.md#license).
+  See [`netlist/LICENSE`](netlist/LICENSE) and
+  [`results/LICENSE`](results/LICENSE). They are provided without any
+  warranty, as stated in section 5 of the license.
+
+The models of the manufacturers in `models/vendor/` are not part of the
+repository and keep the licenses of their makers.
 
 [analog_rails/boost-detector]: results/analog_rails/README.md#analog_railsboost-detector
 [analog_rails/boost-output]: results/analog_rails/README.md#analog_railsboost-output

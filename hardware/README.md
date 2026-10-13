@@ -17,7 +17,7 @@ sockets. It is not a photograph: no board has been built.
 
 ## Status
 
-Draft A2 with a reviewed layout, as of 2026-10-10. The KiCad project holds
+Draft A2 with a reviewed layout, as of 2026-10-12. The KiCad project holds
 the whole carrier board: the schematic with 428 parts on fifteen A4 pages
 (the root sheet and fourteen sheets) and a four-layer board of
 150 mm × 100 mm on which every connection is drawn. The board was placed by
@@ -29,23 +29,29 @@ the same day the circuits of the schematic were simulated from its netlist,
 block by block; the central design figures of the specification come out
 again ([Circuit Simulations](#circuit-simulations)). The simulations
 raised four points, which the owner decided the same day: decisions D-95
-to D-98 of the specification. Three of them change the circuit, the
-fourth only the text of a position, and none is drawn yet, so the files
-of this directory still show the earlier state
+to D-98 of the specification. Three of them are drawn since that day, as
+changes of values, part numbers, fitted flags and texts: 10 nF at C32 to
+C34 (D-95), the damper R14 and C5 fitted (D-98), and the text of the
+position U9, which stays without a part (D-97). No copper changed and no
+part moved, and both rule checks report nothing on these files (run on
+2026-10-12). The fourth is not drawn: a position for a capacitor at the
+buffer U28 (D-96), which needs a footprint and copper. The simulations
+were not run again, so their results describe the circuit before the
+three changes
 ([Decisions That Follow the Simulations](#decisions-that-follow-the-simulations)).
 Nobody has looked at the layout in the KiCad editor yet, no board is
 built, and nothing is measured.
 
 | What | State |
 | --- | --- |
-| Schematic | Every sheet drawn: 428 parts, 225 nets, 15 pages; not changed by the layout review. Three decisions of 2026-10-10 are not drawn in it yet (D-95, D-96, D-98) |
-| Electrical rules check | 0 errors, 0 warnings |
-| Netlist against datasheets | Checked independently; no blocker and no major defect found |
-| Bill of materials | 151 lines, each with a part number and a maker; three lines without stock on 2026-10-09; not changed by the layout review. It still holds 1 nF at C32 to C34 and leaves R14 and C5 out (D-95, D-98) |
+| Schematic | Every sheet drawn: 428 parts, 225 nets, 15 pages; not changed by the layout review. Three decisions of 2026-10-10 are drawn in it since that day, as changes of values, part numbers, fitted flags and texts: 10 nF at C32 to C34 (D-95), R14 and C5 fitted (D-98), the text of the position U9 (D-97). One is not drawn: the position for a capacitor at U28 (D-96) |
+| Electrical rules check | 0 errors, 0 warnings; run again on 2026-10-12, after the three decisions were drawn |
+| Netlist against datasheets | Checked independently, before the three decisions were drawn; no blocker and no major defect found |
+| Bill of materials | 151 lines for 370 parts, each line with a part number and a maker; three lines without stock on 2026-10-09; not changed by the layout review. Exported again on 2026-10-10: it holds 10 nF at C32 to C34 (D-95) and the two parts of the damper, R14 and C5 (D-98) |
 | Component checks | 0 closed; every part is a candidate |
 | Board, placement | 425 footprints placed by a script; 35 of them moved or turned in the layout review; not reviewed by a person |
 | Board, routing | 984 of 984 connections, none open: 8.38 m of track, 694 vias, 42 copper zones |
-| Design rules check with schematic parity | 0 violations, 0 unconnected pads, 0 footprint errors, against a rule file that asks more than the one of the autorouted board |
+| Design rules check with schematic parity | 0 violations, 0 unconnected pads, 0 footprint errors, 0 differences between board and schematic, against a rule file that asks more than the one of the autorouted board; run again on 2026-10-12, after the three decisions were drawn |
 | Layout review | Done with scripts and checked by independent calculation; not yet looked at by a person in the KiCad editor |
 | 1 A path, copper only | 19.5 squares (10.4 mΩ at 40 °C) in source mode and 23.3 squares (12.3 mΩ at 40 °C) in ampere mode, against a limit of 30 squares; calculated from the drawn copper |
 | Surface leakage into the measured node | 5.1 nA against a budget of 10 nA; calculated from the drawn copper with the assumptions of section 10.3 of the specification |
@@ -53,8 +59,8 @@ built, and nothing is measured.
 | Open items of the layout | Eleven that need parts moved or another footprint, and five points that the review did not touch ([list](#open-items)) |
 | Thermal check of the linear regulator | Open: the temperature rise of U18 at full dissipation is read on the first board (D-93) |
 | Calculation scripts | In [`tools/board/`](../tools/board/README.md): they calculate the figures of the board again from the board file ([how](#reproducing-the-figures)) |
-| Circuit simulations | Done on 2026-10-10 from the netlist of this schematic, in [`../simulation/`](../simulation/README.md): 134 benches, 93 on the circuits of the board and 41 on the models; 1834 figures pass, 122 fail and 1206 carry no limit. Every active part is a model written from its datasheet; nothing is measured |
-| Decisions that follow the simulations | Four, decided by the owner on 2026-10-10: D-95 to D-98. Not drawn yet: 10 nF at C32 to C34 of the rail monitor, a position for a capacitor at the buffer U28, and the damper R14 and C5 fitted. The detector position U9 stays without a part ([list](#decisions-that-follow-the-simulations)) |
+| Circuit simulations | Done on 2026-10-10 from the netlist of this schematic as it stood before the three drawn decisions, in [`../simulation/`](../simulation/README.md): 134 benches, 93 on the circuits of the board and 41 on the models; 1834 figures pass, 122 fail and 1206 carry no limit. Not run again since: the netlist snapshot holds the three changes, the results do not. Every active part is a model written from its datasheet; nothing is measured |
+| Decisions that follow the simulations | Four, decided by the owner on 2026-10-10: D-95 to D-98. Drawn since that day: 10 nF at C32 to C34 of the rail monitor, the damper R14 and C5 fitted, and the text of the detector position U9, which stays without a part. Not drawn: a position for a capacitor at the buffer U28, which needs a footprint and copper ([list](#decisions-that-follow-the-simulations)) |
 | PIO programs | Not written |
 | Fabrication outputs | None |
 | Measurements | None: no board has been built |
@@ -64,7 +70,17 @@ What the draft has behind it:
 - The schematic passes the electrical rules check of KiCad with no errors
   and no warnings. The netlist that KiCad exports equals the netlist the
   drawings were generated from (428 parts, 225 nets), and every symbol pin
-  has a pad in its footprint (65 pairs of symbol and footprint).
+  has a pad in its footprint (65 pairs of symbol and footprint). That
+  comparison was made before the three decisions below were drawn; they
+  changed fields of six parts and no connection.
+- Three decisions that follow the simulations are drawn since 2026-10-10
+  (D-95, D-97 and D-98), as changes of values, part numbers, fitted flags
+  and texts on three sheets and on six footprints of the board. No wire,
+  track, via, zone or pad changed, and no footprint moved. Both checks
+  were run again on the changed files on 2026-10-12 and report nothing.
+  The bill of materials, the PDF, the pictures of the three sheets and
+  the two renderings of the board were exported again from them
+  ([Decisions That Follow the Simulations](#decisions-that-follow-the-simulations)).
 - The netlist was checked independently against the datasheets: symbol,
   footprint and ratings of every part type that is new in this draft, and
   six subsystems as a whole (power, source meter, ampere path, measuring
@@ -74,7 +90,7 @@ What the draft has behind it:
   filed in this repository, so the result can be read here but not
   inspected: it counts as a review, not as evidence.
 - Every line of the bill of materials has a part number and a maker (151
-  lines; section 17 of the specification).
+  lines for 370 parts; section 17 of the specification).
 - The board is fully connected: 984 of 984 connections. It passes the
   design rules check of KiCad with no rule violation, no unconnected pad
   and no difference between board and schematic ([Checks](#checks)).
@@ -110,11 +126,13 @@ What the draft has behind it:
   drop of requirement R-07, the set-point and the head room of the
   source, the in-rush at the output, the order of the rails and the
   limits of the power input. The models are written from datasheets, and
-  41 benches put them into the test circuits of those datasheets
-  ([Circuit Simulations](#circuit-simulations)).
+  41 benches put them into the test circuits of those datasheets. The
+  runs are those of 2026-10-10, on the circuit before the three drawn
+  decisions ([Circuit Simulations](#circuit-simulations)).
 - The notes on the sheets were compared with the specification figure by
-  figure and corrected where they differed, and the pictures and the PDF of
-  [`doc/`](doc/README.md) are plotted from the present files.
+  figure and corrected where they differed, and the notes of the three
+  sheets that the drawn decisions changed follow them. The pictures and
+  the PDF of [`doc/`](doc/README.md) are plotted from the present files.
 
 It is not a design to fabricate:
 
@@ -140,32 +158,37 @@ It is not a design to fabricate:
   leakage at the nanoampere level and temperature are not in it, and the
   range sequencer is a model of the firmware rules F-16 to F-18, because
   its program does not exist.
-- Three decisions that follow the simulations are not drawn: 10 nF at
-  C32 to C34 (D-95), a position for a capacitor at U28, which needs a
-  footprint that the board does not have (D-96), and the damper R14 and
-  C5 fitted (D-98)
+- One decision that follows the simulations is not drawn: a position for
+  a capacitor at U28, which needs a footprint that the board does not
+  have (D-96). Of the three that are drawn, the two that change the
+  circuit, D-95 and D-98, are not simulated as drawn: the benches were
+  not run again, and the results on file are those of the circuit before
+  these changes
   ([Decisions That Follow the Simulations](#decisions-that-follow-the-simulations)).
 - In fourteen places the simulation and the text of the specification
-  differ. The simulation round proposes no change of hardware for them;
-  that decision is the owner's, and the text of the specification stands
-  until it is taken.
+  differed. Twelve are corrected in the specification since 2026-10-10,
+  two wait for the run of the benches on the drawn decisions, and seven
+  questions are open in its section 16. One recommendation among them
+  would change the hardware: one resistor in the divider of the 5 V
+  monitor channel.
 - The helpers that drew the layout are not in this repository. The board
   file is the record of what was drawn.
 - The range logic and the sampling clock are programs for the PIO blocks of
   the controller. They are not written yet; until they are, the pin
   assignment of the controller is provisional.
-- Three positions carry no part in the drawn state. They are marked "do
-  not populate" and are left out of the bill of materials: a voltage
-  detector at the enable pin of the boost converter (U9) and the two
-  parts of a damper on the module input (R14, C5), each drawn as the
-  remedy for a bench item of section 16 (decision D-84). Two decisions
-  change that, and neither is drawn yet: the damper is fitted (D-98), and
-  U9 stays without a part but is no longer meant for the 803 type with
-  its time-out of 0.24 s (D-97).
+- One position carries no part. It is marked "do not populate" and is
+  left out of the bill of materials: a voltage detector at the enable pin
+  of the boost converter (U9), drawn as the remedy for a bench item of
+  section 16 (decision D-84). By decision D-97 it stays without a part,
+  and since 2026-10-10 its text reads "Detector, ms time-out": the 803
+  type with its time-out of 0.24 s is no longer the part meant for it.
+  Draft A2 had drawn two more positions without parts, the damper on the
+  module input (R14, C5); they are fitted since the same day (D-98).
 - Three lines of the bill of materials had no stock at an authorized
   distributor on 2026-10-09: the 1.5 µH inductor of the pre-regulator
   (L2, Coilcraft XFL4020-152MEC; Würth 74438356015 fits the same pads)
-  and the capacitors Samsung CL21A106KAYNNNE and CL31A226KAHNNNE.
+  and the capacitors Samsung CL21A106KAYNNNE and CL31A226KAHNNNE. The
+  first of the two capacitors is also C5 of the damper since D-98.
 - The land pattern of the pre-regulator (U16) is a library footprint
   whose lead pads agree with the drawing of the manufacturer; its center
   pad is larger than the drawing asks for (1.7 mm × 3.3 mm against
@@ -199,8 +222,11 @@ The board carries the name of the project: the silkscreen text at its
 bottom edge reads "Open Power Profiler - Carrier Board   rev A2 draft",
 and the title blocks of the board file and of the root page of the
 schematic read "Open Power Profiler - Carrier Board". The schematic PDF and
-the picture of its root page were exported again with that title; the
-other fourteen pages are unchanged.
+the picture of its root page were exported again with that title. Later
+on 2026-10-10 the PDF and the pictures of three sheets, Power Input,
+Analog Rails and Rail Monitor, were exported once more, with the three
+drawn decisions; the pictures of the other eleven sheets are those of
+2026-10-09.
 
 ### Schematic
 
@@ -258,10 +284,16 @@ start-up order is in section 3 of the specification.
 
 The bill of materials is generated from the schematic, in which each of
 its parts carries the fields `MPN` and `Manufacturer`: one line per part
-number, 151 lines for 368 parts. The positions without parts, the test
-points, the mounting holes, the fiducials and the solder jumpers are not
-in it. The list of this draft is filed as [`doc/bom.csv`](doc/bom.csv);
-to make it again, from `kicad/`:
+number, 151 lines for 370 parts. The position without a part (U9), the
+test points, the mounting holes, the fiducials and the solder jumpers are
+not in it. The file was exported again on 2026-10-10, after the three
+decisions were drawn. C32 to C34 moved to the line of the 10 nF C0G
+capacitor (Murata GRM1885C1H103JA01D), and R14 and C5 joined the lines
+of the 0.33 Ω resistor (Panasonic ERJ-6RQFR33V) and of the 10 µF 25 V
+X5R capacitor (Samsung CL21A106KAYNNNE). All three part numbers were on
+the list before, so it still has 151 lines; it has two parts more, 370
+where it had 368. The list of this draft is filed as
+[`doc/bom.csv`](doc/bom.csv); to make it again, from `kicad/`:
 
 ```sh
 kicad-cli sch export bom --output ../doc/bom.csv --fields 'Reference,Value,Footprint,MPN,Manufacturer,${QUANTITY}' --group-by 'Value,Footprint,MPN,Manufacturer' --exclude-dnp power-profiler-carrier.kicad_sch
@@ -686,9 +718,12 @@ specification said before the review. The owner accepted the
 recommendation of the layout review on all seven on 2026-10-10. They are
 recorded in the decision log of the specification (section 15) as D-87 to
 D-93, and sections 10.3, 10.4, 10.6 and 10.8 of the specification now
-describe the board as it is drawn. The log has 98 decisions. The last
-five are not of the layout: D-94 places the circuit simulations, and D-95
-to D-98 are the decisions that followed them.
+describe the board as it is drawn. The log has 104 decisions. The last
+eleven are not of the layout: D-94 places the circuit simulations, D-95
+to D-98 are the decisions that followed them, D-99 to D-101 bring the
+text in line with the simulations, D-102 settles the license of the
+simulation folder, and D-103 and D-104 are decisions of 2026-10-12 on
+the software.
 
 Each point below quotes the sentence that section 10 carried before the
 review, says what the board has and why, and names the decision. The
@@ -894,11 +929,19 @@ snapshot of the netlist that KiCad exports: 428 parts with their values
 and nets. No part of the board is typed by hand. What stands around the
 parts is typed by the bench and named in its notes: sources, loads,
 cables, and in some benches a stand-in for a neighboring block of the
-board. The snapshot matched the schematic in this directory on
-2026-10-10.
+board.
+
+The snapshot and the results are not of the same state. The snapshot was
+written again after the three decisions were drawn and holds them: 10 nF
+at C32 to C34, R14 and C5 with their part numbers, the new text of U9.
+On 2026-10-12 `circuit-sim netlist --check` says that it matches the
+netlist of the schematic in this directory. The benches were not run
+again. Every result below is of the run of 2026-10-10, on the circuit
+before these changes, and the benches of the power input still leave R14
+and C5 out.
 
 Everything in this section is simulated. No board is built and nothing is
-measured. A figure that passes says that the circuit as drawn keeps its
+measured. A figure that passes says that the simulated circuit keeps its
 limit with the models named beside the result; it does not say that a
 built board will. Every active part is a model written for this project
 from its datasheet, a typical part at room temperature. 41 benches put
@@ -955,34 +998,65 @@ not a measurement:
 
 The simulations raised four points for a decision before boards are
 ordered. The owner decided them on 2026-10-10, on the recommendation of
-the simulations: decisions D-95 to D-98 of the specification. Nothing of
-them is drawn yet. The schematic and the board in `kicad/`, the pictures
-and the bill of materials in `doc/`, and the netlist snapshot of the
-simulations hold the earlier state: 1 nF at C32 to C34, no position at
-U28, R14 and C5 without parts. Drawing them is the first item of
-[Still to Do](#still-to-do).
+the simulations: decisions D-95 to D-98 of the specification. Three of
+them are drawn since that day, D-95, D-97 and D-98, as changes of values,
+part numbers, fitted flags and texts. Nothing else changed: the wires of
+the schematic, and the tracks, vias, zones, pads and the position of
+every footprint of the board, are as they were. The schematic and the
+board in `kicad/`, the PDF, the pictures of the three sheets, the two
+renderings and the bill of materials in `doc/`, and the netlist snapshot
+of the simulations hold the three decisions. D-96 is not drawn: it needs
+a footprint and copper.
+
+What the drawn state rests on, as of 2026-10-12:
+
+- The electrical rules check reports no message, and the design rules
+  check with schematic parity reports 0 violations, 0 unconnected pads,
+  0 footprint errors and 0 differences between board and schematic
+  ([Checks](#checks)).
+- `circuit-sim netlist --check` says that the netlist snapshot of the
+  simulations matches the netlist of the schematic.
+- The figures of the layout in this guide are those of the layout
+  review. They describe copper that did not change.
+- The simulations were not run again. The second column of the table
+  gives the reasons for the decisions, from the run of 2026-10-10. The
+  circuit of that run had 1 nF and no damper, as it was drawn then. Two
+  cases in it anticipate the drawn state, because a bench set them on
+  purpose: one crossing of a rail with 10 nF, and the data cable plugged
+  again with the damper. Nothing else is simulated with the new parts:
+  not the fast crossings and the edges of PWR_GOOD at power-up and at
+  power-off with 10 nF, and no other bench of the power input with the
+  damper, because those benches still leave R14 and C5 out. Bringing the
+  benches in line with the snapshot and running the blocks that the
+  changes touch is the first item of [Still to Do](#still-to-do).
+- Nothing is built, nothing is measured, and no person has opened the
+  board in the KiCad editor.
 
 | Decision | What the simulation shows | What changes here | State |
 | --- | --- | --- | --- |
-| D-95: the capacitors C32 to C34 of the rail monitor are 10 nF, not 1 nF (changes the value of D-54) | With 1 nF as drawn and a comparator at its least hysteresis of 1 mV, an edge of PWR_GOOD moves its own threshold and a rail that crosses at 20 V/s or 400 V/s gives a burst of edges. With 10 nF and 1 pF the threshold moves by 525 µV, where 1 nF gives 3.149 mV to 3.606 mV; the one run made with 10 nF, at 2 V/s, shows one edge. The capacitance between the pins of the package, 0.5 pF to 1 pF, is an assumption | A value on three capacitors: the schematic, the bill of materials, no copper | Not drawn: the schematic shows 1 nF |
-| D-96: a position for a capacitor from the non-inverting input of the buffer of the driver rail, U28, to ground; its value is chosen on the bench, and the position may stay empty | 41.92° of phase margin as drawn, not the 54° that the specification stated, because R126 (10 kΩ) works against the input capacitance of the amplifier. The loop is stable and a load step does not ring. The model of the manufacturer gives 68.99°, with input capacitances that are not those of its datasheet. No run with the capacitor exists | One position more on the Signal Chain sheet and one footprint more on the board, so the board changes | Not drawn |
-| D-97: the position U9 at the boost converter stays without a part, and the 803 type with its time-out of 0.24 s is no longer the part meant for it; a remedy, if the test of phase 1 asks for one, is a detector with a time-out of milliseconds (changes D-84) | As drawn the boost converter starts in one go from an input limited to 0.67 A to 0.85 A. With a detector of 0.24 s the start would be stopped and, with 1 mA of load, repeated four times in the 1.1 s of the run without completing; with 0.1 mA the second attempt completes it. The result rests on a model of the converter below 2.7 V, where its datasheet says nothing, on a source with a flat current limit and on the assumed load | No copper. The text of the position, in the schematic and in the value of its footprint on the board | Schematic and board still name the position "803 type, 3.08 V" |
-| D-98: the damper R14 (0.33 Ω) with C5 (10 µF) on the module input is fitted (changes D-84) | When the data cable is plugged again on a port at 5.5 V behind a short cable while USB-C supplies the rail, input 2 of the multiplexer U5 reaches 5.941 V with a limiter of typical reaction and 6.002 V with one assumed to react in 15 µs, against a rating of 6.0 V. With the damper fitted, its capacitor at half its value, the peak is 5.502 V in the runs made, after gaps of 2 ms to 2.6 ms; the damped input falls far less in those gaps, and the longer gap that matches was not run. The recharge pulse at a change of input was not simulated with the damper fitted; without it that pulse is 4.103 A through U5, against a pulse rating of 4 A | Two parts with their part numbers in the schematic and two lines of the bill of materials, on pads that exist | Not drawn: both are still marked "do not populate" |
+| D-95: the capacitors C32 to C34 of the rail monitor are 10 nF, not 1 nF (changes the value of D-54) | With 1 nF, the value drawn until this decision, and a comparator at its least hysteresis of 1 mV, an edge of PWR_GOOD moves its own threshold and a rail that crosses at 20 V/s or 400 V/s gives a burst of edges. With 10 nF and 1 pF the threshold moves by 525 µV, where 1 nF gives 3.149 mV to 3.606 mV; the one run made with 10 nF, at 2 V/s, shows one edge. The capacitance between the pins of the package, 0.5 pF to 1 pF, is an assumption | A value and a part number on three capacitors: the schematic, the board, the bill of materials, no copper | Drawn on 2026-10-10: C32, C33 and C34 are `10n 50V C0G`, Murata GRM1885C1H103JA01D, on their 0603 pads, and the note of the Rail Monitor sheet states 10 nF with the time constants of about 0.09 ms, 0.25 ms and 0.36 ms (calculated). Not simulated again: the crossings at 20 V/s and at 400 V/s and the edges of PWR_GOOD at power-up and at power-off have no run with 10 nF |
+| D-96: a position for a capacitor from the non-inverting input of the buffer of the driver rail, U28, to ground; its value is chosen on the bench, and the position may stay empty | 41.92° of phase margin as drawn, not the 54° that the specification stated, because R126 (10 kΩ) works against the input capacitance of the amplifier. The loop is stable and a load step does not ring. The model of the manufacturer gives 68.99°, with input capacitances that are not those of its datasheet. No run with the capacitor exists | One position more on the Signal Chain sheet and one footprint more on the board, so the board changes | Not drawn: it needs a footprint and copper, and with them a new run of the checks and of the board figures |
+| D-97: the position U9 at the boost converter stays without a part, and the 803 type with its time-out of 0.24 s is no longer the part meant for it; a remedy, if the test of phase 1 asks for one, is a detector with a time-out of milliseconds (changes D-84) | As drawn the boost converter starts in one go from an input limited to 0.67 A to 0.85 A. With a detector of 0.24 s the start would be stopped and, with 1 mA of load, repeated four times in the 1.1 s of the run without completing; with 0.1 mA the second attempt completes it. The result rests on a model of the converter below 2.7 V, where its datasheet says nothing, on a source with a flat current limit and on the assumed load | No copper. The text of the position, in the schematic and in the value of its footprint on the board | Drawn on 2026-10-10: the position reads "Detector, ms time-out" in the schematic and on the board, where it read "803 type, 3.08 V", and the note of the Analog Rails sheet follows. U9 stays without a part |
+| D-98: the damper R14 (0.33 Ω) with C5 (10 µF) on the module input is fitted (changes D-84) | When the data cable is plugged again on a port at 5.5 V behind a short cable while USB-C supplies the rail, input 2 of the multiplexer U5 reaches 5.941 V with a limiter of typical reaction and 6.002 V with one assumed to react in 15 µs, against a rating of 6.0 V. With the damper fitted, its capacitor at half its value, the peak is 5.502 V in the runs made, after gaps of 2 ms to 2.6 ms; the damped input falls far less in those gaps, and the longer gap that matches was not run. The recharge pulse at a change of input was not simulated with the damper fitted; without it that pulse is 4.103 A through U5, against a pulse rating of 4 A | Two parts with their part numbers in the schematic, on the board and in the bill of materials, on pads that exist | Drawn on 2026-10-10: R14 is `0.33R 1%`, Panasonic ERJ-6RQFR33V, and C5 is `10u 25V X5R`, Samsung CL21A106KAYNNNE, both on pads of size 0805 and no longer marked "do not populate"; both are in the bill of materials, and the note of the Power Input sheet follows. Not simulated again: the benches of the power input still leave the two parts out |
 
 #### Where the Text Differs, and What Stays for the Bench
 
 In fourteen places the simulation and the text of the specification
-differ: the time for which the over-current comparator stays high, the
+differed: the time for which the over-current comparator stays high, the
 ladder clamp in a short circuit, the capacitor advised at the VIN
 terminals, the times at power-off, the opening time of the output switch
-at 0.8 V, and others. The simulation round proposes no change of hardware
-for them; the decision is the owner's. They are listed, with their
-figures, in the
-[simulation guide](../simulation/README.md#where-the-simulation-and-the-text-differ)
-and as open points in section 16 of the specification, whose text stands
-until the owner decides. The fourteen are not every difference: the guide
-also names the figures that fail against a rating of a datasheet, most of
-them in a fault case.
+at 0.8 V, and others. They are listed, with their figures and their
+state, in the
+[simulation guide](../simulation/README.md#where-the-simulation-and-the-text-differed).
+Twelve are corrected in the specification since 2026-10-10, three of them
+by decisions: the trip counts its time in range 3 only (D-99), the advice
+on a capacitor at the VIN terminals is limited to what was simulated
+(D-100), and the range of a logic input is 0 V to 5.5 V (D-101). None of
+the corrections changes a part. The times at power-off and the figures of
+the power input wait for the run of the benches on the drawn decisions,
+and seven questions are open in section 16 of the specification. The
+fourteen are not every difference: the guide also names the figures that
+fail against a rating of a datasheet, most of them in a fault case.
 
 Some questions about this hardware stay for the bench, whatever the
 simulations say:
@@ -1084,7 +1158,10 @@ kicad-cli sch erc --severity-all power-profiler-carrier.kicad_sch
 kicad-cli pcb drc --schematic-parity --severity-all power-profiler-carrier.kicad_pcb
 ```
 
-Results on the files of this draft, with KiCad 10.0.0 on 2026-10-10:
+Results on the files of this draft, with KiCad 10.0.0 on 2026-10-12, after
+the three decisions that follow the simulations were drawn. The run of
+2026-10-10 on the reviewed board, before them, gave the same four
+results:
 
 | Check | Result |
 | --- | --- |
@@ -1099,7 +1176,9 @@ difference between board and schematic and no unconnected pad. It reports
 that now, against the rule file that the layout review rewrote
 ([Design Rules Check](#design-rules-check) says what the file asks and
 which five checks the project ignores). On the autorouted board the same
-check listed 28 unconnected items.
+check listed 28 unconnected items. The six footprints whose fields
+changed with the three drawn decisions agree with their symbols: the
+check reports no difference between board and schematic.
 
 Three corrections stood behind the result of the autorouted board. The
 autorouter had left five pairs of vias
@@ -1120,15 +1199,15 @@ left open is listed there.
 
 This is the hardware part of the next steps that the
 [README](../README.md#project-status) of the repository puts in order:
-first the decisions that follow the simulations are drawn (item 1 here),
-then the owner decides what is still open (item 2), then the board
-(items 3 and 4), then the software, which the
+first what is left of the decisions that follow the simulations (item 1
+here), then the decisions of the owner that are still open (item 2), then
+the board (items 3 and 4), then the software, which the
 [firmware guide](../firmware/README.md) and the
 [host guide](../host/README.md) list. The checks that need parts or a
 bench (item 5) and the work that waits for firmware (item 6) belong to the
 phases that follow.
 
-Five steps of the earlier lists are done. The 28 connections that the
+Six steps of the earlier lists are done. The 28 connections that the
 autorouter had left open were closed in the layout review of 2026-10-10;
 this guide no longer carries their list and their map. The seven
 deviations of the reviewed board are decided
@@ -1136,48 +1215,65 @@ deviations of the reviewed board are decided
 scripts that calculate the figures of the board are filed in
 [`tools/board/`](../tools/board/README.md). The simulations of the
 circuits are filed in [`../simulation/`](../simulation/README.md), made
-again from the final netlist; this guide no longer carries the list of
-what had to be filed. And the four points that the simulations raised
-are decided
-([D-95 to D-98](#decisions-that-follow-the-simulations)).
+again from the netlist of the schematic as it stood on 2026-10-10; this
+guide no longer carries the list of what had to be filed. The four points
+that the simulations raised are decided
+([D-95 to D-98](#decisions-that-follow-the-simulations)). And three of
+those four decisions are drawn, D-95, D-97 and D-98.
 
-#### 1. Draw the Decisions That Follow the Simulations
+#### 1. Finish the Decisions That Follow the Simulations
 
-Nothing of the four decisions is drawn. The files in `kicad/`, and the
-pictures and the bill of materials in `doc/`, show the state before
-them.
+Three of the four decisions are drawn since 2026-10-10. Done, in the
+files of `kicad/` and `doc/`:
 
-- D-95, Rail Monitor sheet: C32, C33 and C34 from 1 nF to 10 nF, with the
-  part number of the new value in their fields. The pads stay, so the
-  board changes only in the value of three footprints.
+- D-95, Rail Monitor sheet: C32, C33 and C34 are 10 nF, with the part
+  number of the new value in their fields. The pads stayed: the board
+  changed only in the fields of three footprints.
+- D-98, Power Input sheet: R14 (0.33 Ω) and C5 (10 µF) are no longer
+  marked "do not populate" and carry their part numbers. Their pads were
+  on the board.
+- D-97, Analog Rails sheet: U9 stays without a part, and its value reads
+  "Detector, ms time-out" where it read "803 type, 3.08 V". A part is
+  named only if the test of phase 1 asks for a remedy.
+- The notes of the three sheets; the electrical rules check and the
+  design rules check with schematic parity, which report nothing; the
+  bill of materials, the PDF, the pictures of the three sheets and the
+  two renderings of `doc/`, exported again.
+- The netlist snapshot of the simulations, written again from the
+  changed schematic.
+
+Open:
+
 - D-96, Signal Chain sheet: a position for a capacitor from the
   non-inverting input of U28, the node of R126, to ground, and its
   footprint on the board. It is the one change of copper: the board has
   425 footprints, and this is one more. The position may stay without a
-  part; its value is chosen on the bench.
-- D-98, Power Input sheet: R14 (0.33 Ω) and C5 (10 µF) are no longer
-  marked "do not populate" and get their part numbers. Their pads are on
-  the board.
-- D-97, Analog Rails sheet: U9 stays without a part. Its value still
-  reads "803 type, 3.08 V", and that text follows the decision: the part
-  meant now is a detector with a time-out of milliseconds, named only if
-  the test of phase 1 asks for a remedy.
-- Then the notes of the sheets that name the old values, the electrical
-  rules check and the design rules check with schematic parity, the bill
-  of materials, the PDF and the pictures of `doc/` exported again, and
-  the figures of the layout that the new footprint touches
+  part; its value is chosen on the bench. After it come both checks, the
+  bill of materials, the PDF and the pictures of `doc/` exported again,
+  the snapshot written again, and the figures of the layout that the new
+  footprint touches
   ([Reproducing the Figures](#reproducing-the-figures)).
-- Then the simulations: the netlist exported, the snapshot written again
-  and the benches of the changed blocks run again. The
+- The simulations of the three drawn decisions. The benches were not run
+  again: their results still describe the circuit before the changes.
+  First the benches have to be brought in line with the new snapshot:
+  the bench of the rail monitor names its cases by the value that was
+  drawn before, and the benches of the power input leave R14 and C5 out.
+  Then the blocks that the changes touch have to be run again, the rail
+  monitor with the power-up and the power-off and the input from the
+  module. The
   [simulation guide](../simulation/README.md#when-the-schematic-changes)
   says which benches hold the changed parts.
 
 #### 2. Decide What Is Still Open
 
-- The fourteen places where the simulation and the text of the
-  specification differ are the owner's. None is proposed as a change of
-  the hardware; each one that changes the text is an entry in the
-  decision log.
+- Seven questions that the corrections of the specification leave are
+  the owner's: section 16 of the specification gives each with its
+  options and one recommendation. Two concern this hardware: the divider
+  of the 5 V monitor channel, which is at full scale from about 5.44 V of
+  the rail with its resistors at their limits (recommended: one resistor
+  changed with the next change of the schematic), and a withstand
+  voltage of the logic inputs beyond 0 V to 5.5 V (recommended: none for
+  revision A).
 - Whether proof-of-concept boards are ordered on this state is a decision
   as well. The simulations judge the circuits, not the copper: items 3
   and 4 stand as they are.
@@ -1249,7 +1345,8 @@ Section 16 of the specification, tracked in
 
 #### 6. With the Firmware
 
-- Write the PIO programs of the range sequencer and of the acquisition, and
+- Write the PIO programs of the range sequencer, of the over-current trip
+  (a program of its own in PIO 2, D-104) and of the acquisition, and
   test them in an emulator. Until they exist the pin assignment of the
   controller is provisional, and a change of it changes the Controller
   sheet and the board.
@@ -1267,10 +1364,11 @@ Section 16 of the specification, tracked in
   still have their net class, and run both checks.
 - After a change to the schematic, export its netlist, write the snapshot
   of the simulations again and run the benches of the blocks that the
-  change touches. The results describe the netlist of the snapshot, and
-  no check compares the two by itself: the
+  change touches. The results describe the netlist of the snapshot from
+  which they were run, and no check compares the two by itself: the
   [simulation guide](../simulation/README.md#when-the-schematic-changes)
-  has the steps.
+  has the steps. For the change of 2026-10-10 the snapshot is written
+  and the benches are not run yet.
 
 ## Design References
 
@@ -1281,14 +1379,22 @@ In the [specification](../docs/specification.md):
   budget, and the controller module.
 - Section 5: pin map.
 - Section 6.6: firmware rules that guard hardware.
-- Section 10: PCB and mechanical guidelines.
+- Section 10: PCB and mechanical guidelines. Section 10.8 has the state
+  of the board and what stands before fabrication.
 - Section 15: decisions, D-23 onwards for the drafts, D-47 to D-86 for
   draft A2, D-87 to D-93 for its layout review, D-94 for the place of
-  the circuit simulations and D-95 to D-98 for the decisions that
-  followed them.
-- Section 16: open checks, and at its end the open points of the circuit
+  the circuit simulations, D-95 to D-98 for the decisions that followed
+  them (D-95, D-97 and D-98 are drawn, D-96 is not), D-99 to D-101 for
+  the text brought in line with the simulations, D-102 for the license
+  of the simulation folder, and D-103 and D-104 for the software: the
+  second makes the over-current trip a program of its own in PIO 2 and
+  changes no pin.
+- Section 16: open checks. The first item of "Before the board is
+  ordered" says what is drawn of the four decisions and what is open,
+  and the end of the section has the open points of the circuit
   simulations.
-- Section 17: bill of materials summary.
+- Section 17: bill of materials summary, with the parts that the drawn
+  decisions fitted or changed.
 
 ## Revisions
 
@@ -1332,14 +1438,21 @@ it (phase 7). Fabrication outputs are stored per revision, for example
   [`tools/board/`](../tools/board/README.md), and the silkscreen and both
   title blocks carry the name "Open Power Profiler - Carrier Board".
 - The circuits of draft A2 were simulated on 2026-10-10, from the netlist
-  of its schematic. Neither the schematic nor the board changed, and the
-  draft keeps its name. The central design figures come out again
+  of its schematic. The central design figures come out again
   ([Circuit Simulations](#circuit-simulations)). The simulations are in
   [`../simulation/`](../simulation/README.md) by decision D-94. They
   raised four points, which the owner decided the same day (D-95 to
-  D-98): three of them change the schematic and are not drawn yet. A
-  list of places where the simulations differ from the text of the
-  specification is not decided.
+  D-98). In fourteen places the simulations differed from the text of
+  the specification; twelve are corrected there, and none of the
+  corrections changes a part.
+- Three of those four decisions were drawn into draft A2 on 2026-10-10,
+  after the simulations: 10 nF at C32 to C34 (D-95), R14 and C5 fitted
+  (D-98), and the text of the position U9 (D-97). Values, part numbers,
+  fitted flags and texts changed, in the schematic and on six footprints
+  of the board. No copper changed, no part was added or moved, and the
+  draft keeps its name. The bill of materials went from 368 to 370 parts
+  on its 151 lines. The simulations were not run again on the changed
+  circuit, and D-96, a position for a capacitor at U28, is not drawn.
 
 ## License
 

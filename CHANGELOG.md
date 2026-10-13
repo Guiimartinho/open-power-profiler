@@ -159,8 +159,8 @@ Each entry starts with the area it affects: **firmware**, **hardware**,
   rail, the detector position at the boost converter and the damper on
   the module input. The project owner decided them (D-95 to D-98, under
   "Changed"). In fourteen places the simulation and the text of the
-  specification differ. Those are not decided, and the specification
-  keeps its text there.
+  specification differed; twelve are corrected in the specification
+  since (under "Changed").
 - **simulation:** the package is tested: 777 tests, of which 11 need the
   ngspice library, 100 % of lines and branches covered against a floor of
   90 %, the module that loads the simulator excepted, ruff, and mypy in
@@ -181,6 +181,32 @@ Each entry starts with the area it affects: **firmware**, **hardware**,
 - **docs:** the README shows the circuit simulations on the front page: a
   row in the status table, the results by block, what they say, and two
   graphs of simulation runs, each called a simulation.
+- **docs:** a design of the firmware in `docs/firmware/`: architecture
+  with layers, ports, the two cores and the data path; the device state
+  machine with the start, self-test, DUT power and fault sequences; the
+  three PIO programs as sketches with their timing by count; the USB link
+  and what version 2 of the protocol added; and the place and the test
+  of each of the 36 firmware rules. It is a design: the sketches of the
+  programs assemble with `pioasm`, none has run in an emulator, and
+  nothing has run on a controller.
+- **firmware:** more of the hardware-independent core, each part with
+  unit tests on the PC: the raw word of the capture split into result and
+  side bits (section 4.7); the pin table with the checks of rules F-4 and
+  F-5; the DAC frame and the nominal set-point code (F-6, F-30); the
+  scale of the eight monitor channels, the source of the 5 V rail and the
+  rails test (F-11, F-12); the fifteen fault causes of section 6.4; a
+  runner for timed sequences and the four sequences of DUT power on and
+  off, with the test that rule F-28 asks for (order and times of F-23 to
+  F-26 and F-28 to F-31); the under-range rule of F-22 and the
+  over-range mark of F-35 as algorithms on samples. No rule is
+  implemented end to end yet, and nothing of it drives hardware.
+- **firmware:** a codec for the records of protocol version 2: the data
+  of GET_INFO and GET_STATUS, of the event "supply changed" and the zero
+  offsets, tested against the shared vectors.
+- **protocol:** layouts of fixed records in the definition, as lists of
+  fields. The generator derives their sizes and field offsets for C,
+  their struct formats for Python, and record vectors that both codecs
+  reproduce byte for byte.
 
 ### Changed
 
@@ -384,16 +410,55 @@ Each entry starts with the area it affects: **firmware**, **hardware**,
   of the boost converter stays without a part and is no longer meant for
   the 803 type with its time-out of 0.24 s (D-97, which changes D-84).
   The damper R14 with C5 on the input from the controller module is
-  fitted (D-98, which changes D-84). None of this is drawn yet: the
-  schematic, the board, the bill of materials and the netlist snapshot of
-  the simulations hold the earlier state, and drawing D-95, D-96 and D-98
-  is the next step of the hardware.
+  fitted (D-98, which changes D-84).
+- **hardware:** decisions D-95, D-97 and D-98 are drawn, as changes of
+  values, part numbers, fitted flags and texts in the schematic and on
+  the board, with no change of copper: C32 to C34 are 10 nF
+  (GRM1885C1H103JA01D), R14 (ERJ-6RQFR33V) and C5 (CL21A106KAYNNNE) are
+  fitted, and the text of the position U9 no longer names the 803 type.
+  The electrical rules check and the design rules check with schematic
+  parity report nothing. The bill of materials has 151 lines for 370
+  parts; the schematic PDF, the pictures of the three sheets and the two
+  renderings of the board are exported again. D-96, the position at U28,
+  is not drawn: it needs a footprint and copper.
+- **simulation:** the netlist snapshot is written again from the
+  schematic with the three drawn decisions. The benches were not run
+  again: the results are those of the circuit before the changes, and
+  the benches of the power input still leave R14 and C5 out.
 - **docs:** the specification records decisions D-95 to D-98 and follows
   them in its head and in sections 3, 4.1, 4.5, 4.7, 10.8, 11, 13, 14, 16
   and 17. The four points leave the list of open points at the end of
-  section 16; what the decisions leave to check stays in its lists, and
-  drawing them is the first item before the board is ordered. With them
-  the decision log reached D-98.
+  section 16; what the decisions leave to check stays in its lists. With
+  them the decision log reached D-98. Since three of them are drawn, the
+  first item before the board is ordered is the fourth, D-96, with a new
+  run of the benches that the changes touch.
+- **docs:** the specification follows its simulations of 2026-10-10 in
+  twelve of the fourteen places where the two differed. The simulated
+  figure, marked "simulated on 2026-10-10", replaces the earlier one in
+  sections 4.2, 4.3, 4.4, 4.6, 4.7, 4.8, 4.9 and 4.10, in the reasons of
+  the firmware rules F-8, F-18, F-23 and F-24, in the risk register and
+  in the open checks. Three corrections are decisions of the project
+  owner: rule F-18 counts the time of the over-current trip with range 3
+  selected only, and the test of section 11 reads the comparator in the
+  same way (D-99); the advice on a capacitor at the VIN terminals and its
+  test are limited to supply leads of 50 mΩ per microhenry or more
+  (D-100); the range of a logic input is stated as 0 V to 5.5 V (D-101).
+  The times at power-off and the figures of the power input wait for a
+  run of the benches on the drawn decisions. Section 16 keeps seven
+  questions open, each with its options and one recommendation: the
+  criterion of the check on TP33, the limits of F-26 and F-28 against
+  the leakage of the monitor converter, the upper limit of F-12 against
+  the full scale of channel 2, the threshold of F-35, the capacitor at
+  the VIN terminals with heavy leads, a withstand voltage of the logic
+  inputs and the gaps of the test of TP4.
+- **repo:** the license of the simulation folder follows the two
+  licenses of the repository (D-102): the package, its tests, the
+  benches, the models and the guide are under MIT; the snapshot of the
+  netlist in `simulation/netlist/` and the decks, records, graphs and
+  pages in `simulation/results/` derive from the hardware design and are
+  under CERN-OHL-P v2, with a copy of that license in each of the two
+  folders. The README, the contributing guide and the simulation guide
+  say so.
 - **docs:** the README, the hardware guide, the picture guide, the
   documentation index, the index of the checks and the pages on tools,
   firmware, host software, calibration and test reports describe the
@@ -402,9 +467,11 @@ Each entry starts with the area it affects: **firmware**, **hardware**,
   specification differ, and what only a bench can settle. The README,
   the hardware guide, the picture guide, the documentation index, the
   index of the checks, the firmware guide and the page on test reports
-  also carry the four decisions that followed and what is still to be
-  drawn. The next steps begin with drawing decisions D-95, D-96 and
-  D-98; the fourteen places and the order of proof-of-concept boards are
+  also carry the four decisions that followed, which of them are drawn,
+  and the state of the fourteen places after the corrections of the
+  specification. The next steps of the hardware begin with drawing
+  decision D-96 and running the touched benches again; the open
+  questions of section 16 and the order of proof-of-concept boards are
   the open decisions of the owner; filing the simulations is no longer a
   step.
 - **repo:** the contributing guide and the issue and pull request forms
@@ -412,6 +479,40 @@ Each entry starts with the area it affects: **firmware**, **hardware**,
   `simulation`, the four checks of the package, what a change of the
   schematic, of a model or of a bench has to carry, and the rule that a
   figure that fails in a simulation is kept.
+- **protocol:** version 2 of the host protocol, in one step (D-103).
+  The sample word marks over-range, under-range and the request of the
+  output switch in three of its reserved bits. The fault flags grow from
+  four to fifteen, one for each cause of section 6.4 of the
+  specification. GET_STATUS carries 25 bytes and GET_INFO 48: mode,
+  locked range, set-point, readings, supply in use with its CC class and
+  its budget as a current, trips, notices, state of the calibration,
+  identity and zero offsets. New events "supply changed" and "notice";
+  new commands CAL_READ and CAL_STORE, which carry the calibration
+  record of section 8 as one block; CAL_ZERO returns the zero offsets.
+  This is a breaking change of the protocol: a host of version 1 and a
+  device of version 2 do not understand each other.
+- **firmware:** the sample word has the three new marks, every fault
+  cause has a flag of its own, and the list of known commands and events
+  follows version 2 of the protocol.
+- **firmware:** the build is a project of the Pico SDK for the Raspberry
+  Pi Pico 2 (preset `pico2`), built with SDK 2.3.1 and warnings as
+  errors. It compiles every hardware-independent component for the
+  RP2350 and produces a `.uf2` image whose `main` starts the console and
+  the device state machine and drives no pin beyond the console output. The
+  list of components is shared with the unit test build. The image has
+  not been loaded onto a board.
+- **firmware:** the build job of the `Firmware` workflow builds for the
+  Pico 2. It has not been started yet.
+- **host:** the package follows version 2 of the protocol: records,
+  marks, events and the calibration commands in the codec, the simulator
+  and the client. `DeviceClient.calibrate_zero` returns the zero
+  offsets, and `read_calibration` and `store_calibration` replace
+  `write_calibration`. The statistics leave over-range and under-range
+  samples out, as they do with the samples of a settling window.
+- **spec:** decisions D-103 (protocol version 2) and D-104 (the
+  over-current trip and GATE_OUT in PIO 2, the range sequencer in
+  PIO 1). Sections 5, 6, 7, 8, 16 and 18.3 follow them and the ported
+  build; the calibration record has a layout in section 8.
 
 ### Removed
 
@@ -430,5 +531,9 @@ Each entry starts with the area it affects: **firmware**, **hardware**,
   hardware guide, the list of the simulations that had to be filed: the
   simulations are in `simulation/`, made again from the final netlist
   (D-94).
+- **firmware:** the ESP-IDF project of the first plan, for the ESP32-S3:
+  its project file, its `main` and the build files of its components.
+- **protocol:** the command CAL_WRITE and the event "power budget
+  changed" of version 1. Their codes are not used again.
 
 [Unreleased]: https://github.com/Guiimartinho/open-power-profiler/commits/main

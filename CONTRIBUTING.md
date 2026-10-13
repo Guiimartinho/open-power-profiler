@@ -24,9 +24,16 @@ state:
   The parts are candidates until their checks are closed, and no check is
   closed.
 - The protocol definition, the hardware-independent core of the firmware
-  and the host package exist and are tested without hardware. The firmware
-  is not ported to the Pico SDK yet: the target build in `firmware/` is
-  still the one of the first plan, for the ESP32-S3.
+  and the host package exist and are tested without hardware. The protocol
+  is at version 2 since 2026-10-12 (D-103 of the specification), in the
+  definition and in the codecs of both sides.
+- The firmware is a project of the Pico SDK since the same day. It builds
+  an image for the Pico 2 that starts the console and the device state
+  machine, and that image has not been loaded onto a board: nothing has
+  run on a controller. No adapter for the hardware, no PIO program and no
+  USB link is written. The [firmware design](docs/firmware/README.md)
+  describes the whole firmware and lists the points that wait for the
+  project owner.
 - `tools/` holds one tool: the package in `tools/board/`, which calculates
   the figures of the board layout from the board file and is tested
   without hardware. The calibration tool and the production test are not
@@ -37,11 +44,15 @@ state:
   library of KiCad 10, the models written for the project, 134 benches
   and their results. The central design figures of the specification come
   out again. The four points that the simulations raised are decided
-  (D-95 to D-98 of the specification). Three of them change the schematic
-  and are not drawn yet: the schematic, the board, the bill of materials,
-  the netlist snapshot and the results still hold the state before them.
-  In fourteen places the simulations differ from the text of the
-  specification, which is unchanged until the owner decides. The
+  (D-95 to D-98 of the specification). Three of them are drawn since
+  2026-10-10 (D-95, D-97 and D-98): the schematic, the board, the bill of
+  materials and the netlist snapshot hold them. One is not drawn (D-96).
+  The benches were not run again, so the results still describe the
+  circuit before the three changes, and a contribution that quotes a
+  simulated figure of the rail monitor or of the power input says so.
+  In fourteen places the simulations differed from the text of the
+  specification: twelve are corrected there, two wait for a new run of
+  the benches, and seven questions are open in its section 16. The
   [simulation guide](simulation/README.md) lists them. A simulated figure
   is not a measured one.
 - `hardware/fabrication/` is empty. The scripts that drew the copper of
@@ -83,14 +94,14 @@ entry.
 
 | Path | Content | Commit scope | Changelog area |
 | --- | --- | --- | --- |
-| `firmware/` | Firmware of the controller: hardware-independent core with its unit tests; the target build is not ported to the Pico 2 yet | `firmware` | `firmware` |
+| `firmware/` | Firmware of the controller: a project of the Pico SDK for the Pico 2, with a hardware-independent core and its unit tests; no adapter for the hardware yet | `firmware` | `firmware` |
 | `hardware/` | KiCad project of the carrier board (draft A2) and its pictures; the folder for fabrication outputs is empty | `hardware` | `hardware` |
 | `simulation/` | Circuit simulations of the carrier board: the package `circuit-sim`, the snapshot of the netlist, the models, the benches and their results | `simulation` | `simulation` |
 | `host/` | Python package: protocol, transports, device client, capture helpers, simulator | `host` | `host` |
 | `protocol/` | Protocol definition, generator and shared test vectors | `protocol` | `protocol` |
 | `tools/` | The board figures in `tools/board/`: a Python package that calculates the layout figures of the carrier board from its board file. The calibration and production-test scripts are not started | `tools` | `tools` |
 | `docs/specification.md` | System specification | `spec` | `docs` |
-| Other documentation: `docs/`, the README files | Guides, component checks, test reports | none | `docs` |
+| Other documentation: `docs/`, the README files | Guides, the firmware design, component checks, test reports | none | `docs` |
 | Anything else | Repository-wide files: this guide, workflows, issue and pull request templates, lint and editor configuration, licenses | none | `repo` |
 
 ## Workflow
@@ -125,6 +136,8 @@ pull request:
   the blocks that it touches, with their result files and pages. The
   [simulation guide](simulation/README.md#when-the-schematic-changes) has
   the steps. No check compares the snapshot with the schematic by itself.
+  The change of 2026-10-10, the three drawn decisions, has the snapshot
+  and not yet the run: the guide lists what is open.
 - A change to a model or to a bench carries the result files, the graphs,
   the decks and the pages that it changes, and the documents that quote a
   changed figure. The pages are written by `circuit-sim report`, never by
@@ -208,7 +221,7 @@ The host could not tell how many samples were lost when a block was
 dropped. The stream payload now starts with the index of its first
 sample.
 
-BREAKING CHANGE: the stream payload layout changes; protocol version 2.
+BREAKING CHANGE: the stream payload layout changes; protocol version 3.
 Closes #31
 ```
 
@@ -246,7 +259,7 @@ a contributor is not expected to.
 
 | Area | Workflow | Checks | Commands |
 | --- | --- | --- | --- |
-| Firmware | `Firmware` (`firmware.yml`) | Unit tests on the PC, coverage floors of 90 % of lines and 80 % of branches, the tests under the address, undefined-behavior and thread sanitizers, clang-format, clang-tidy, cppcheck, and the target build | [`firmware/README.md`](firmware/README.md) |
+| Firmware | `Firmware` (`firmware.yml`) | Unit tests on the PC, coverage floors of 90 % of lines and 80 % of branches, the tests under the address, undefined-behavior and thread sanitizers, clang-format, clang-tidy, cppcheck, and the build of the image for the Pico 2 with the Pico SDK, warnings as errors | [`firmware/README.md`](firmware/README.md) |
 | Host software | `Host` (`host.yml`) | Tests on Windows, Linux and macOS on the oldest and the newest supported Python, coverage floor of 90 % of lines and branches, ruff, mypy in strict mode, and the package built and installed | [`host/README.md`](host/README.md) |
 | Protocol | `Protocol` (`protocol.yml`) | Generated files up to date; ruff and mypy on the generator | [`protocol/README.md`](protocol/README.md) |
 | Hardware | `Hardware` (`hardware.yml`) | Electrical rules check of the schematic with no error; design rules check of the board with schematic parity, whose report shows no rule violation, no unconnected pad and no difference between board and schematic | [`hardware/README.md`](hardware/README.md) |
@@ -285,11 +298,50 @@ The tests that run a circuit need the ngspice shared library, which
 KiCad 10 ships. The variable `NGSPICE_LIBRARY` names it; without the
 library those tests are skipped and the others run.
 
+The checks of the firmware area. In `firmware/test/host`, with CMake,
+Ninja and gcc:
+
+```sh
+cmake --preset debug
+cmake --build --preset debug
+ctest --preset debug
+cmake --build --preset debug --target format-check
+cmake --build --preset debug --target tidy
+cmake --build --preset debug --target cppcheck
+```
+
+The coverage floors are checked with the preset `coverage` in place of
+`debug` in the first three commands and then
+`cmake --build --preset coverage --target coverage`. The image for the
+Pico 2 is built in `firmware/`, with the Pico SDK and the Arm GNU
+Toolchain named by the variables `PICO_SDK_PATH` and
+`PICO_TOOLCHAIN_PATH`:
+
+```sh
+cmake --preset pico2
+cmake --build --preset pico2
+```
+
+The [firmware guide](firmware/README.md#building-the-firmware) has the
+versions and what the image is.
+
 What these checks are today, and what they are not:
 
-- The target build of the firmware is still the ESP-IDF build for the
-  ESP32-S3. It becomes the build for the Pico 2 when the firmware is ported
-  to the Pico SDK; the unit tests do not depend on the controller.
+- The target build of the firmware is the build for the Pico 2 with the
+  Pico SDK, since 2026-10-12. It ran locally on Windows with SDK 2.3.1 and
+  the Arm GNU Toolchain 15.2.Rel1 and completes with warnings as errors.
+  Its job in the Firmware workflow was rewritten with it, for Ubuntu with
+  the compiler of the distribution, and has not been started yet. A build
+  that passes says that the code compiles and links for the RP2350. The
+  image has not been loaded onto a board, and the build says nothing
+  about timing or about hardware. The unit tests depend neither on the
+  controller nor on the SDK.
+- The checks of the firmware and of the host package ran locally on
+  2026-10-12, on Windows: 22 firmware tests, 100 % of 997 lines and of 540
+  branches of the core covered, no finding from clang-format, clang-tidy
+  and cppcheck; 500 host tests with Python 3.11, 100 % of lines and
+  branches covered, no issue from mypy in 41 source files, no finding from
+  ruff; the generated protocol files up to date.
 - The sanitizer runs need a toolchain with the sanitizer runtimes, which
   MinGW on Windows does not have, and the host tests on three operating
   systems need three machines. Where a check cannot run locally, say so in
@@ -381,7 +433,8 @@ The rules that hold for every area:
   on the way to revision A, not a design to fabricate. The layout review
   of 2026-10-10 did not change the number of the draft.
 - The host protocol has its own integer version, reported by the device.
-  It is 1, and the protocol is not frozen: the freeze is part of phase 6.
+  It is 2 since 2026-10-12 (D-103 of the specification), and the protocol
+  is not frozen: the freeze is part of phase 6.
 
 ## Documentation
 
@@ -415,5 +468,6 @@ documents relate.
 ## Licensing of Contributions
 
 By contributing, you agree that your contribution is licensed under the
-license of the area it changes: CERN-OHL-P v2 for files under `hardware/` and
-MIT for everything else.
+license of the area it changes: CERN-OHL-P v2 for files under `hardware/`,
+`simulation/netlist/` and `simulation/results/`, and MIT for everything
+else.
