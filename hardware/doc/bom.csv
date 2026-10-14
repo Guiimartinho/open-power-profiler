@@ -136,7 +136,7 @@
 "U13","LT3042EMSE","Package_SO:MSOP-10-1EP_3x3mm_P0.5mm_EP1.68x1.88mm","LT3042EMSE#PBF","Analog Devices","1"
 "U14","MCP6569-E/SL","Package_SO:SOIC-14_3.9x8.7mm_P1.27mm","MCP6569-E/SL","Microchip","1"
 "U15","MCP4921-E/SN","Package_SO:SOIC-8_3.9x4.9mm_P1.27mm","MCP4921-E/SN","Microchip","1"
-"U16","TPS63020DSJ","Package_DFN_QFN:DFN-14-1EP_3x4mm_P0.5mm_EP1.7x3.3mm","TPS63020DSJR","Texas Instruments","1"
+"U16","TPS63020DSJ","PowerProfiler:Texas_R-PVSON-N14_3x4mm_P0.5mm_EP1.58x2.85mm","TPS63020DSJR","Texas Instruments","1"
 "U17,U25,U26","OPA197IDBV","Package_TO_SOT_SMD:SOT-23-5","OPA197IDBVR","Texas Instruments","3"
 "U18","LT3080EDD","Package_DFN_QFN:DFN-8-1EP_3x3mm_P0.5mm_EP1.66x2.38mm","LT3080EDD#PBF","Analog Devices","1"
 "U19,U28,U29","OPA365AIDBV","Package_TO_SOT_SMD:SOT-23-5","OPA365AIDBVR","Texas Instruments","3"

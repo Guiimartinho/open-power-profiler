@@ -35,6 +35,7 @@ htmlcov/
 
 # KiCad (hardware/)
 *-backups/
+.history/
 *.kicad_prl
 *.lck
 fp-info-cache

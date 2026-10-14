@@ -922,7 +922,7 @@
 				(justify left top)
 			)
 		)
-		(property "Footprint" "Package_DFN_QFN:DFN-14-1EP_3x4mm_P0.5mm_EP1.7x3.3mm"
+		(property "Footprint" "PowerProfiler:Texas_R-PVSON-N14_3x4mm_P0.5mm_EP1.58x2.85mm"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)

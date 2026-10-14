@@ -82,11 +82,27 @@ schematic, the simulations or the bench measurements.
   (12.3 mΩ) in ampere mode, against the limit of 30 squares, and the surface
   leakage into the measured node is 5.1 nA on a clean board, against the
   10 nA of the budget. Seven points in which the drawn board departs from
-  section 10 are recorded as decisions (D-87 to D-93). No person has looked
-  at the board in the KiCad editor yet, and some open items need parts
-  moved: section 10.8 gives the state, and
-  [`../hardware/README.md`](../hardware/README.md) the detail. It is a
-  review draft, not a design to fabricate.
+  section 10 are recorded as decisions (D-87 to D-93). On 2026-10-13 the
+  project owner opened the schematic and the board in the KiCad editor
+  and found both coherent, which was a look and not a review item by
+  item. The same day the footprints and the placement were reviewed with
+  scripts on the board file, 3D renderings and the datasheets, and five
+  findings of that review were worked into the board: the land pattern of
+  U16, vias at pads and under the wall of the shield can, reference texts
+  of the silkscreen and the pin names of J1. The two figures above are
+  unchanged by that round. Nobody has reviewed the board item by item in
+  the KiCad editor, and some open items need parts moved: section 10.8
+  gives the state, and [`../hardware/README.md`](../hardware/README.md)
+  the detail. It is a review draft and not revision A.
+- The fabrication outputs of draft A2 are filed since 2026-10-13 in
+  [`../hardware/fabrication/draft-a2/`](../hardware/fabrication/draft-a2/)
+  for an order of proof-of-concept boards (D-105): eleven Gerber files of
+  the four-layer board, two drill files and two assembly files. The
+  project owner asked for them while the items that section 16 lists
+  under "Before the board is ordered" were still open. Boards made from
+  these files are draft A2 and not revision A; those items stay open and
+  remain conditions of revision A. No order is recorded: no board has
+  been ordered or made as far as the repository shows.
 - Names that look alike: R0 to R3 are the four current ranges and D0 to D7
   the logic inputs, as on the PPK2. The parts of the drawings are numbered
   as KiCad numbers them (D-45), so the drawings also hold resistors R1 to
@@ -725,8 +741,9 @@ to ground only the 5 V rail and +13.5 V are up.
     amplifier a phase margin of 73° to 77° (simulated with the model of its
     maker). The loop of the converter with this amplifier shows 55° or
     more (simulated with a behavioral model whose compensation is an
-    assumption): a risk prototype settles it before the board is ordered
-    (sections 13 and 16).
+    assumption): a risk prototype settles it before revision A is ordered
+    (sections 13 and 16; proof-of-concept boards of draft A2 may be
+    ordered ahead of it, D-105).
   - Range: the converter output covers 1.2 V to 5.5 V and its over-voltage
     protection starts between 5.5 V and 7 V (datasheet values). The law reaches
     5.5 V at an output of 5.05 V (calculated), which limits the set-point to
@@ -2889,8 +2906,11 @@ with FreeRouting (D-86). A board made this way is a draft: section 10.8
 names what has to be drawn and reviewed before fabrication. That review
 was done on 2026-10-10 with scripts; section 10.8 gives the state of the
 board after it, the seven points in which the drawn board departs from
-these guidelines, each recorded as a decision (D-87 to D-93), and what is
-still open. No figure in this section is a
+these guidelines, each recorded as a decision (D-87 to D-93), the state
+after the review of footprints and placement of 2026-10-13, and what is
+still open. The fabrication outputs of the draft are filed for an order
+of proof-of-concept boards (D-105); what section 10.8 leaves open stays
+open and is a condition of revision A. No figure in this section is a
 measurement; each is marked as a datasheet value, a calculation, a
 simulation or an estimate, and the description of the board is in
 [`../hardware/README.md`](../hardware/README.md).
@@ -3291,8 +3311,10 @@ was added or removed; 35 of the 425 footprints moved or turned, 33 of
 them by 2.75 mm or less.
 
 Every figure below is calculated from the drawn copper. Nothing is built,
-nothing is measured, every part is a candidate, and no person has yet
-opened the board in the KiCad editor and looked at it as before an order.
+nothing is measured, and every part is a candidate. Until 2026-10-13 no
+person had opened the board in the KiCad editor; the project owner did so
+that day and found it coherent, and nobody has reviewed it there item by
+item, as before an order (see the state of that day below).
 The figures are produced by the scripts in
 [`../tools/board/`](../tools/board/) (section 16).
 
@@ -3392,8 +3414,13 @@ do them:
   stand in the way.
 - U13 is 22 mm from D6 and C27, courtyard to courtyard; the 25 mm of
   section 10.1 are kept from center to center only.
-- Vias in or at pads that get solder paste: 4 holes and 14 rings; via
-  holes in the drain pads of two transistors of the path.
+- Vias in or at pads that get solder paste: 4 holes and 14 rings at the
+  review; via holes in the drain pads of two transistors of the path.
+  Since 2026-10-13 nine of these vias are moved, with their holes
+  0.25 mm or more from the pad. Two stand at a pad as before, at pin 6
+  of U12 and at pad 1 of R67, where no place is free; five more stand
+  0.07 mm to 0.10 mm from a pad; the via holes in the two drain pads are
+  as they were.
 - 19 pads were entered by a track wider than the pad; the tracks were
   necked down in the last step (41 track ends).
 
@@ -3401,13 +3428,14 @@ A smaller finding of the final review is open beside these: the pour of
 the 5 V rail is in three pieces, and the three 3.3 V regulators hang on
 two single vias.
 
-Left as on the autorouted board:
+Left by the review as on the autorouted board:
 
 - 32 of the 40 signal test points have no probe ground within 5 mm
   (section 10.7).
 - The net names of the test points and the function of the two jumpers
-  are not on the silkscreen (section 10.2); 123 reference texts are
-  hidden; there is no frame for the serial number (section 10.7).
+  are not on the silkscreen (section 10.2); there is no frame for the
+  serial number (section 10.7). Reference texts are hidden on the
+  silkscreen: 123 at the review, 95 since 2026-10-13.
 - The three acquisition lines enter the can at three places on two
   layers, not through one opening (section 10.1).
 - 21 nets cross the wall of the can below the ground plane
@@ -3420,6 +3448,80 @@ One text of the silkscreen changed after the review: the title at the
 bottom edge carries the name of the project and keeps the mark of the
 draft, `Open Power Profiler - Carrier Board   rev A2 draft`.
 
+#### State of the Board on 2026-10-13
+
+On 2026-10-13 the project owner opened the project in the KiCad editor,
+the schematic and the board, and found both coherent. It was a look, not
+a review item by item, and no edit was saved. The same day the footprints
+and the placement were reviewed on a copy of the project, with scripts
+on the board file, 3D renderings of every region of the board and the
+datasheets. That review is a comparison and a calculation. It is not a
+review in the KiCad editor, nothing is measured, and it closes no check
+of section 16.
+
+What it found in order: all 425 footprints equaled the footprint of the
+same name in their library, pad by pad; the four symbols of the project
+agree pin by pin with their datasheets; J2, J4, the sockets MP1 and MP2
+and the land of the shunt R110 agree with the drawings of their makers;
+no courtyard overlaps another, no part stands under the module, and the
+58 parts inside the shield can are 1.75 mm high at the most.
+
+Five findings were worked into the board the same day, at those points
+only and with no new routing:
+
+- U16 stood on a library footprint for another package. It has the land
+  pattern of its own package now, as a project footprint: a thermal land
+  of 1.58 mm × 2.85 mm, where the earlier footprint had
+  1.70 mm × 3.30 mm, with the six vias of section 10.5 inside it. The
+  finger lands that the drawing of the manufacturer shows at the two
+  short ends of the package are not drawn.
+- Reference texts of the silkscreen stood at another part or far from
+  their own. 330 of the 425 are visible now, each at its own part, and
+  95 are hidden where no place is free (123 before), those of the diodes
+  D6, D11 and D17 among them. Every hidden reference is on the
+  fabrication layer.
+- The console header J1 carries the names of its pins: TX, RX and GND.
+- Nine vias whose hole reached into a pad that gets solder paste, or
+  stood within 0.05 mm of one, were moved; their holes stand 0.25 mm or
+  more from the pad. Two were left where no place is free, at pin 6 of
+  U12 and at pad 1 of R67.
+- Two tented vias under the wall line of the shield can were moved
+  inside it. Only the two ground vias in the corner lands of the frame
+  stand under the wall.
+
+The silkscreen also carries the frames and the names of the sixteen
+blocks of section 10.1 since that day, as lines of 0.15 mm that are cut
+at pads, at openings of the solder mask, at parts and at texts. Until
+then they were on a documentation layer of the board.
+
+The board after that round, counted or calculated from the board file:
+984 of 984 connections, 8.40 m of track in 3743 segments and 694 vias.
+Nothing was routed again: the 3716 segments of the board before the
+round are unchanged, 27 short pieces with 15.9 mm in all were added at
+the moved vias, and 683 of the 694 vias stand where they stood.
+The 1 A path has 19.5 squares in source mode and 23.3 squares in ampere
+mode, and the surface leakage into the measured node is 5.1 nA, as in
+the table above. The electrical rules check reports no message, and the
+design rules check with schematic parity reports 0 violations, 0
+unconnected pads and 0 footprint errors. No part moved, and the circuit
+did not change. Open after the round: the two vias at a pad, the 95
+hidden reference texts, the lower edge of the frame of the shield can,
+which no drawing of its maker confirms, and the finger lands of U16.
+[`../hardware/README.md`](../hardware/README.md) has the detail.
+
+The fabrication outputs of the board in this state are filed in
+`hardware/fabrication/draft-a2/` since the same day, for an order of
+proof-of-concept boards (D-105). They were exported from the board file
+with `kicad-cli` of KiCad 10.0.0: eleven Gerber files of the four-layer
+board (four copper layers, two solder masks, two paste layers, two
+silkscreens and the outline), two drill files, and two assembly files
+with the 360 surface-mount placements of the top side. The drill file
+holds 787 plated holes, the 694 vias and the 93 holes of pads of the
+board, and every layer, the drill file and the placement file lie in
+one coordinate frame. No Gerber viewer has read the files back, and no
+manufacturer has reviewed them. No order is recorded: no board has been
+ordered or made as far as the repository shows.
+
 The exit check above, condition by condition:
 
 - Met: the electrical rules check and the design rules check with
@@ -3430,19 +3532,31 @@ The exit check above, condition by condition:
   the distances, the calculation shows three that the board does not
   keep as written: U13 to D6 and C27, the resistor pairs of the
   set-point path, and the single opening for the acquisition lines.
-- Not met: the 1:1 print has not been compared with the parts.
+- Not met: the 1:1 print has not been compared with the parts. On
+  2026-10-13 the footprints of J2, J4, the sockets and the frame of the
+  can were compared with the documents of their makers, by numbers; that
+  is not the print against the parts.
 
-What stands before fabrication, in this order: the last of the decisions
-that follow the circuit simulations is drawn, the position for a
-capacitor at U28 (D-96; section 16), which adds a footprint and tracks
-to this board; the other two, D-95 and D-98, changed a value and fitted
-parts on pads that exist and are drawn since 2026-10-10; a person opens
-the board in KiCad and reviews it; the open
-items that are to be closed are a change of placement with a local
-redraw; the silkscreen and test point items follow. The seven points
-above are decided (D-87 to D-93) and stand in the way of nothing. The
-component checks of section 16, none of which is closed, and the risk
-prototypes of phase 1 stand before an order as before (section 13).
+The fabrication outputs of draft A2 are filed with two of these
+conditions not met, by decision D-105: proof-of-concept boards of the
+draft may be ordered ahead of the exit check. The check stays what it
+was, the condition for an order of revision A.
+
+What stands before the fabrication of revision A, in this order: the
+last of the decisions that follow the circuit simulations is drawn, the
+position for a capacitor at U28 (D-96; section 16), which adds a
+footprint and tracks to this board; the other two, D-95 and D-98,
+changed a value and fitted parts on pads that exist and are drawn since
+2026-10-10; a person
+reviews the board in the KiCad editor item by item, which the look of
+2026-10-13 was not; the open items that are to be closed are a change of
+placement with a local redraw; what the silkscreen and the test points
+still lack follows. The seven points above are decided (D-87 to D-93)
+and stand in the way of nothing. The component checks of section 16,
+none of which is closed, and the risk prototypes of phase 1 stand before
+an order of revision A as before (section 13). D-105 closes none of
+this: it files the outputs of the board as it is, for proof-of-concept
+boards of draft A2.
 
 ## 11. Verification Plan
 
@@ -3537,7 +3651,8 @@ Notes on the tests:
 ```text
 hardware/     KiCad project of the carrier board (kicad/), the draft in
               pictures with its bill of materials (doc/), fabrication
-              outputs (empty in draft A2)
+              outputs (fabrication/: those of draft A2, filed for an
+              order of proof-of-concept boards, D-105)
 simulation/   Circuit simulations of the carrier board (D-94): the package
               circuit-sim with its tests, a snapshot of the netlist of the
               schematic, the models written for the project, the benches
@@ -3578,7 +3693,9 @@ tools/        board/: the package that calculates the board figures from
    disabled, and by less than 100 mV on a short circuit at an unloaded
    5.0 V output. Every figure of section 4.2 on the stability of this loop
    and on the charge it returns to the 5 V rail comes from a behavioral
-   model; this prototype is the gate before the carrier board is ordered.
+   model; this prototype is the gate before revision A of the carrier
+   board is ordered. Proof-of-concept boards of draft A2 may be ordered
+   ahead of it (D-105).
 
    On the boost converter with 10 µF at its output, exit: the start from a
    supply limited to 0.7 A recorded, since the converter has neither an
@@ -3653,15 +3770,27 @@ whose tracks came from an autorouter (D-86), which left 28 of the 984
 connections open. On 2026-10-10 the layout was reviewed with scripts and
 checked by independent calculation: every connection is closed, and the
 pours of the 1 A path, the guard, the sense pairs and the ground fills
-are drawn (section 10.8). Its figures are calculated from the drawn
+are drawn (section 10.8). On 2026-10-13 the footprints and the placement
+were reviewed with scripts, 3D renderings and datasheets, and five
+findings of that review were worked into the board; the project owner
+opened the project in the KiCad editor that day and found it coherent
+(section 10.8). Its figures are calculated from the drawn
 copper; nothing is built or measured. The draft is the hypothesis that
 the phases test: the checks of section 16 and the results of phases 1 to
 4 change it. The seven deviations of section 10.8 are decided (D-87 to
 D-93). Before revision A is fabricated in phase 5, decision D-96 is
 drawn (D-95 and D-98 are, since 2026-10-10), the benches that these
-decisions touch are run again, a person reviews the board in KiCad, and
-the open
+decisions touch are run again, a person reviews the board in the KiCad
+editor item by item, and the open
 items of that section that need parts moved are closed or accepted.
+
+Proof-of-concept boards of draft A2 may be ordered ahead of all this:
+the project owner asked for the fabrication outputs of the draft on
+2026-10-13, and they are filed in `hardware/fabrication/draft-a2/`
+(D-105). Such boards are draft A2 and not revision A. The decision
+closes no item of section 16, and the entry conditions of phase 5 are
+unchanged. No order is recorded: no board has been ordered or made as
+far as the repository shows.
 
 ## 14. Risk Register
 
@@ -3707,8 +3836,8 @@ items of that section that need parts moved are closed or accepted.
 | Reverse current through the ladder with firmware not acting | Body diodes of the range switches and clamps overheat above about 1 A (estimate) | Firmware selects R3 within 2 ms and opens the output after 100 ms (F-22); watchdog of 100 ms (F-8); 4 A for 100 ms tolerated (estimate, to be measured) |
 | A firmware rule that guards hardware is missing or late (the PIO programs are not written) | Part overstressed in a fault | One list of the rules in section 6.6 (D-81), each with a test; series resistors and pull resistors as the second barrier; watchdog; two rules have no part behind them: the clock lines of the ADC and the return of energy to the 5 V rail |
 | Leakage of the ESD arrays of the logic port between 2.5 V and 5.5 V has no datasheet limit | Reading of a sleeping DUT carries tens of nanoamperes per high line | Measured at 1.8 V to 5.5 V before the first release; accepted at or below 0.5 µA at 5.0 V; an alternate fits the same pads |
-| Draft schematic taken as a finished design | Boards built with unchecked parts | Draft marked A2 on every sheet; section 16 lists the open checks; fabrication only in phase 5 |
-| Board fabricated on the review of 2026-10-10 alone (D-86): done with scripts, its figures calculated from the drawn copper, not yet read by a person in KiCad; seven deviations from section 10 accepted as decisions (D-87 to D-93), one of them with a thermal check open (D-93); converter loops longer than their limits | Noise, leakage and burden outside their budgets: R-06 is missed if copper and contacts pass about 44 mΩ (copper alone 10.4 mΩ and 12.3 mΩ, calculated); the leakage of 5.1 nA (calculated) holds for a clean board only | Layout rules of section 10; state, deviations and open items in section 10.8; review by a person before fabrication; resistance of the 1 A path and temperature rise of U18 as checks of section 16; ripple of the converters measured on the prototypes of phase 1 |
+| Draft schematic taken as a finished design | Boards built with unchecked parts | Draft marked A2 on every sheet and on the silkscreen of the board; section 16 lists the open checks; boards made from the filed outputs are proof-of-concept boards of draft A2, ordered with these checks open and not revision A (D-105); revision A only in phase 5 |
+| Proof-of-concept boards of draft A2 fabricated on the reviews of 2026-10-10 and 2026-10-13 alone (D-86, D-105): both done with scripts, the figures calculated from the drawn copper, the board not yet reviewed item by item by a person in KiCad (the project owner looked at it there on 2026-10-13, and the footprints and the placement were reviewed that day outside the editor); the fabrication outputs not read back in a Gerber viewer; seven deviations from section 10 accepted as decisions (D-87 to D-93), one of them with a thermal check open (D-93); converter loops longer than their limits | Noise, leakage and burden outside their budgets: R-06 is missed if copper and contacts pass about 44 mΩ (copper alone 10.4 mΩ and 12.3 mΩ, calculated); the leakage of 5.1 nA (calculated) holds for a clean board only | Layout rules of section 10; state, deviations and open items in section 10.8; such boards are draft A2 and not revision A, and the items of section 16 stay open (D-105); review by a person, item by item, before revision A; the manufacturer's check of the files and the assembler's preview before an order is confirmed; resistance of the 1 A path and temperature rise of U18 as checks of section 16; ripple of the converters measured on the prototypes of phase 1 |
 | Noise and ground bounce through the board sockets | Jitter on the convert-start signal | Acquisition signals next to a ground pin, series resistors, low drive strength, measurement in phase 1 |
 | Firmware and host disagree on the protocol | Corrupt or misread data | One definition file, generated constants, shared test vectors, stale-file check in continuous integration |
 | Firmware port to the new controller takes longer than planned | Phase 1 starts late | The hardware-independent code and its tests carry over; only adapters and build change |
@@ -3844,6 +3973,7 @@ shown by calculation or simulation and stays a bench item of section 16:
 | D-102 | License of the simulation area, in the split of D-13: the package, its tests, the benches, the models written for the project and the guide are under MIT; the snapshot of the netlist in `simulation/netlist/` and everything in `simulation/results/`, the decks, the records, the graphs and the pages, are under CERN-OHL-P v2, with a copy of that license in each of the two folders (decided by the project owner on 2026-10-10, who left the split to this record) | The snapshot and the decks hold the parts, the values and the nets of the schematic, whose design files are under CERN-OHL-P v2 (R-16); the records, graphs and pages are documentation of that design generated from them, like the pictures of the hardware folder. The wheel ships the package only, so its license field stays MIT |
 | D-103 | The host protocol becomes version 2 in one step: the sample word marks over-range, under-range and the request of the output switch in three of its reserved bits, and its invalid bit also covers the 5 ms after a change of supply; the fault flags grow from four to fifteen, one for each cause of section 6.4; GET_STATUS and GET_INFO carry the readings, the supply in use with its CC class and its budget as a current, the identity and the state of the calibration; the events "supply changed" and "notice" replace "power budget changed"; the calibration record of section 8 travels as one block with CAL_READ and CAL_STORE, which replace CAL_WRITE; CAL_ZERO returns the four zero offsets | Draft A2 reports more than version 1 holds (the open item of section 16), and a change of the protocol costs least while no instrument and no capture exist (decided by the project owner on 2026-10-12 on the recommendation of the firmware design; the layouts are those of sections 7 and 8) |
 | D-104 | GATE_OUT and the over-current trip are a program of their own in PIO 2, which reads CMP_OC and the range line GATE_R3 as inputs; the range sequencer in PIO 1 keeps the three range gates and the two address lines. No pin changes | A block holds 32 instructions and the sequencer needs about 30 of them by its first sketch; one program alone then writes the range lines, and the trip is armed whenever the output is on (decided by the project owner on 2026-10-12 on the recommendation of the firmware design; the programs are sketches that the assembler of the Pico SDK accepts, and none has run) |
+| D-105 | The fabrication outputs of draft A2 are filed in `hardware/fabrication/draft-a2/` for an order of proof-of-concept boards, while the items of section 16 under "Before the board is ordered" are still open. Boards made from them are draft A2 and not revision A, and those items stay open (decided by the project owner on 2026-10-13) | The project owner asked for the outputs on 2026-10-13 to send the board to fabrication, after the review of footprints and placement of that day found no blocker and its five findings were corrected. The open items were named to the owner before the request; none of them is closed by it |
 
 ## 16. Open Checks Before Freezing the Schematic
 
@@ -3852,9 +3982,12 @@ every part is a candidate, the parts of draft A2 included. The comparison
 of pin numbers and land patterns with the datasheets is part of every
 check. Three symbols were drawn for the project from the manufacturer's
 datasheet (ADS8860, MUX509 and TPS63020); the symbol of the TPS2116 is the
-one of the KiCad library with one output pin made passive (D-83). Two
-footprints belong to the project (the lever terminal block and the
-controller module, D-85).
+one of the KiCad library with one output pin made passive (D-83). Three
+footprints belong to the project: the lever terminal block and the
+controller module (D-85), and since 2026-10-13 the land pattern of the
+pre-regulator U16. On that day the symbols and the footprints were
+compared with their libraries and with the datasheets (section 10.8);
+no check record is filed for that comparison, and it closes no check.
 
 Where an item says "calculated" or "simulated", that part of the check has
 a figure and its measurement is what stays open. Test points are named by
@@ -3910,9 +4043,13 @@ Parts and blocks:
   the power the 5 V rail takes in source mode without load, which has to be
   0.25 W or more (0.54 W to 0.60 W estimated), behavior below 1.2 V of
   output and at the 5.5 V end against its over-voltage protection, ripple
-  after the filter. Land pattern: the lead pads agree with the drawing of
-  the manufacturer; center pad 1.7 mm × 3.3 mm against 1.58 mm × 2.85 mm
-  accepted, with a via array. Inductor L2: saturation current of 4.6 A
+  after the filter. Land pattern: since 2026-10-13 a project footprint
+  with the pattern that the drawings of the manufacturer give for its
+  package, a center pad of 1.58 mm × 2.85 mm with a via array and
+  fourteen lead pads of 0.60 mm × 0.24 mm; until then a library footprint
+  for another package, with a center pad of 1.7 mm × 3.3 mm. The finger
+  lands that the drawing shows at the two short ends of the package are
+  not drawn. Inductor L2: saturation current of 4.6 A
   at 30 % drop (datasheet value) against the current limit of the converter;
   no stock on 2026-10-09, second source on the same pads. Bead FB1:
   inductance below 1 MHz.
@@ -4080,7 +4217,11 @@ Parts and blocks:
     and the transition by which the bring-up runs again when PWR_GOOD
     returns: the diagram of section 6.4 has neither.
 
-Before the board is ordered. These items need no carrier board:
+Before the board is ordered. These items need no carrier board. By
+decision D-105 proof-of-concept boards of draft A2 may be ordered before
+these items are closed, and the fabrication outputs of the draft are
+filed for such an order since 2026-10-13. The items remain conditions of
+revision A, and every one of them stays open:
 
 - The decisions that follow the circuit simulations. Drawn on 2026-10-10:
   C32 to C34 at 10 nF (D-95), R14 and C5 fitted with their part numbers
@@ -4110,12 +4251,15 @@ Before the board is ordered. These items need no carrier board:
   to FB1 (15 mΩ or less). Done on 2026-10-10 with scripts and checked by
   independent calculation: 19.5 squares in source mode and 23.3 squares
   in ampere mode against 30, and 7.1 mΩ to FB1 (calculated from the
-  drawn copper, section 10.8). Open: a person opens the board in the
-  KiCad editor and reviews it, and the rest of the exit check of
-  section 10.8.
+  drawn copper, section 10.8). On 2026-10-13 the project owner opened
+  the project in the KiCad editor and found the schematic and the board
+  coherent, and the footprints and the placement were reviewed with
+  scripts, 3D renderings and datasheets (section 10.8). Open: a person
+  reviews the board in the KiCad editor item by item, and the rest of
+  the exit check of section 10.8.
 - The open items of section 10.8 that need parts moved or another
-  footprint: which of them are closed before the order, by a change of
-  placement with a local redraw.
+  footprint: which of them are closed before the order of revision A, by
+  a change of placement with a local redraw.
 - Files that have to be in the repository so that a figure can be
   repeated. The circuit simulations are in
   [`../simulation/`](../simulation/) since 2026-10-10 (D-94): benches that

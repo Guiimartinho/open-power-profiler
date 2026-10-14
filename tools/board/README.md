@@ -116,7 +116,7 @@ run, from the root of the repository:
 The adapter prints what it wrote:
 
 ```text
-nets 258, footprints 425, pads 1273, tracks 3716, vias 694, zones 45, drawings 127
+nets 258, footprints 425, pads 1273, tracks 3743, vias 694, zones 45, drawings 256
 ```
 
 The zones are dumped as the board file stores them. Fill the zones in the
@@ -243,7 +243,7 @@ Track widths (share of the track length at the class width or wider)
    ...
 Mounting holes: 4 holes; tracks nearer than 4 mm to a center: 0
 Shield can: 32 lands, 32 with a ground via within 1.5 mm, 0 without
-Surface leakage on F.Cu (raster 0.04 mm, reach 3 mm, 427410 cells)
+Surface leakage on F.Cu (raster 0.04 mm, reach 3 mm, 427171 cells)
    into the measured node: 4.46 nA (72.3 squares of length over gap), 0.73 nA inside the can, 3.73 nA outside (calculated, 1e+11 ohm per square)
    ...
 ```
