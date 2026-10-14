@@ -17,8 +17,9 @@ every part is a candidate. The comparison of pin numbers and land patterns
 with the datasheet is part of every check; that includes the three symbols
 drawn for the project (ADS8860, MUX509 and TPS63020), the symbol of the
 TPS2116, which is the one of the KiCad library with one output pin made
-passive (D-83), and the two footprints of the project (the lever terminal
-block and the controller module, D-85).
+passive (D-83), and the three footprints of the project: the lever
+terminal block and the controller module (D-85), and since 2026-10-13
+the land pattern of the pre-regulator U16.
 
 Where an item says "calculated" or "simulated", that part of the question
 has a figure, and its measurement is what stays open. Nothing in the tables
@@ -50,9 +51,9 @@ day, as decisions D-95 to D-98; what they leave to check is in four items
 of the first table. Three of the four are drawn since that day, D-95,
 D-97 and D-98, and the first item before the board is ordered holds what
 is left of them: the position of D-96, which is not drawn, and the
-benches that the drawn decisions touch, which were not run again. On
-2026-10-12 the electrical rules check and the design rules check with
-schematic parity report nothing on the drawn files. Of the 14 places, 12
+benches that the drawn decisions touch, which were not run again. The
+electrical rules check and the design rules check with schematic parity
+report nothing on the drawn files, last on 2026-10-13. Of the 14 places, 12
 are corrected in the specification since 2026-10-10, three of them by
 decisions D-99 to D-101. The list now holds what is left: 2 places that
 wait for a new run of the benches and 7 questions that the corrections
@@ -68,10 +69,14 @@ the checks come behind four things: what is left of the decisions that
 follow the simulations, which is itself the first item before the board
 is ordered, the drawing of D-96 and a new run of the benches that the
 three drawn decisions touch; the decisions of the project owner that are
-still open; the rest of the board step (the review by a person, the open
-items of the layout, the silkscreen and the test points); and the
-software step. The
+still open; the rest of the board step (the review of the board item by
+item by a person, the open items of the layout, what the silkscreen and
+the test points still lack); and the software step. The
 [hardware guide](../../hardware/README.md) has that order with its lists.
+One decision of the owner is taken since 2026-10-13: proof-of-concept
+boards of draft A2 may be ordered before the items of the list
+[Before the Board Is Ordered](#before-the-board-is-ordered) are closed
+(D-105). It closes no check.
 
 The layout review of 2026-10-10 closed no item of these tables. It drew
 copper and calculated figures from it; a check is closed by a record with
@@ -110,6 +115,30 @@ calibration record. The [firmware design](../firmware/README.md) gives a
 recommendation for two of the three points that are left; none of them is
 decided. The counts are unchanged: 43 items open, none closed.
 
+The review of footprints and placement of 2026-10-13 closed no item of
+these tables either. It compared the footprints of the board with their
+libraries, the symbols with the datasheets and several parts with the
+drawings of their makers, on a copy of the project, with scripts on the
+board file, 3D renderings and the datasheets. No record is filed for any
+of it, and the standard packages were compared by the package code in
+the part number, not in each datasheet. Two things on this page changed
+with it. The item "Pre-regulator" no longer accepts a center pad that is
+larger than the drawing asks for: U16 stands on a project footprint with
+the land pattern of its own package. And the project has three footprints
+of its own, where it had two. The project owner opened the project in
+the KiCad editor that day and found it coherent; the item "Review of the
+routed board" says so, and the review item by item that it asks for is
+still open. The [hardware guide](../../hardware/README.md) has the
+comparisons one by one.
+
+Decision D-105 of the same day closed no item either. It files the
+fabrication outputs of draft A2 in `hardware/fabrication/draft-a2/` for
+an order of proof-of-concept boards, and it lets such boards be ordered
+before the items of the list
+[Before the Board Is Ordered](#before-the-board-is-ordered) are closed.
+Those items stay open and remain conditions of revision A. The counts
+are unchanged: 43 items open, none closed.
+
 ### Parts and Blocks
 
 | Subject | Questions | Record | Status |
@@ -118,7 +147,7 @@ decided. The counts are unchanged: 43 items open, none closed.
 | ADS8860 (U30) | Convert-start and data timing against the acquisition program at 100 kSPS and 500 kSPS, with convert-start still high at the end of the conversion, and the result shifted out after it has fallen (section 4.6); input driver and reference drive; operation at a 2.5 V reference, where the datasheet gives typical figures only; noise with R131 at 0 Ω, 0.22 Ω and 0.47 Ω (D-75); driver rail (D-73) of about 2.68 V at TP42 and 2.73 V at the output of its buffer (calculated), and its step response, with the position of D-96 empty and with a capacitor in it, whose value is chosen there; TP43 never above VREF + 0.25 V in overload, at power-up, at power-down and while 3V3_A is between 1 V and 2.2 V. The reading window at 15 MHz, the 500 kSPS option: with one reading instant for weak and for strong pads it is 11.43 ns to 13.18 ns with long tracks, against the 13.33 ns of two system clocks (simulated on 2026-10-10 with assumed capacitances) | — | Open |
 | RP2350 PIO | Size of the acquisition program and of the range sequencer against 32 instructions, reaction time from the jump comparator to the gate line of range 3 of 100 ns or less (20 ns to 80 ns, estimate), blanking of 2 µs (F-17) and trip qualification of 12 µs (F-18) as programs, DMA pacing | — | Open |
 | LT3080 (U18) | Dropout on both supply pins on the R-08 curve (calculated, margin 2 mV at 5.0 V; measurement on several warm units open), minimum load of 3.7 mA to 6.9 mA through R69 (calculated), output noise with that load, operation from the control pin alone, thermal resistance of the package on the planned copper; temperature rise at its full dissipation (1.02 W at the limits, 1.5 W to 2.0 W in a sustained short circuit, calculated) on the island of draft A2, 291 mm² on the bottom layer joined by 22 vias to 102 mm² on the top layer (D-93): the datasheet figure of 65 K/W is for 225 mm² of top copper and does not describe that island, so the rise is read on the first board | — | Open |
-| Pre-regulator (TPS63020, U16) | Stability with the difference amplifier U19 in the feedback path over 1.2 V to 5.5 V and the charge returned to the 5 V rail (behavioral model only; phase 1 prototype); power taken from the 5 V rail in source mode without load, 0.25 W or more (0.54 W to 0.60 W estimated); behavior below 1.2 V and at the 5.5 V end against its over-voltage protection; ripple after the filter; land pattern (lead pads agree with the drawing of the manufacturer, center pad 1.7 mm × 3.3 mm against 1.58 mm × 2.85 mm accepted, with a via array); inductor L2 (saturation current of 4.6 A at 30 % drop, datasheet value, against the current limit of the converter; no stock on 2026-10-09, second source on the same pads); bead FB1 (inductance below 1 MHz) | — | Open |
+| Pre-regulator (TPS63020, U16) | Stability with the difference amplifier U19 in the feedback path over 1.2 V to 5.5 V and the charge returned to the 5 V rail (behavioral model only; phase 1 prototype); power taken from the 5 V rail in source mode without load, 0.25 W or more (0.54 W to 0.60 W estimated); behavior below 1.2 V and at the 5.5 V end against its over-voltage protection; ripple after the filter; land pattern (since 2026-10-13 a project footprint with the pattern that the drawings of the manufacturer give for its package, a center pad of 1.58 mm × 2.85 mm with a via array and fourteen lead pads of 0.60 mm × 0.24 mm; until then a library footprint for another package, with a center pad of 1.7 mm × 3.3 mm; the finger lands that the drawing shows at the two short ends of the package are not drawn); inductor L2 (saturation current of 4.6 A at 30 % drop, datasheet value, against the current limit of the converter; no stock on 2026-10-09, second source on the same pads); bead FB1 (inductance below 1 MHz) | — | Open |
 | Set-point path (D-58) | Ceiling of 5.26 V (calculated) at TP23 with the DAC at full scale; half the reference at TP19 | — | Open |
 | Range MOSFETs, ladder clamps (Q10, Q11) and multiplexer | Leakage across the whole ladder at 100 mV and 40 °C against 100 nA, leakage of the node behind the shunts to ground at 5 V and 40 °C against 10 nA, on-resistance of the multiplexer at +12 V / −4 V (125 Ω to 340 Ω expected; the simulations cover up to 430 Ω), gate-charge injection into VOUT, pulse series of section 11 with leakage and gain compared before and after, and the case temperature of both clamps | — | Open |
 | Shunts (R101, R104, R107, R110) | Gain of each range at 20 °C and 40 °C, seat of the two-terminal part R107 on its four-pad land, pulse rating of R107 and R110 in the surge of a hot plug; the datasheet of R104 from its manufacturer | — | Open |
@@ -152,14 +181,19 @@ These items need no carrier board. The temperature rise of U18 (D-93) is
 not among them: it is a question of the item "LT3080 (U18)" above and is
 read on the first board.
 
+By decision D-105 proof-of-concept boards of draft A2 may be ordered
+before these items are closed, and the fabrication outputs of the draft
+are filed for such an order since 2026-10-13. The items remain conditions
+of revision A, and every one of them stays open.
+
 | Item | Record | Status |
 | --- | --- | --- |
 | The decisions that follow the circuit simulations. Drawn on 2026-10-10: C32 to C34 at 10 nF (D-95), R14 and C5 fitted with their part numbers (D-98), and the text of the position U9 (D-97), with the notes of the three sheets. The electrical rules check and the design rules check with schematic parity report nothing, no copper moved, and the bill of materials, the pictures of the three sheets and the netlist snapshot of the simulations follow the drawings. Open: the position for a capacitor from the non-inverting input of U28 to ground (D-96), which needs a footprint and copper; and the benches of the blocks that the changes touch, which were not run again: the rail monitor with the power-up and the power-off, and the input from the module, whose benches still leave R14 and C5 out. Until then the results of the simulations describe the circuit before the changes | — | Open |
 | The risk prototypes of phase 1 that concern the carrier: reaction of the sequencer, pre-regulator with its tracking amplifier, start of the boost converter from 0.7 A | — | Open |
 | Linear range of the AD8421 near full scale with the output below 0.2 V, on the test board of phase 2. Until the result exists, range 3 above 1 A, the trip level and the jump level are specified for output voltages of 0.2 V or more | — | Open |
 | On loose parts: leakage of the suppressor PTVS15VS1UR at 5 V and at 40 °C to 50 °C; leakage of the IRLML0030 at 100 mV and 40 °C; on-resistance of the MUX509 at +12 V / −4 V | — | Open |
-| Review of the routed board (D-86) against the rules of section 10, with the resistance of the 1 A path and of the copper from the pre-regulator to FB1 (15 mΩ or less). Done on 2026-10-10 with scripts and checked by independent calculation: 19.5 squares in source mode and 23.3 squares in ampere mode against 30, and 7.1 mΩ to FB1 (calculated from the drawn copper, section 10.8). Open: a person opens the board in the KiCad editor and reviews it, and the rest of the exit check of section 10.8 | — | Open |
-| The open items of section 10.8 that need parts moved or another footprint: which of them are closed before the order, by a change of placement with a local redraw | — | Open |
+| Review of the routed board (D-86) against the rules of section 10, with the resistance of the 1 A path and of the copper from the pre-regulator to FB1 (15 mΩ or less). Done on 2026-10-10 with scripts and checked by independent calculation: 19.5 squares in source mode and 23.3 squares in ampere mode against 30, and 7.1 mΩ to FB1 (calculated from the drawn copper, section 10.8). On 2026-10-13 the project owner opened the project in the KiCad editor and found the schematic and the board coherent, and the footprints and the placement were reviewed with scripts, 3D renderings and datasheets (section 10.8). Open: a person reviews the board in the KiCad editor item by item, and the rest of the exit check of section 10.8 | — | Open |
+| The open items of section 10.8 that need parts moved or another footprint: which of them are closed before the order of revision A, by a change of placement with a local redraw | — | Open |
 | Files that have to be in the repository so that a figure can be repeated. The circuit simulations are in [`simulation/`](../../simulation/) since 2026-10-10 (D-94): benches that take the parts of their circuits from a snapshot of the netlist and run in the ngspice library of KiCad 10, with their results. They are new simulations; the files of the earlier ones, from which the figures marked "simulated" in the specification were taken, are not filed. The figures calculated from the board (resistance of a pour in squares, path on one layer, surface leakage into the measured node, lengths of the pairs) are produced by the scripts in [`tools/board/`](../../tools/board/). Open: the simulations ran on one machine and with one version of the simulator, and the points in which they differ from the specification are in the fourth list | — | Open |
 | Stock of the parts that had none on 2026-10-09 (L2, 10 µF and 22 µF 25 V X5R), and the order of the parts with long lead times | — | Open |
 
@@ -186,7 +220,12 @@ closed and the pours, the guard, the Kelvin pairs and the copper of the
 converters were drawn, with scripts, block by block, each block checked by
 an independent calculation. The board now has 984 of 984 connections
 routed and passes the design rules check with no violation, no unconnected
-pad and no difference from the schematic.
+pad and no difference from the schematic. On 2026-10-13 a round at single
+points followed a review of footprints and placement: eleven vias were
+moved, each with a short piece of track, and U16 got the land pattern of
+its own package. Nothing was routed again. The figures of the 1 A path
+below were calculated again on the board after that round, with the same
+result; the other figures below are those of 2026-10-10.
 
 What that review gives for the item "Review of the routed board" above, all
 of it calculated from the drawn copper and none of it measured:
@@ -210,9 +249,10 @@ These figures can be calculated again from the board file with the package
 in `tools/board/`; its [guide](../../tools/board/README.md) gives the
 method, the assumptions and the limits.
 
-The item stays open. No record is filed for it, a person has not yet
-opened the board in the KiCad editor and reviewed it, and the open items of
-the layout that need a part moved are not closed. The
+The item stays open. No record is filed for it. The project owner opened
+the board in the KiCad editor on 2026-10-13 and found it coherent, which
+was a look; nobody has reviewed it there item by item, and the open items
+of the layout that need a part moved are not closed. The
 [hardware guide](../../hardware/README.md) lists the decided deviations and
 the open items of the layout one by one. The review of the
 layout is not a component check either: every part on the board is still a

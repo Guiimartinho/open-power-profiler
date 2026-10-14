@@ -22,8 +22,9 @@ PIO program yet, and the bench work has not begun.
 | 6 | Calibration, protocol freeze and host software | None |
 | 7 | Revision B and release | None |
 
-The carrier board exists as draft A2, drawn ahead of the phases. A draft is
-not measured. Its layout was reviewed on 2026-10-10: all 984 connections
+The carrier board exists as draft A2, drawn ahead of the phases. No board
+of it exists, so nothing of it is measured. Its layout was reviewed on
+2026-10-10: all 984 connections
 are routed, and the pours of the 1 A path, the guard, the Kelvin pairs and
 the copper of the converters are drawn. The figures of that review, such as
 19.5 and 23.3 squares of copper in the 1 A path and 5.1 nA of surface
@@ -51,22 +52,37 @@ pre-regulator at its low end; and the start of the boost converter from
 a supply limited to 0.7 A, which decision D-97 leaves as the test that
 says whether a remedy is needed at the position U9.
 
-Phases 1 to 4 come before a carrier board is built: phase 1 runs on
+In the plan of section 13 phases 1 to 4 come before revision A of the
+carrier board is built: phase 1 runs on
 evaluation modules and phase 2 on a test board, and the specification does
-not name the hardware of phases 3 and 4 yet. The first report on a carrier
-board belongs to revision A in phase 5. The layout review with scripts is
+not name the hardware of phases 3 and 4 yet. The report of phase 5 belongs
+to revision A. The layout review with scripts is
 done, and the seven points in which the drawn board deviates from the
 earlier text of section 10 of the specification are recorded as decisions
 D-87 to D-93. Of the four decisions that followed the circuit simulations,
-three are drawn since 2026-10-10 (D-95, D-97 and D-98). What still
-precedes fabrication is the drawing of the fourth (D-96), a new run of
-the benches that the drawn decisions touch, a review of the board by a
-person in the KiCad editor, the open items of the layout that need a part
-moved, the silkscreen and test point items, and the open checks
-(section 13 and section 16 of the specification). The
-[hardware guide](../../hardware/README.md) lists them.
+three are drawn since 2026-10-10 (D-95, D-97 and D-98). On 2026-10-13 the
+project owner opened the project in the KiCad editor and found it
+coherent, which was a look, and the footprints and the placement were
+reviewed with scripts, 3D renderings and datasheets; five findings of
+that review are worked into the board. What still precedes the
+fabrication of revision A is the drawing of the fourth decision (D-96),
+a new run of the benches that the drawn decisions touch, a review of the
+board item by item by a person in the KiCad editor, the open items of
+the layout that need a part moved, what the silkscreen and the test
+points still lack, and the open checks (section 13 and section 16 of the
+specification). The [hardware guide](../../hardware/README.md) lists
+them.
 
-One measurement on that first board is already named: the temperature rise
+Proof-of-concept boards of draft A2 may be ordered before all of that:
+the project owner decided so on 2026-10-13 (D-105), and the fabrication
+outputs of the draft are filed in
+[`hardware/fabrication/draft-a2/`](../../hardware/fabrication/draft-a2/README.md).
+No order is recorded: no board has been ordered or made as far as the
+repository shows. Such boards are draft A2, not revision A, and the
+decision closes no phase and no check: a phase is closed by a report, and
+a report that measures such a board names it as draft A2.
+
+One measurement on the first board is already named: the temperature rise
 of the linear regulator U18 at its full dissipation on the island of
 copper of draft A2 (D-93, an open check of section 16). It belongs to the
 report of phase 5.

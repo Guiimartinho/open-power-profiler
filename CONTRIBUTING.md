@@ -12,12 +12,25 @@ state:
   designed here. The carrier exists as draft A2: a complete schematic and
   a board with every connection routed, whose layout was reviewed against
   section 10 of the specification. That review was done with scripts and
-  checked by independent calculation. The board has not yet been looked at
-  by a person in the KiCad editor. The seven points in which it deviates
+  checked by independent calculation. The seven points in which it deviates
   from the earlier guidelines of section 10 are recorded as decisions D-87
   to D-93 of the specification; the [hardware guide](hardware/README.md)
-  lists them with the open items of the layout. It is not a design to
-  fabricate.
+  lists them with the open items of the layout. On 2026-10-13 the project
+  owner opened the project in the KiCad editor and found it coherent,
+  which was a look, and the footprints and the placement were reviewed
+  with scripts, 3D renderings and datasheets; five findings of that
+  review are worked into the board. Nobody has reviewed the board item by
+  item in the KiCad editor. It is not a checked design.
+- The fabrication outputs of draft A2 are filed in
+  `hardware/fabrication/draft-a2/` since 2026-10-13, for an order of
+  proof-of-concept boards: eleven Gerber files of the four-layer board,
+  two drill files and two assembly files, with a
+  [README](hardware/fabrication/draft-a2/README.md) that holds the order
+  data and the checks. The project owner asked for them with the items
+  that the specification puts before an order still open (D-105). Boards
+  made from them are draft A2 and not revision A, and those items stay
+  open. No order is recorded: no board has been ordered or made as far as
+  the repository shows.
 - Nothing has been built and nothing has been measured. Every figure in
   the repository is a datasheet value, a calculation, a simulation or an
   estimate. The figures of the board are calculated from the drawn copper.
@@ -55,9 +68,9 @@ state:
   the benches, and seven questions are open in its section 16. The
   [simulation guide](simulation/README.md) lists them. A simulated figure
   is not a measured one.
-- `hardware/fabrication/` is empty. The scripts that drew the copper of
-  the board are not in the repository, and neither are the model files of
-  the manufacturers, whose licenses do not allow a copy.
+- The scripts that drew the copper of the board are not in the
+  repository, and neither are the model files of the manufacturers, whose
+  licenses do not allow a copy.
 
 The [documentation index](docs/README.md) lists every document with its
 state and the work that comes next.
@@ -95,7 +108,7 @@ entry.
 | Path | Content | Commit scope | Changelog area |
 | --- | --- | --- | --- |
 | `firmware/` | Firmware of the controller: a project of the Pico SDK for the Pico 2, with a hardware-independent core and its unit tests; no adapter for the hardware yet | `firmware` | `firmware` |
-| `hardware/` | KiCad project of the carrier board (draft A2) and its pictures; the folder for fabrication outputs is empty | `hardware` | `hardware` |
+| `hardware/` | KiCad project of the carrier board (draft A2), its pictures and bill of materials, and the fabrication outputs of draft A2 in `hardware/fabrication/draft-a2/` | `hardware` | `hardware` |
 | `simulation/` | Circuit simulations of the carrier board: the package `circuit-sim`, the snapshot of the netlist, the models, the benches and their results | `simulation` | `simulation` |
 | `host/` | Python package: protocol, transports, device client, capture helpers, simulator | `host` | `host` |
 | `protocol/` | Protocol definition, generator and shared test vectors | `protocol` | `protocol` |
@@ -131,6 +144,11 @@ pull request:
   calculated again from the changed board file with the package in
   `tools/board/`; the [board figures guide](tools/board/README.md) says
   how.
+- A change to the board also carries the fabrication outputs in
+  `hardware/fabrication/draft-a2/`, exported again: they are the files of
+  the board as it stood on 2026-10-13 and no longer match a board that
+  changed. The [README of that folder](hardware/fabrication/draft-a2/README.md)
+  has the commands.
 - A change to the schematic also carries the snapshot of its netlist in
   `simulation/netlist/`, written again, and a new run of the benches of
   the blocks that it touches, with their result files and pages. The
@@ -392,8 +410,10 @@ What these checks are today, and what they are not:
   the measured node, lengths of the pairs) can be calculated again from
   the board file with the package in `tools/board/`. What not: that the
   layout keeps every rule of section 10, or that a figure is a
-  measurement. The board has open items that need a part moved, nobody
-  has reviewed it in the KiCad editor yet, and every figure is calculated
+  measurement. The board has open items that need a part moved. The
+  project owner looked at it in the KiCad editor on 2026-10-13 and found
+  it coherent, but nobody has reviewed it there item by item, and every
+  figure is calculated
   from the drawn copper. The temperature rise of the linear regulator on
   its copper is an open check (D-93). Open an issue before moving parts or
   copper of the front end, the 1 A path or the converters.
@@ -427,11 +447,16 @@ The rules that hold for every area:
   stay at `0.y.z` until the first complete instrument is released. No
   version is tagged yet: every change is under `Unreleased` in the
   changelog.
-- Hardware revisions are named with letters: revision A, revision B. A
-  revision is a board that is fabricated. What is drawn before that is a
+- Hardware revisions are named with letters: revision A, revision B.
+  Revision A is the carrier board of phase 5, fabricated when the open
+  checks that precede it are closed. What is drawn before that is a
   draft with a number, and the carrier board is at draft A2: a review draft
-  on the way to revision A, not a design to fabricate. The layout review
-  of 2026-10-10 did not change the number of the draft.
+  on the way to revision A, not a checked design. The layout review
+  of 2026-10-10 and the round of 2026-10-13 did not change the number of
+  the draft. Proof-of-concept boards may be made from the draft before
+  revision A (D-105 of the specification): its fabrication outputs are in
+  `hardware/fabrication/draft-a2/`, and such boards are draft A2, as
+  their silkscreen says.
 - The host protocol has its own integer version, reported by the device.
   It is 2 since 2026-10-12 (D-103 of the specification), and the protocol
   is not frozen: the freeze is part of phase 6.

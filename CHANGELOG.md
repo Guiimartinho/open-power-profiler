@@ -207,6 +207,49 @@ Each entry starts with the area it affects: **firmware**, **hardware**,
   fields. The generator derives their sizes and field offsets for C,
   their struct formats for Python, and record vectors that both codecs
   reproduce byte for byte.
+- **hardware:** a third project footprint,
+  `Texas_R-PVSON-N14_3x4mm_P0.5mm_EP1.58x2.85mm`, in
+  `hardware/kicad/lib/PowerProfiler.pretty/`: the land pattern of the DSJ
+  package of Texas Instruments (R-PVSON-N14) for the pre-regulator U16,
+  from the drawings in the datasheet SLVS916I of the TPS63020. The finger
+  lands that the drawing shows at the two short ends of the package are
+  not drawn.
+- **hardware:** the silkscreen of the carrier board carries the frames
+  and names of the sixteen placement blocks, as lines of 0.15 mm that
+  are cut wherever a pad, an opening of the solder mask, a part or a text
+  is in the way, and the pin names TX, RX and GND at the console header
+  J1. Until 2026-10-13 the frames and names were on a documentation layer
+  of the board; they are removed there.
+- **docs:** the hardware guide has a section on the review of footprints
+  and placement of 2026-10-13: what was compared with what, the five
+  findings and what was done about each, the frames on the silkscreen,
+  the figures of the board after the round, the checks, and what stays
+  open. The picture guide and the README carry it at smaller size, and
+  section 10.8 of the specification gives the state of the board on that
+  day.
+- **hardware:** the fabrication outputs of draft A2 in
+  `hardware/fabrication/draft-a2/`, for an order of proof-of-concept
+  boards (D-105): eleven Gerber files of the four-layer board (four
+  copper layers, two solder masks, two paste layers, two silkscreens and
+  the outline) and two drill files, also as one archive, with the drill
+  maps, the drill report and the job file beside them; two assembly
+  files in the column layout of JLCPCB with the 360 surface-mount
+  placements of the top side in 142 lines; and a README with the order
+  data of the bare board, what the assembly files hold and lack, and the
+  checks. They were exported from the board file with `kicad-cli` of
+  KiCad 10.0.0. The drill file holds 787 plated holes, which are the 694
+  vias and the 93 holes of pads of the board, and every layer, the drill
+  file and the placement file lie in one coordinate frame. No Gerber
+  viewer has read the files back, and no manufacturer has reviewed them;
+  the assembly files carry manufacturer part numbers only, and their
+  rotations are those of KiCad. No order is recorded: no board has been
+  ordered or made as far as the repository shows.
+- **docs:** the hardware guide has a section on the fabrication outputs
+  of draft A2: what the files are, what was checked on them and what was
+  not, the smallest features of the board against the limits of the
+  manufacturer, and what the order still needs from the project owner.
+  The README has a row for them in its status table, and the
+  documentation index lists their README.
 
 ### Changed
 
@@ -311,10 +354,11 @@ Each entry starts with the area it affects: **firmware**, **hardware**,
   reports no violation, no unconnected pad, no footprint error and no
   difference from the schematic. The schematic and the bill of materials
   are unchanged; 35 of the 425 footprints moved or turned. The review was
-  done with scripts and checked by independent calculation. Nobody has
-  reviewed the board in the KiCad editor yet, the seven points in which it
-  deviates from the earlier text of section 10 are recorded as decisions
-  (D-87 to D-93), and the board is not a design to fabricate.
+  done with scripts and checked by independent calculation; nobody has
+  reviewed the board item by item in the KiCad editor. The seven points
+  in which it deviates from the earlier text of section 10 are recorded
+  as decisions (D-87 to D-93), and the board stays a draft with open
+  items.
   Every figure of it is calculated from the drawn copper; nothing is built
   and nothing is measured.
 - **hardware:** the 1 A path is drawn as pours on the top layer, with the
@@ -473,7 +517,7 @@ Each entry starts with the area it affects: **firmware**, **hardware**,
   decision D-96 and running the touched benches again; the open
   questions of section 16 and the order of proof-of-concept boards are
   the open decisions of the owner; filing the simulations is no longer a
-  step.
+  step. The order was decided later, on 2026-10-13 (D-105).
 - **repo:** the contributing guide and the issue and pull request forms
   name the simulation area: the commit scope and changelog area
   `simulation`, the four checks of the package, what a change of the
@@ -513,6 +557,59 @@ Each entry starts with the area it affects: **firmware**, **hardware**,
   over-current trip and GATE_OUT in PIO 2, the range sequencer in
   PIO 1). Sections 5, 6, 7, 8, 16 and 18.3 follow them and the ported
   build; the calibration record has a layout in section 8.
+- **hardware:** the footprints and the placement of the carrier board of
+  draft A2 were reviewed on 2026-10-13, on a copy of the project, with
+  scripts on the board file, 3D renderings of every region of the board
+  and the datasheets. All 425 footprints equaled the footprint of the
+  same name in their library; 55 of the 59 symbols of the parts are
+  unchanged symbols of the KiCad library, and the four symbols of the
+  project agree pin by pin with their datasheets; the terminal block,
+  the USB-C receptacle, the socket strips and the 0.1 Ω shunt agree with
+  the drawings of their makers; no courtyard overlaps another, and no
+  part stands under the module. It is not a review in the KiCad editor,
+  nothing is measured, and it closes no component check. Its five
+  findings are under "Fixed". The project owner opened the project in
+  the KiCad editor that day and found the schematic and the board
+  coherent: a look, not a review item by item.
+- **hardware:** the six pictures of the board in `hardware/doc/images/`
+  are plotted again from the board file after the round of 2026-10-13,
+  and the bill of materials is exported again, with one line changed:
+  the footprint of U16. The schematic PDF is exported again too; its
+  pages are the same as before. After that round the board has 8.40 m of
+  track in 3,743 segments and 694 vias. The 1 A path, 19.5 and 23.3
+  squares, and the surface leakage into the measured node, 5.1 nA, are
+  unchanged (calculated from the drawn copper), and both rule checks
+  report nothing.
+- **hardware:** the project file `power-profiler-carrier.kicad_pro` holds
+  the default `erc` and `schematic` settings blocks that KiCad 10 writes
+  when its schematic editor opens a project: 334 lines added, nothing
+  changed or removed. The severities of the board checks and the net
+  classes are as they were.
+- **repo:** git ignores the folder `.history/` that KiCad 10 keeps beside
+  a project.
+- **docs:** the README, the hardware guide, the picture guide, the
+  documentation index, the contributing guide, the indexes of the checks
+  and of the reports and the specification describe the board after the
+  round of 2026-10-13: the look of the project owner in the KiCad
+  editor, what the review of footprints and placement compared, the five
+  findings and what was done about each, the figures after the round,
+  and what is open. An item-by-item review in the KiCad editor still
+  precedes revision A; 95 reference texts are hidden, two vias stand at
+  a pad, the lower edge of the frame of the shield can is not confirmed
+  in a drawing of its maker, and the finger lands of U16 are not drawn.
+  The board figures guide shows the output of the dump and of the report
+  on the board of that day.
+- **docs:** the specification records decision D-105 of the project
+  owner, of 2026-10-13: the fabrication outputs of draft A2 are filed for
+  an order of proof-of-concept boards while the items of section 16
+  under "Before the board is ordered" are still open. Boards made from
+  them are draft A2 and not revision A, and those items stay open and
+  remain conditions of revision A. Its head and sections 4.2, 10, 10.8,
+  12, 13, 14 and 16 follow, and with it the decision log reaches D-105.
+  The README, the guides and the indexes name the decision where they
+  spoke of an open question whether proof-of-concept boards are ordered:
+  the question is decided, the outputs are filed, and the order is the
+  owner's.
 
 ### Removed
 
@@ -535,5 +632,33 @@ Each entry starts with the area it affects: **firmware**, **hardware**,
   its project file, its `main` and the build files of its components.
 - **protocol:** the command CAL_WRITE and the event "power budget
   changed" of version 1. Their codes are not used again.
+
+### Fixed
+
+- **hardware:** five findings of the review of footprints and placement
+  of 2026-10-13 are worked into the board of draft A2, at those points
+  only and with no new routing. No part was added or moved, and the
+  circuit did not change.
+  - The pre-regulator U16 (TPS63020DSJR) stood on a library footprint
+    for another package, with a thermal land of 1.70 mm × 3.30 mm. It
+    has the land pattern of its own package now: a thermal land of
+    1.58 mm × 2.85 mm, fourteen lands of 0.60 mm × 0.24 mm and eight
+    paste openings, with the six vias under the part inside the smaller
+    land. The Source Meter sheet, the project symbol, the board and the
+    bill of materials name the new project footprint.
+  - Reference texts of the silkscreen stood at another part of the same
+    package or up to 7 mm from their own, and 123 were hidden. 61 texts
+    are moved to their own part and 31 hidden ones are shown again: 330
+    of the 425 are visible and 95 are hidden, those of the diodes D6,
+    D11 and D17 among them. Every hidden reference is on the
+    fabrication layer.
+  - The text "USB DATA/POWER", which stood beside the console header
+    J1, reads "PICO USB" over "DATA/POWER".
+  - Nine vias whose hole reached into a pad or stood within 0.05 mm of
+    one, where solder can drain into the hole, are moved by 0.2 mm to
+    1.6 mm, to 0.25 mm or more from the pad. Two were left where no
+    free place exists, at pin 6 of U12 and at pad 1 of R67.
+  - Two tented vias that stood under the wall line of the shield can
+    are moved inside it.
 
 [Unreleased]: https://github.com/Guiimartinho/open-power-profiler/commits/main
